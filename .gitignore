@@ -30,3 +30,6 @@ vendor/*
 
 # binary
 bin/*
+
+# vscode
+.vscode/*
