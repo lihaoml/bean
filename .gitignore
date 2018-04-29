@@ -33,3 +33,6 @@ bin/*
 
 # vscode
 .vscode/*
+
+*.lock
+Gopkg.lock
