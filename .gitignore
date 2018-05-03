@@ -22,9 +22,6 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-# Golang dependencies
-vendor/*
-
 # wallet date file
 *.dat
 
@@ -33,6 +30,3 @@ bin/*
 
 # vscode
 .vscode/*
-
-*.lock
-Gopkg.lock
