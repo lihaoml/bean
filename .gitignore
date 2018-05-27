@@ -30,3 +30,6 @@ bin/*
 
 # vscode
 .vscode/*
+
+# local config
+.env
