@@ -23,6 +23,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -33,8 +39,7 @@
   packages = [
     ".",
     "internal/cbor",
-    "internal/json",
-    "log"
+    "internal/json"
   ]
   revision = "05eafee0eb17d0150591a8f30f0fa592cc9b7471"
   version = "v1.6.0"
@@ -72,6 +77,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "04f05b5cf1736b02b0b4f62f15f16f39e384856647056819a424e969849b771e"
+  inputs-digest = "244c7938fe5620069792c05b200b8a0359045a724fbf8e59d4d0e60c5e35eef6"
   solver-name = "gps-cdcl"
   solver-version = 1
