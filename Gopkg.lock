@@ -2,6 +2,25 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/DronRathore/go-mimes"
+  packages = ["."]
+  revision = "43e2b1c0fe8da6a38a4d129a6309e38d934d6927"
+
+[[projects]]
+  name = "github.com/DronRathore/goexpress"
+  packages = [
+    ".",
+    "cookie",
+    "header",
+    "request",
+    "response",
+    "router"
+  ]
+  revision = "85c16f2e3cc4aecbe87de27b0f7f76d4cc1fcd8e"
+  version = "v1.0.2"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -77,6 +96,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "244c7938fe5620069792c05b200b8a0359045a724fbf8e59d4d0e60c5e35eef6"
+  inputs-digest = "fc28096002d6e895513791326eb4cf8aa1d7ae505ff4270f7bc93919e808739e"
   solver-name = "gps-cdcl"
   solver-version = 1
