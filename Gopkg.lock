@@ -2,23 +2,10 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/DronRathore/go-mimes"
+  name = "github.com/bitly/go-simplejson"
   packages = ["."]
-  revision = "43e2b1c0fe8da6a38a4d129a6309e38d934d6927"
-
-[[projects]]
-  name = "github.com/DronRathore/goexpress"
-  packages = [
-    ".",
-    "cookie",
-    "header",
-    "request",
-    "response",
-    "router"
-  ]
-  revision = "85c16f2e3cc4aecbe87de27b0f7f76d4cc1fcd8e"
-  version = "v1.0.2"
+  revision = "aabad6e819789e569bd6aabf444c935aa9ba1e44"
+  version = "v0.5.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -64,8 +51,19 @@
   version = "v1.6.0"
 
 [[projects]]
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
+  version = "v0.1"
+
+[[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "mock",
+    "require",
+    "suite"
+  ]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
@@ -96,6 +94,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fc28096002d6e895513791326eb4cf8aa1d7ae505ff4270f7bc93919e808739e"
+  inputs-digest = "2a7baa55383160b400bb91f075ea098fca502df3518ca486039fd8b881cbc669"
   solver-name = "gps-cdcl"
   solver-version = 1
