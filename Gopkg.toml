@@ -52,3 +52,7 @@
 [[constraint]]
   name = "github.com/DronRathore/goexpress"
   version = "1.0.2"
+
+[[constraint]]
+  name = "gopkg.in/telegram-bot-api.v4"
+  version = "4.6.2"
