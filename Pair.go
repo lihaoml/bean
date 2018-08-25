@@ -1,0 +1,113 @@
+package bean
+
+import (
+	"banana/logger"
+	"math"
+	"strconv"
+	"fmt"
+)
+
+// Pair is representing a trading pair
+type Pair struct {
+	Coin Coin
+	Base Coin
+}
+
+// use
+// go run exchange/example/binance_info/binance_info.go
+// as guideline to set the minimum amount of a pair,
+// look at LOT_SIZE and MIN_NOTIONAL / a conservatively low price
+func (pair Pair) MinimumTradingAmount() float64 {
+	switch pair {
+	case Pair{IOTX, ETH}:
+		return 300 // binance requires 0.01 ETH as minimum notional
+	case Pair{IOTX, BTC}:
+		return 500 // binance requires 0.001 BTC as minimum notional
+	case Pair{ZRX, ETH}:
+		return 8 // binance requires 0.01 ETH as minimum notional, approx price 0.0012
+	case Pair{ETH, USDT}:
+		return 0.05 // // binance requires 10 USDT as minimum notional, approx price 400
+	case Pair{BTC, USDT}:
+		return 0.002 // // binance requires 10 USDT as minimum notional, approx price 5000
+	case Pair{ETH, BTC}:
+		return 0.016 // // binance requires 0.001 BTC as minimum notional, approx price 0.06
+	case Pair{TRX, BTC}:
+		return 200 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+	case Pair{ONT, ETH}:
+		return 6 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+	case Pair{ONT, USDT}:
+		return 8 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
+	case Pair{ETC, ETH}:
+		return 0.3 // // binance requires 0.01 ETH as minimum notional
+	case Pair{ETC, USDT}:
+		return 1.0 // // binance requires 10 USDT as minimum notional, approx price 500s
+	case Pair{ETC, BTC}:
+		return 0.8 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
+	case Pair{EOS, ETH}:
+		return 2.0 // // binance requires 0.01 ETH as minimum notional
+	case Pair{EOS, USDT}:
+		return 3.0 // // binance requires 10 USDT as minimum notional, approx price 500s
+	case Pair{EOS, BTC}:
+		return 2.5 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
+	case Pair{NEO, ETH}:
+		return 0.6 // // binance requires 0.01 ETH as minimum notional
+	case Pair{NEO, USDT}:
+		return 0.8 // // binance requires 10 USDT as minimum notional, approx price 500s
+	case Pair{NEO, BTC}:
+		return 0.8 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
+
+		// below are made up -------------------------
+	case Pair{NKN, ETH}:
+		return 1 // made up, not on binance
+	case Pair{MITH, ETH}:
+		return 1 // made up, not on binance
+	case Pair{MDT, ETH}:
+		return 1000 // made up, not on binance
+	case Pair{HT, ETH}:
+		return 1 // didn't check, not on binance
+	case Pair{XMX, ETH}:
+		return 100 // didn't check, not on binance
+	case Pair{MFT, ETH}:
+		return 200 // didn't check, not on binance
+	case Pair{MFT, BTC}:
+		return 200 // didn't check, not on binance
+	case Pair{FT, USDT}:
+		return 1.0 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
+
+
+	default:
+		logger.Warn().Interface("pair", pair).Msg("minimum trading amount not implemented use 1.0 by default")
+		return 1.0
+	}
+	return math.NaN()
+}
+
+func (pair Pair) FormatPrice(price float64) string {
+
+	var prec int = 8
+	switch pair {
+	case Pair{ETH, USDT}:
+		prec = 2
+		break
+	case Pair{BTC, USDT}:
+		prec = 2
+		break
+	case Pair{ETH, BTC}:
+		prec = 6
+		break
+	case Pair{ ONT, USDT}:
+		prec = 3
+		break
+	case Pair{ ONT, ETH}:
+		prec = 6
+		break
+	case Pair { IOTX, ETH}:
+		return fmt.Sprintf("%.3e", price)
+	}
+	return strconv.FormatFloat(price, 'f', prec, 64)
+}
