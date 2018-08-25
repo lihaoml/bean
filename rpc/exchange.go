@@ -4,7 +4,7 @@ package rpc
 // the RPC exchange instance
 type rpcExchange struct {
 	name string
-	url string
+	url  string
 	port int
 }
 

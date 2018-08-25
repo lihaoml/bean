@@ -2,9 +2,9 @@ package bean
 
 import (
 	"banana/logger"
+	"fmt"
 	"math"
 	"strconv"
-	"fmt"
 )
 
 // Pair is representing a trading pair
@@ -59,7 +59,6 @@ func (pair Pair) MinimumTradingAmount() float64 {
 	case Pair{NEO, BTC}:
 		return 0.8 // // binance requires 0.001 BTC as minimum notional, approx price 500s
 
-
 		// below are made up -------------------------
 	case Pair{NKN, ETH}:
 		return 1 // made up, not on binance
@@ -77,8 +76,6 @@ func (pair Pair) MinimumTradingAmount() float64 {
 		return 200 // didn't check, not on binance
 	case Pair{FT, USDT}:
 		return 1.0 // // binance requires 0.001 BTC as minimum notional, approx price 500s
-
-
 
 	default:
 		logger.Warn().Interface("pair", pair).Msg("minimum trading amount not implemented use 1.0 by default")
@@ -100,13 +97,13 @@ func (pair Pair) FormatPrice(price float64) string {
 	case Pair{ETH, BTC}:
 		prec = 6
 		break
-	case Pair{ ONT, USDT}:
+	case Pair{ONT, USDT}:
 		prec = 3
 		break
-	case Pair{ ONT, ETH}:
+	case Pair{ONT, ETH}:
 		prec = 6
 		break
-	case Pair { IOTX, ETH}:
+	case Pair{IOTX, ETH}:
 		return fmt.Sprintf("%.3e", price)
 	}
 	return strconv.FormatFloat(price, 'f', prec, 64)

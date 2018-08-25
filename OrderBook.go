@@ -1,9 +1,9 @@
 package bean
 
 import (
+	"math"
 	"sort"
 	"time"
-	"math"
 )
 
 // OrderBook an orderbook from exchange
@@ -25,7 +25,6 @@ func (ob OrderBook) Mid() float64 {
 	}
 }
 
-
 // if both bid and ask sides of the order book are non empty
 // typically used to check order book returned from exchange is valid
 func IsOrderBookInValid(ob OrderBook) bool {
@@ -45,7 +44,7 @@ func Denoise(pair Pair, ob OrderBook) OrderBook {
 	minimumAmount := pair.MinimumTradingAmount()
 	for i, b := range ob.Bids {
 		if b.Amount < minimumAmount {
-			if i + 1 < len(ob.Bids) {
+			if i+1 < len(ob.Bids) {
 				ob.Bids[i+1].Amount += b.Amount
 			}
 		} else {
@@ -54,7 +53,7 @@ func Denoise(pair Pair, ob OrderBook) OrderBook {
 	}
 	for i, a := range ob.Asks {
 		if a.Amount < minimumAmount {
-			if i + 1 < len(ob.Asks) {
+			if i+1 < len(ob.Asks) {
 				ob.Asks[i+1].Amount += a.Amount
 			}
 		} else {
@@ -72,11 +71,11 @@ func (ob OrderBook) Sort() OrderBook {
 	return ob
 }
 
-
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
 
 type TraderType int
+
 const (
 	Buyer  TraderType = 0
 	Seller TraderType = 1
@@ -94,11 +93,10 @@ const (
 type OrderStatus struct {
 	FilledAmount float64
 	LeftAmount   float64
-	PlacedPrice  float64  // initial price
-	Price        float64  // filled price, if not applicable then placed price
+	PlacedPrice  float64 // initial price
+	Price        float64 // filled price, if not applicable then placed price
 	State        OrderState
 }
-
 
 type Transaction struct {
 	Pair      Pair

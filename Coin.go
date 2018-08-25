@@ -4,8 +4,8 @@ import (
 	"banana/logger"
 	"banana/util"
 	"math"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // Coin is a constant representing a token
