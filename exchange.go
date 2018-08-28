@@ -12,6 +12,7 @@ const (
 	NameBgogo   = "BGOGO"
 )
 
+/*
 // Exchange is the interface for all exchanges
 // Any exchange struct should implement all these interfaces
 type Exchange interface {
@@ -25,3 +26,4 @@ type Exchange interface {
 	// get all pairs of the exchange with the given base
 	GetPairs(base Coin) ([]Pair, error)
 }
+*/
