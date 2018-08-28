@@ -1,30 +1,47 @@
-package rpc
+package bean
+
+import (
+	"net/rpc"
+	"log"
+	"fmt"
+	. "bean"
+)
 
 //////////////////////////////////////////////////////////////
-// the RPC exchange instance
-type rpcExchange struct {
-	name string
-	url  string
-	port int
+// the RPC exchange client instance
+type RPCExchangeC struct {
+	client *rpc.Client
 }
 
-// TODO: implement a NewExchange function that takes a exchange name and returns an rpcExchange instance
-/*
-func (ex Exchange) Name() string {
-	return ex.name
+func NewRPCExchangeC(network, address string) RPCExchangeC {
+	// Create a TCP connection to localhost on port 1234
+	// client, err := rpc.DialHTTP("tcp", "localhost:9892")
+	client, err := rpc.DialHTTP(network, address)
+	if err != nil {
+		log.Fatal("Connection error: ", err)
+	}
+	return RPCExchangeC{client}
+}
+
+func (ex RPCExchangeC) Name() string {
+	return "NOT IMPLEMENTED"
 }
 
 // get the open orders for a currency pair,
 // when the exchange query fails, return an empty order book
-func (ex Exchange) GetOrderBook (pair Pair) (OrderBook, error) {
-	// make the RPC call
+func (ex RPCExchangeC) GetOrderBook (pair Pair) (OrderBook, error) {
+	var err error
 	var ob OrderBook
-	return ob, nil
+	err = ex.client.Call("RPCExchangeD.GetOrderBook", pair, &ob)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(ob)
+	}
+	return ob, err
 }
 
-
-func (ex Exchange) GetPairs(base Coin) ([]Pair, error) {
+func (ex RPCExchangeC) GetPairs(base Coin) ([]Pair, error) {
 	var pairs []Pair
-	return pairs, nil
+	return pairs, nil // not implemented
 }
-*/
