@@ -1,8 +1,6 @@
 package bean
 
 import (
-	"banana/logger"
-	"banana/util"
 	"math"
 	"strconv"
 	"strings"
@@ -103,11 +101,12 @@ func RoundCoinAmount(coin Coin, amount float64) float64 {
 	case NEO:
 		return math.Floor(amount*1e6) / 1e6
 	default:
-		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
+//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
 	}
 }
 
+/*
 func RenderCoinAmount(coin Coin, amount float64) string {
 	switch coin {
 	case USDT:
@@ -156,3 +155,4 @@ func RenderCoinAmount(coin Coin, amount float64) string {
 		}
 	}
 }
+*/
