@@ -18,13 +18,18 @@ type Order struct {
 }
 
 func (ob OrderBook) Mid() float64 {
-	if IsOrderBookInValid(ob) {
-		return math.NaN()
-	} else {
+	if ob.Valid() {
 		return (ob.Bids[0].Price + ob.Asks[0].Price) / 2.0
+	} else {
+		return math.NaN()
 	}
 }
 
+func (ob OrderBook) Valid() bool {
+	return len(ob.Bids) > 0 || len(ob.Asks) > 0
+}
+
+/*
 // if both bid and ask sides of the order book are non empty
 // typically used to check order book returned from exchange is valid
 func IsOrderBookInValid(ob OrderBook) bool {
@@ -35,6 +40,7 @@ func IsOrderBookInValid(ob OrderBook) bool {
 func IsOrderBookEmpty(ob OrderBook) bool {
 	return len(ob.Bids) == 0 && len(ob.Asks) == 0
 }
+*/
 
 // filter out orders with amount less than the Coin minimum trading amount
 // assuming ob is sorted
