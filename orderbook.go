@@ -3,7 +3,6 @@ package bean
 import (
 	"math"
 	"sort"
-	"time"
 )
 
 // OrderBook an orderbook from exchange
@@ -28,19 +27,6 @@ func (ob OrderBook) Mid() float64 {
 func (ob OrderBook) Valid() bool {
 	return len(ob.Bids) > 0 || len(ob.Asks) > 0
 }
-
-/*
-// if both bid and ask sides of the order book are non empty
-// typically used to check order book returned from exchange is valid
-func IsOrderBookInValid(ob OrderBook) bool {
-	return len(ob.Bids) == 0 || len(ob.Asks) == 0
-}
-
-// if the order book is empty (both buy and sell side)
-func IsOrderBookEmpty(ob OrderBook) bool {
-	return len(ob.Bids) == 0 && len(ob.Asks) == 0
-}
-*/
 
 // filter out orders with amount less than the Coin minimum trading amount
 // assuming ob is sorted
@@ -80,12 +66,6 @@ func (ob OrderBook) Sort() OrderBook {
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
 
-type TraderType int
-
-const (
-	Buyer  TraderType = 0
-	Seller TraderType = 1
-)
 
 type OrderState string
 
@@ -102,13 +82,4 @@ type OrderStatus struct {
 	PlacedPrice  float64 // initial price
 	Price        float64 // filled price, if not applicable then placed price
 	State        OrderState
-}
-
-type Transaction struct {
-	Pair      Pair
-	Price     float64
-	Amount    float64
-	TimeStamp time.Time
-	Maker     TraderType // buyer or seller
-	TxnID     string
 }
