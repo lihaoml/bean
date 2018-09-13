@@ -16,21 +16,25 @@ const (
 	BTC  Coin = "BTC"
 	ETH  Coin = "ETH"
 	USDT Coin = "USDT"
-	GTC  Coin = "GTC"
+
 	IOTX Coin = "IOTX"
-	NKN  Coin = "NKN"
-	HT   Coin = "HT"
-	XMX  Coin = "XMX"
 	ZRX  Coin = "ZRX"
-	TRX  Coin = "TRX"
-	FT   Coin = "FT"
-	MFT  Coin = "MFT"
 	ONT  Coin = "ONT"
-	MITH Coin = "MITH"
-	MDT  Coin = "MDT"
 	ETC  Coin = "ETC"
 	EOS  Coin = "EOS"
 	NEO  Coin = "NEO"
+	IOTA Coin = "IOTA"
+
+	FT   Coin = "FT"
+	HT   Coin = "HT"
+	XMX  Coin = "XMX"
+	NKN  Coin = "NKN"
+
+	TRX  Coin = "TRX"
+	MFT  Coin = "MFT"
+	MITH Coin = "MITH"
+	MDT  Coin = "MDT"
+	GTC  Coin = "GTC"
 )
 
 func (s Coins) Len() int {
