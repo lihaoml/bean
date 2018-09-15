@@ -25,10 +25,10 @@ const (
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
 
-	FT   Coin = "FT"
-	HT   Coin = "HT"
-	XMX  Coin = "XMX"
-	NKN  Coin = "NKN"
+	FT  Coin = "FT"
+	HT  Coin = "HT"
+	XMX Coin = "XMX"
+	NKN Coin = "NKN"
 
 	TRX  Coin = "TRX"
 	MFT  Coin = "MFT"
@@ -105,7 +105,7 @@ func RoundCoinAmount(coin Coin, amount float64) float64 {
 	case NEO:
 		return math.Floor(amount*1e6) / 1e6
 	default:
-//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
+		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
 	}
 }

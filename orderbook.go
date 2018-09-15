@@ -15,7 +15,7 @@ type OrderBook struct {
 // timed order book
 type OrderBookT struct {
 	Time time.Time
-	OB OrderBook
+	OB   OrderBook
 }
 
 type OrderBookTS []OrderBookT
@@ -74,7 +74,6 @@ func (ob OrderBook) Sort() OrderBook {
 
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
-
 
 type OrderState string
 

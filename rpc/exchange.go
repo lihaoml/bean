@@ -1,10 +1,10 @@
 package bean
 
 import (
-	"net/rpc"
-	"log"
-	"fmt"
 	. "bean"
+	"fmt"
+	"log"
+	"net/rpc"
 )
 
 //////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ func (ex RPCExchangeC) Name() string {
 
 // get the open orders for a currency pair,
 // when the exchange query fails, return an empty order book
-func (ex RPCExchangeC) GetOrderBook (pair Pair) (OrderBook, error) {
+func (ex RPCExchangeC) GetOrderBook(pair Pair) (OrderBook, error) {
 	var err error
 	var ob OrderBook
 	err = ex.client.Call("RPCExchangeD.GetOrderBook", pair, &ob)

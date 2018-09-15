@@ -3,8 +3,8 @@ package main
 import (
 	. "bean"
 	"bean/rpc"
-	"time"
 	"fmt"
+	"time"
 )
 
 func main() {
