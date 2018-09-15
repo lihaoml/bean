@@ -3,13 +3,22 @@ package bean
 import (
 	"math"
 	"sort"
+	"time"
 )
 
-// OrderBook an orderbook from exchange
+// OrderBook: an orderbook from exchange
 type OrderBook struct {
 	Bids []Order
 	Asks []Order
 }
+
+// timed order book
+type OrderBookT struct {
+	Time time.Time
+	OB OrderBook
+}
+
+type OrderBookTS []OrderBookT
 
 type Order struct {
 	Price  float64
