@@ -12,8 +12,8 @@ Bean is a lightweight wrapper of a bunch of remote protocal calls (RPC).
 
 # To start with
 
-* Get real time order book:
-```
+* Get real time order book [example](example/exchange/main.go):
+```go
 package main
 
 import (
