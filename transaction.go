@@ -1,6 +1,9 @@
 package bean
 
-import "time"
+import (
+	"sort"
+	"time"
+)
 
 type TraderType int
 
@@ -29,4 +32,9 @@ func (t Transactions) Volume() {
 }
 
 func (t Transactions) OHLC() {
+}
+
+func (t Transactions) Sort() Transactions {
+	sort.Slice(t, func(i, j int) bool { return t[i].TimeStamp.Before(t[j].TimeStamp) })
+	return t
 }
