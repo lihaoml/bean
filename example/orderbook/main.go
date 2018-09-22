@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	ex := bean.NewRPCExchangeC("tcp", "ss.w4ip.com:9892")
+	ex := bean.NewRPCExchangeC("tcp", "13.229.125.250:9892")
 	pair := Pair{BTC, USDT}
 
 	for {
