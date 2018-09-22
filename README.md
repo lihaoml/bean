@@ -2,7 +2,9 @@
 A multi cryptocurrency exchange interface that supports
 * retrieval of historical transaction data and limit order book
 * retrieval of real time limit order book
+
 and (to be done)
+
 * backtest and simulation of trading strategies
 * real trading strategies
 
@@ -34,5 +36,5 @@ To run it:
 go run example/orderbook/main.go 
 ```
 
-* Retrieve historical orderbook and transactions:
+* Retrieve historical orderbook and transactions [example](example/orderbook/main.go):
 ``` go run example/mds/main.go ```
