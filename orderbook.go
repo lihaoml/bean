@@ -72,6 +72,11 @@ func (ob OrderBook) Sort() OrderBook {
 	return ob
 }
 
+func (obts OrderBookTS) Sort() OrderBookTS {
+	sort.Slice(obts, func(i, j int) bool { return obts[i].Time.Before(obts[j].Time) })
+	return obts
+}
+
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
 
