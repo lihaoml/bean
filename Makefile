@@ -10,7 +10,7 @@ BUILD_TARGET_MAIN=main
 
 all: build
 
-build: fmt  #TODO: change it to all relevant tools
+build: example fmt  #TODO: change it to all relevant tools
 
 .PHONY: fmt
 fmt:
@@ -23,6 +23,11 @@ test:
 .PHONY: lint
 lint: 
 	go list ./... | grep -v "^.*exchangeimpl/.*/.*" | xargs $(GOLINT)
+
+.PHONY: example
+example:
+	$(GOBUILD) -o ./bin/test_mds -v ./example/mds/main.go
+	$(GOBUILD) -o ./bin/test_exchange -v ./example/exchange/main.go
 
 .PHONY: clean
 clean:
