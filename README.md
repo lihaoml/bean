@@ -36,5 +36,5 @@ To run it:
 go run example/orderbook/main.go 
 ```
 
-* Retrieve historical orderbook and transactions [example](example/orderbook/main.go):
+* Retrieve historical orderbook and transactions [example](example/mds/main.go):
 ``` go run example/mds/main.go ```
