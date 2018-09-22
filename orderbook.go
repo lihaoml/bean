@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -70,6 +71,17 @@ func (ob OrderBook) Sort() OrderBook {
 	// bids in descending order
 	sort.Slice(ob.Bids, func(i, j int) bool { return ob.Bids[i].Price > ob.Bids[j].Price })
 	return ob
+}
+
+// orderbook display
+func (obts OrderBookTS) ShowBrief() {
+	for _, ob := range obts {
+		if ob.OB.Valid() {
+			fmt.Println(ob.Time.Local().Format("Jan _2 15:04:05"), "depth:", len(ob.OB.Asks), "bestBid:", ob.OB.Bids[0].Price, "bestAsk:", ob.OB.Asks[0].Price)
+		} else {
+			fmt.Println(ob.Time.Local(), len(ob.OB.Asks))
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////

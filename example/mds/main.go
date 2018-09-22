@@ -10,25 +10,21 @@ import (
 func main() {
 	mds := bean.NewRPCMDSConnC("tcp", "13.229.125.250:9892")
 	pair := Pair{BTC, USDT}
-	for {
-		end := time.Now()
-		start := end.Add(time.Duration(-10)*time.Minute)
-		fmt.Println("Orderbook history from", start, "to", end)
-		obts, _ := mds.GetOrderBookTS(pair, start, end, 20)
-		fmt.Println(time.Now().Sub(end))
 
-		printOrderBookTS(obts)
+	end := time.Now()
+	start := end.Add(time.Duration(-10) * time.Second)
+	fmt.Println("Orderbook history from", start.Format("15:04:05"), "to", end.Format("15:04:05"))
 
-		fmt.Println("Transaction history from", start, "to", end)
-		txn, _ := mds.GetTransactions(pair, start, end)
+	// open book history
+	obts, _ := mds.GetOrderBookTS(pair, start, end, 20)
+	fmt.Println("retrieval time: ", time.Now().Sub(end), "-------------")
+	obts.ShowBrief()
 
-		fmt.Println(txn)
-		time.Sleep(time.Second * 2)
-	}
-}
+	end = time.Now()
+	// transactino history
+	fmt.Println("Transaction history from", start.Format("15:04:05"), "to", end.Format("15:04:05"))
+	txn, _ := mds.GetTransactions(pair, end.Add(time.Duration(-1)*time.Minute), end)
 
-func printOrderBookTS (obts OrderBookTS) {
-	for _, ob := range obts {
-		fmt.Println(ob.Time, len(ob.OB.Asks), "bestBid:", ob.OB.Bids[0].Price, "bestAsk:", ob.OB.Asks[0].Price)
-	}
+	fmt.Println("retrieval time: ", time.Now().Sub(end), "-------------")
+	fmt.Println(txn)
 }
