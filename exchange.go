@@ -10,6 +10,7 @@ const (
 	NameKucoin  = "KUCOIN"
 	NameFcoin   = "FCOIN"
 	NameBgogo   = "BGOGO"
+	NameBCoin   = "BCOIN"
 )
 
 /*
