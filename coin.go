@@ -79,8 +79,8 @@ func FormatProfit(v float64, base Coin) string {
 	return symb + " " + strconv.FormatFloat(v, 'f', prec, 64)
 }
 
-func RoundCoinAmount(coin Coin, amount float64) float64 {
-	switch coin {
+func (c Coin) RoundCoinAmount(amount float64) float64 {
+	switch c {
 	case IOTX:
 		return math.Floor(amount)
 	case ETH:

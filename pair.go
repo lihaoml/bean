@@ -83,8 +83,8 @@ func (pair Pair) MinimumTradingAmount() float64 {
 	return math.NaN()
 }
 
+// Format price for reporting purpose (not for trading)
 func (pair Pair) FormatPrice(price float64) string {
-
 	var prec int = 8
 	switch pair {
 	case Pair{ETH, USDT}:
@@ -104,6 +104,53 @@ func (pair Pair) FormatPrice(price float64) string {
 		break
 	case Pair{IOTX, ETH}:
 		return fmt.Sprintf("%.3e", price)
+	}
+	return strconv.FormatFloat(price, 'f', prec, 64)
+}
+
+// the minimum precision of all exchanges for price of a pair to place an order
+func (pair Pair) OrderPricePrec(price float64) string {
+	var prec int = 0
+	switch pair {
+	case Pair{ETH, USDT}:
+	case Pair{BTC, USDT}:
+		prec = 2
+		break
+
+	case Pair{ONT, USDT}:
+	case Pair{NEO, USDT}:
+		prec = 3
+		break
+
+	case Pair{ETC, USDT}:
+		prec = 4
+		break
+
+	case Pair{ETH, BTC}:
+	case Pair{ONT, ETH}:
+	case Pair{NEO, ETH}:
+	case Pair{NEO, BTC}:
+	case Pair{ETC, BTC}:
+	case Pair{ETC, ETH}:
+		prec = 6
+		break
+
+	case Pair{ONT, BTC}:
+		prec = 7
+		break
+
+	case Pair{IOTX, ETH}:
+	case Pair{IOTX, BTC}:
+	case Pair{ZRX, ETH}:
+	case Pair{MFT, ETH}:
+	case Pair{TRX, BTC}:
+	case Pair{MFT, BTC}:
+		prec = 8
+		break
+
+	default:
+		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
+		return ""
 	}
 	return strconv.FormatFloat(price, 'f', prec, 64)
 }
