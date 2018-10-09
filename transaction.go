@@ -38,3 +38,17 @@ func (t Transactions) Sort() Transactions {
 	sort.Slice(t, func(i, j int) bool { return t[i].TimeStamp.Before(t[j].TimeStamp) })
 	return t
 }
+
+// get transactions up to t, assuming txn is sorted
+func (txn Transactions) GetTransactionHistory(t time.Time) Transactions {
+	var idx int
+	for i, tt := range txn {
+		if tt.TimeStamp.Before(t) {
+			idx = i
+		} else {
+			break
+		}
+	}
+	res := txn[0:idx]
+	return res
+}

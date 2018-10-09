@@ -78,7 +78,7 @@ func (ob OrderBook) ShowBrief() {
 	if ob.Valid() {
 		fmt.Println("depth:", len(ob.Asks), "bestBid:", ob.Bids[0].Price, "bestAsk:", ob.Asks[0].Price)
 	} else {
-		fmt.Println( "empty orderbook")
+		fmt.Println("empty orderbook")
 	}
 }
 
@@ -115,7 +115,6 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	}
 	return ob
 }
-
 
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
