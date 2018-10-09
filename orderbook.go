@@ -73,14 +73,28 @@ func (ob OrderBook) Sort() OrderBook {
 	return ob
 }
 
-// orderbook display
+// OrderBook display
+func (ob OrderBook) ShowBrief() {
+	if ob.Valid() {
+		fmt.Println("depth:", len(ob.Asks), "bestBid:", ob.Bids[0].Price, "bestAsk:", ob.Asks[0].Price)
+	} else {
+		fmt.Println( "empty orderbook")
+	}
+}
+
+// OrderBookT display
+func (ob OrderBookT) ShowBrief() {
+	if ob.OB.Valid() {
+		fmt.Println(ob.Time.Local().Format("Jan _2 15:04:05"), "depth:", len(ob.OB.Asks), "bestBid:", ob.OB.Bids[0].Price, "bestAsk:", ob.OB.Asks[0].Price)
+	} else {
+		fmt.Println(ob.Time.Local(), len(ob.OB.Asks))
+	}
+}
+
+// OrderBookTS display
 func (obts OrderBookTS) ShowBrief() {
 	for _, ob := range obts {
-		if ob.OB.Valid() {
-			fmt.Println(ob.Time.Local().Format("Jan _2 15:04:05"), "depth:", len(ob.OB.Asks), "bestBid:", ob.OB.Bids[0].Price, "bestAsk:", ob.OB.Asks[0].Price)
-		} else {
-			fmt.Println(ob.Time.Local(), len(ob.OB.Asks))
-		}
+		ob.ShowBrief()
 	}
 }
 
@@ -88,6 +102,20 @@ func (obts OrderBookTS) Sort() OrderBookTS {
 	sort.Slice(obts, func(i, j int) bool { return obts[i].Time.Before(obts[j].Time) })
 	return obts
 }
+
+// return the orderbook of time t (the closest in sample), assuming the obts is sorted
+func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
+	var ob OrderBook
+	for _, obt := range obts {
+		if t.After(obt.Time) {
+			ob = obt.OB
+		} else {
+			break
+		}
+	}
+	return ob
+}
+
 
 ////////////////////////////////////////////////////////
 // FIXME: move below functions to other module
