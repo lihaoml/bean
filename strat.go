@@ -14,28 +14,34 @@ const ( // iota is reset to 0
 type TradeAction struct {
 	ExName string
 	Op     Operation
+	Pair   Pair
 	Params map[string]interface{}
+}
+
+type TradeActionT struct {
+	Time time.Time
+	Action TradeAction
 }
 
 func CancelOrderAction(exName string, pair Pair, oid string) TradeAction {
 	params := make(map[string]interface{})
-	params["pair"] = pair
 	params["orderid"] = oid
 	return TradeAction{
 		ExName: exName,
 		Op:     CancelOpenOrder,
+		Pair:   pair,
 		Params: params,
 	}
 }
 
 func PlaceLimitOrderAction(exName string, pair Pair, price, amount float64) TradeAction {
 	params := make(map[string]interface{})
-	params["pair"] = pair
 	params["price"] = price
 	params["amount"] = amount
 	return TradeAction{
 		ExName: exName,
 		Op:     PlaceLimitOrder,
+		Pair:   pair,
 		Params: params,
 	}
 }
