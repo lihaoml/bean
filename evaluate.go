@@ -78,7 +78,7 @@ func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
 		p = pClone
 
 	}
-
+/*
 	fmt.Printf("SnapshotTS:\n")
 	for i, v := range snapts {
 		fmt.Printf("%v,%v\n", i, v.Time)
@@ -86,7 +86,7 @@ func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
 			fmt.Printf("%v:%v\n", key, value)
 		}
 	}
-
+*/
 	return snapts
 }
 
@@ -126,7 +126,7 @@ func EvaluateSnapshot(snap Snapshot, mtmBase Coin, ratesbook ReferenceRateBook) 
 			rate = 1
 		} else {
 			rate = LookupRate(Pair{Coin: k, Base: mtmBase}, snap.Time, ratesbook)
-			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
+//			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
 		}
 		if rate != 0 {
 			pv += v * rate
