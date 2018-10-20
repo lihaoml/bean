@@ -35,6 +35,18 @@ type ReferenceRate struct {
 //ReferenceRateTS holds the reference rates for one pair over a period
 type ReferenceRateTS []ReferenceRate
 
+func RefRatesFromTxn(txn Transactions) ReferenceRateTS {
+	var res ReferenceRateTS
+	for _, t := range txn {
+		r := ReferenceRate{
+			Time:  t.TimeStamp,
+			Price: t.Price,
+		}
+		res = append(res, r)
+	}
+	return res
+}
+
 //ReferenceRateBook holds the reference rates for multiple pairs over a period
 type ReferenceRateBook map[Pair]ReferenceRateTS
 
@@ -84,13 +96,9 @@ func GenerateSnapshot(t Transaction, p Portfolio) Snapshot {
 	coin := t.Pair.Coin
 	base := t.Pair.Base
 	var coinChange, baseChange float64
-	if t.Maker == Buyer {
-		coinChange = t.Amount
-		baseChange = t.Price * t.Amount
-	} else {
-		coinChange = t.Amount * (-1)
-		baseChange = t.Price * t.Amount * (-1)
-	}
+
+	coinChange = t.Amount
+	baseChange = t.Price * t.Amount
 
 	p.AddBalance(coin, coinChange)
 	p.RemoveBalance(base, baseChange)
@@ -121,7 +129,7 @@ func EvaluateSnapshot(snap Snapshot, mtmBase Coin, ratesbook ReferenceRateBook) 
 			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
 		}
 		if rate != 0 {
-			pv += v / rate
+			pv += v * rate
 		} else {
 			fmt.Printf("%v%v at %v is not availabe\n", k, mtmBase, snap.Time)
 		}
