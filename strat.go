@@ -19,7 +19,7 @@ type TradeAction struct {
 }
 
 type TradeActionT struct {
-	Time time.Time
+	Time   time.Time
 	Action TradeAction
 }
 

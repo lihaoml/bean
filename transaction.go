@@ -49,7 +49,7 @@ func (txn Transactions) Upto(t time.Time) Transactions {
 			break
 		}
 	}
-	res := txn[0:idx+1]
+	res := txn[0 : idx+1]
 	return res
 }
 
@@ -72,12 +72,12 @@ func (txn Transactions) Between(from, to time.Time) Transactions {
 				break
 			}
 		}
-		res = txn[startIdx:endIdx+1]
+		res = txn[startIdx : endIdx+1]
 	}
 	return res
 }
 
-func (txn Transactions) Cross (price, amount float64) bool {
+func (txn Transactions) Cross(price, amount float64) bool {
 	if amount < 0 {
 		// selling, so need to check if the highest transaction is larger than the order price
 		for _, t := range txn {
@@ -95,4 +95,3 @@ func (txn Transactions) Cross (price, amount float64) bool {
 	}
 	return false
 }
-
