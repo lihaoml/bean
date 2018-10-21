@@ -15,16 +15,38 @@ type Snapshot struct {
 //SnapshotTS represents the states of a portfolio over time
 type SnapshotTS []Snapshot
 
+//Print the contents of the SnapshotTS
+func (s SnapshotTS) Print() {
+	fmt.Println("SnapshotTS")
+	for _, v := range s {
+		fmt.Printf("  Snapshot %v: ", v.Time)
+		balances := v.Port.Balances()
+		for k, e := range balances {
+			fmt.Printf("%v,%v  ", k, e)
+		}
+		fmt.Println("")
+
+	}
+}
+
 //Performance measures the value of a portfolio at a specific time
 type Performance struct {
-	Time     time.Time
-	MtMBase  Coin
-	PV       float64
-	DailyPnL float64
+	Time    time.Time
+	MtMBase Coin
+	PV      float64
+	PnL     float64
 }
 
 //PerformanceTS measures the value of a portoflio over time
 type PerformanceTS []Performance
+
+//Print the contents of PerformanceTS
+func (ps PerformanceTS) Print() {
+	fmt.Println("PerformanceTS")
+	for _, p := range ps {
+		fmt.Printf("  %v:  MtMBase %v  PV %v  PnL %v\n", p.Time, p.MtMBase, p.PV, p.PnL)
+	}
+}
 
 //ReferenceRate holds the reference rates for one pair at a given time
 type ReferenceRate struct {
@@ -56,6 +78,17 @@ func (t ReferenceRateTS) Sort() ReferenceRateTS {
 	return t
 }
 
+//Print the contents of ReferenceRateBook
+func (t ReferenceRateBook) Print() {
+	for k, v := range t {
+		fmt.Println("ReferenceRateBook")
+		fmt.Printf("  ReferenceRate %v: \n", k)
+		for _, elm := range v {
+			fmt.Printf("    %v: Price %v\n", elm.Time, elm.Price)
+		}
+	}
+}
+
 //GenerateSnapshotTS update portfolio overtime
 func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
 	ts.Sort()
@@ -78,15 +111,15 @@ func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
 		p = pClone
 
 	}
-/*
-	fmt.Printf("SnapshotTS:\n")
-	for i, v := range snapts {
-		fmt.Printf("%v,%v\n", i, v.Time)
-		for key, value := range v.Port.Balances() {
-			fmt.Printf("%v:%v\n", key, value)
+	/*
+		fmt.Printf("SnapshotTS:\n")
+		for i, v := range snapts {
+			fmt.Printf("%v,%v\n", i, v.Time)
+			for key, value := range v.Port.Balances() {
+				fmt.Printf("%v:%v\n", key, value)
+			}
 		}
-	}
-*/
+	*/
 	return snapts
 }
 
@@ -126,7 +159,7 @@ func EvaluateSnapshot(snap Snapshot, mtmBase Coin, ratesbook ReferenceRateBook) 
 			rate = 1
 		} else {
 			rate = LookupRate(Pair{Coin: k, Base: mtmBase}, snap.Time, ratesbook)
-//			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
+			//			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
 		}
 		if rate != 0 {
 			pv += v * rate
@@ -148,7 +181,7 @@ func EvaluateSnapshotTS(snapts SnapshotTS, mtmBase Coin, ratesbook ReferenceRate
 	for i, v := range snapts {
 		perf := EvaluateSnapshot(v, mtmBase, ratesbook)
 		if i > 0 {
-			perf.DailyPnL = perf.PV - perfts[i-1].PV
+			perf.PnL = perf.PV - perfts[i-1].PV
 		}
 		perfts = append(perfts, perf)
 	}
@@ -203,16 +236,3 @@ func LookupRate(pair Pair, tm time.Time, ratesbook ReferenceRateBook) float64 {
 		return currRate
 	}
 }
-
-// func LookupRate(pair Pair) float64 {
-// 	BTCUSDT := Pair{Coin: BTC, Base: USDT}
-// 	FTUSDT := Pair{Coin: FT, Base: USDT}
-// 	if pair == BTCUSDT {
-// 		return 3
-// 	} else if pair == FTUSDT {
-// 		return 2
-// 	} else {
-// 		return 1
-// 	}
-
-// }

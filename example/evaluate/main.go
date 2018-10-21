@@ -74,9 +74,7 @@ func main() {
 	perfts := EvaluateSnapshotTS(snapts, USDT, ratesbook)
 
 	for _, v := range perfts {
-		fmt.Printf("%v,%v,%v,%v\n", v.MtMBase, v.Time, v.PV, v.DailyPnL)
+		fmt.Printf("%v,%v,%v,%v\n", v.MtMBase, v.Time, v.PV, v.PnL)
 	}
 
-	// negative balance?
-	// if reference rate unavailable?
 }
