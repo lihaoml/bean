@@ -1,7 +1,7 @@
 package bean
 
 import (
-	"src/github.com/gonum/stat"
+	"github.com/gonum/stat"
 	"math"
 	"sort"
 	"gonum.org/v1/gonum/floats"
