@@ -2,43 +2,44 @@ package bean
 
 import (
 	"github.com/gonum/stat"
+	"gonum.org/v1/gonum/floats"
 	"math"
 	"sort"
-	"gonum.org/v1/gonum/floats"
 	"time"
 )
 
 // stat for single coin
-type TradestatCoin struct {}
+type TradestatCoin struct{}
 
 type CoinPerformanceStat struct {
-	NumofTr			int
-	NetPnL 			float64
-	AvgPnL 			float64
-	AnnReturn   	float64
-	DrawdownTS		[]float64
-	MaxDrawdown 	float64
-	Sharpe			float64
-	AvgWLRatio		float64
-	WinRate			float64
-	LossRate		float64
-	WLRatio			float64
+	NumofTr     int
+	NetPnL      float64
+	AvgPnL      float64
+	AnnReturn   float64
+	DrawdownTS  []float64
+	MaxDrawdown float64
+	Sharpe      float64
+	AvgWLRatio  float64
+	WinRate     float64
+	LossRate    float64
+	WLRatio     float64
 }
+
 //stat for whole portfolio
-type TradestatPort struct {}
+type TradestatPort struct{}
 
 type PortPerformanceStat struct {
-	AllCoins		Coins
-	NetPnL 			float64
-	AvgPnL 			float64
-	AnnReturn   	float64
-	DrawdownTS		[]float64
-	MaxDrawdown 	float64
-	Sharpe			float64
-	AvgWLRatio		float64
-	WinRate			float64
-	LossRate		float64
-	WLRatio			float64
+	AllCoins    Coins
+	NetPnL      float64
+	AvgPnL      float64
+	AnnReturn   float64
+	DrawdownTS  []float64
+	MaxDrawdown float64
+	Sharpe      float64
+	AvgWLRatio  float64
+	WinRate     float64
+	LossRate    float64
+	WLRatio     float64
 }
 
 // get all stat for a single coin
@@ -58,6 +59,7 @@ func (tst TradestatCoin) GetCoinStat(coin Coin, mtmBase Coin, ratesbook Referenc
 
 	return coinstat
 }
+
 // get all stat for portfolio
 func (pfst TradestatPort) GetPortStat(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) PortPerformanceStat {
 	var portstat PortPerformanceStat
@@ -87,12 +89,12 @@ func (pfst TradestatPort) GetAllCoin(ts Transactions) Coins {
 		for _, coin := range coins {
 			if coin != v.Pair.Coin {
 				indC += 0
-			}else {
+			} else {
 				indC += 1
 			}
 			if coin != v.Pair.Base {
 				indB += 0
-			}else {
+			} else {
 				indB += 1
 			}
 		}
@@ -113,7 +115,7 @@ func (pfst TradestatPort) GetNetPnL(mtmBase Coin, ts Transactions, p Portfolio, 
 
 	var netPnL float64
 	for _, v := range permTS {
-		netPnL += v.DailyPnL
+		netPnL += v.PnL
 	}
 	return netPnL
 }
@@ -123,21 +125,21 @@ func (pfst TradestatPort) GetAvgPnL(mtmBase Coin, ts Transactions, p Portfolio, 
 	ssTS := GenerateSnapshotTS(ts, p)
 	permTS := EvaluateSnapshotTS(ssTS, mtmBase, ratesbook)
 	netPnL := pfst.GetNetPnL(mtmBase, ts, p, ratesbook)
-	return 	netPnL / float64(len(permTS))
+	return netPnL / float64(len(permTS))
 }
 
 // get AnnReturn (ln return)
 func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) (rtnTS []float64, annrtn float64) {
 	ssTS := GenerateSnapshotTS(ts, p)
 	permTS := EvaluateSnapshotTS(ssTS, mtmBase, ratesbook)
-	var  returnTS   []float64
-	var  PV    		[]float64
+	var returnTS []float64
+	var PV []float64
 	for i, v := range permTS {
 		if i == 0 {
 			PV = append(PV, v.PV)
-		}else {
+		} else {
 			PV = append(PV, v.PV)
-			returnTS = append(returnTS, math.Log(PV[i] / PV[i-1]))
+			returnTS = append(returnTS, math.Log(PV[i]/PV[i-1]))
 		}
 	}
 	tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
@@ -149,7 +151,7 @@ func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfoli
 func (pfst TradestatPort) GetMaxDrawdown(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) (DD []float64, MaxDD float64) {
 	ssTS := GenerateSnapshotTS(ts, p)
 	permTS := EvaluateSnapshotTS(ssTS, mtmBase, ratesbook)
-	var  drawdown []float64
+	var drawdown []float64
 	var maxsofar float64
 	for i, v := range permTS {
 		if i == 0 {
@@ -157,10 +159,10 @@ func (pfst TradestatPort) GetMaxDrawdown(mtmBase Coin, ts Transactions, p Portfo
 			drawdown = append(drawdown, 0)
 		}
 		if v.PV > maxsofar {
-			drawdown = append(drawdown, 1 - v.PV/maxsofar)
+			drawdown = append(drawdown, 1-v.PV/maxsofar)
 			maxsofar = v.PV
-		}else {
-			drawdown = append(drawdown, 1 - v.PV/maxsofar)
+		} else {
+			drawdown = append(drawdown, 1-v.PV/maxsofar)
 		}
 	}
 	cloneDD := drawdown
@@ -175,38 +177,37 @@ func (pfst TradestatPort) GetSharpe(mtmBase Coin, ts Transactions, p Portfolio, 
 	rtnTS, annreturn := pfst.GetAnnReturn(mtmBase, ts, p, ratesbook)
 	stddev := stat.StdDev(rtnTS, nil)
 	annvol := stddev * math.Sqrt(365)
-	return  (annreturn - 0.02) / annvol // here, set risk free rate as 2%
+	return (annreturn - 0.02) / annvol // here, set risk free rate as 2%
 }
 
 // get AvgWinLoss ratio; Win rate; Loss rate; WL ratio
 func (pfst TradestatPort) GetWLRatio(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) (AvgWinLoss, WR, LR, WL float64) {
 	ssTS := GenerateSnapshotTS(ts, p)
 	permTS := EvaluateSnapshotTS(ssTS, mtmBase, ratesbook)
-	var  PV    		[]float64  // record PV series
-	winNum := float64(0)		// record number of win transaction
-	lossNum	:= float64(0)
-	var  winAmount  float64		// record total win amount
-	var  lossAmount float64
+	var PV []float64     // record PV series
+	winNum := float64(0) // record number of win transaction
+	lossNum := float64(0)
+	var winAmount float64 // record total win amount
+	var lossAmount float64
 	for i, v := range permTS {
 		if i == 0 {
 			PV = append(PV, v.PV)
-		}else {
+		} else {
 			PV = append(PV, v.PV)
 			// find PnL
 			change := PV[i] - PV[i-1]
 			if change > 0 {
 				winNum += 1
 				winAmount += change
-			}else if change < 0 {
+			} else if change < 0 {
 				lossNum += 1
 				lossAmount += change
 			}
 		}
 	}
-	return (winAmount / winNum) / (lossAmount / lossNum), (winNum/float64(len(ssTS))), (lossNum/float64(len(ssTS))), (winNum / lossNum)
+	return (winAmount / winNum) / (lossAmount / lossNum), (winNum / float64(len(ssTS))), (lossNum / float64(len(ssTS))), (winNum / lossNum)
 
 }
-
 
 ////////////////////////////////// functions for single coin performance /////////////////////////////////
 
@@ -223,12 +224,13 @@ func (tst TradestatCoin) GetTrNumber(coin Coin, txn Transactions) int {
 
 // get the net PnL for a specific coin with respect to mtmbase
 type CoinPV struct {
-	Time	time.Time
-	PV 		float64
+	Time time.Time
+	PV   float64
 }
+
 func (tst TradestatCoin) GetNetPnL(coin Coin, mtmBase Coin, ratesbook ReferenceRateBook, ts Transactions, p Portfolio) (NetPnL float64, CoinpvTS []CoinPV) {
 	ssTS := GenerateSnapshotTS(ts, p)
-	var coinpv   CoinPV
+	var coinpv CoinPV
 	var coinpvTS []CoinPV
 	for _, v := range ssTS {
 		if v.Port.Balance(coin) != 0 {
@@ -250,11 +252,11 @@ func (tst TradestatCoin) GetAvgPnL(coin Coin, mtmBase Coin, ratesbook ReferenceR
 
 // get AnnReturn with respect to mtmbase
 func (tst TradestatCoin) GetAnnReturn(coin Coin, mtmBase Coin, ratesbook ReferenceRateBook, ts Transactions, p Portfolio) (annRtn float64, RtnTS []float64) {
-	_, coinpvTS:= tst.GetNetPnL(coin, mtmBase, ratesbook, ts, p)
+	_, coinpvTS := tst.GetNetPnL(coin, mtmBase, ratesbook, ts, p)
 	var returnTS []float64
 	for i, _ := range coinpvTS {
-	 	if i > 0 {
-	 		returnTS = append(returnTS, math.Log(coinpvTS[i].PV / coinpvTS[i-1].PV))
+		if i > 0 {
+			returnTS = append(returnTS, math.Log(coinpvTS[i].PV/coinpvTS[i-1].PV))
 		}
 	}
 	tmperiod := coinpvTS[len(coinpvTS)-1].Time.Sub(coinpvTS[0].Time).Seconds() / (24 * 60 * 60)
@@ -263,20 +265,20 @@ func (tst TradestatCoin) GetAnnReturn(coin Coin, mtmBase Coin, ratesbook Referen
 
 // get Drawdown series and MaxDrawdown
 func (tst TradestatCoin) GetMaxDrawdown(coin Coin, mtmBase Coin, ratesbook ReferenceRateBook, ts Transactions, p Portfolio) (DD []float64, MaxDD float64) {
-	_, coinpvTS:= tst.GetNetPnL(coin, mtmBase, ratesbook, ts, p)
+	_, coinpvTS := tst.GetNetPnL(coin, mtmBase, ratesbook, ts, p)
 	// find the drawdown series
-	var  drawdown []float64
-	var  maxsofar float64
+	var drawdown []float64
+	var maxsofar float64
 	for i, v := range coinpvTS {
 		if i == 0 {
 			maxsofar = v.PV
 			drawdown = append(drawdown, 0)
 		}
 		if v.PV > maxsofar {
-			drawdown = append(drawdown, 1 - v.PV/maxsofar)
+			drawdown = append(drawdown, 1-v.PV/maxsofar)
 			maxsofar = v.PV
-		}else {
-			drawdown = append(drawdown, 1 - v.PV/maxsofar)
+		} else {
+			drawdown = append(drawdown, 1-v.PV/maxsofar)
 		}
 	}
 	cloneDD := drawdown
@@ -291,7 +293,7 @@ func (tst TradestatCoin) GetSharpe(coin Coin, mtmBase Coin, ratesbook ReferenceR
 	annurtn, rtnTS := tst.GetAnnReturn(coin, mtmBase, ratesbook, ts, p)
 	stddev := stat.StdDev(rtnTS, nil)
 	annvol := stddev * math.Sqrt(365)
-	return  (annurtn - 0.02) / annvol
+	return (annurtn - 0.02) / annvol
 }
 
 // get AvgWinLoss ratio; Win rate; Loss rate; WL ratio
@@ -299,21 +301,21 @@ func (tst TradestatCoin) GetWLRatio(coin Coin, mtmBase Coin, ratesbook Reference
 	// find return series
 	_, pvTS := tst.GetNetPnL(coin, mtmBase, ratesbook, ts, p)
 	winNum := float64(0)
-	lossNum	:= float64(0)
-	var  winAmount  float64
-	var  lossAmount float64
+	lossNum := float64(0)
+	var winAmount float64
+	var lossAmount float64
 	for i, _ := range pvTS {
 		for i > 0 {
 			change := pvTS[i].PV - pvTS[i-1].PV
 			if change > 0 {
 				winNum += 1
 				winAmount += change
-			}else if change < 0 {
+			} else if change < 0 {
 				lossNum += 1
 				lossAmount += change
 			}
 		}
 	}
-	trnum := tst.GetTrNumber(coin,ts)
-	return (winAmount / winNum) / (lossAmount / lossNum), (winNum/float64(trnum)), (lossNum/float64(trnum)), (winNum / lossNum)
+	trnum := tst.GetTrNumber(coin, ts)
+	return (winAmount / winNum) / (lossAmount / lossNum), (winNum / float64(trnum)), (lossNum / float64(trnum)), (winNum / lossNum)
 }
