@@ -76,5 +76,18 @@ func main() {
 	for _, v := range perfts {
 		fmt.Printf("%v,%v,%v,%v\n", v.MtMBase, v.Time, v.PV, v.PnL)
 	}
+	
+	/////////////////////////////////////////////
+	var pfst TradestatPort
+	sta := pfst.GetPortStat(USDT, t, p, ratesbook)
+	fmt.Println("all coin:",sta.AllCoins)
+	fmt.Println("MaxDrawdown:",sta.MaxDrawdown)
+	fmt.Println("NetPnL:",sta.NetPnL)
+	fmt.Println("AnnReturn:",sta.AnnReturn)
+	fmt.Println("Sharpe:",sta.Sharpe)
+
+	var  tst TradestatCoin
+	fmt.Println("coin trade NumofTr:", tst.GetTrNumber(BTC, t))
+	fmt.Println("coin trade Sharpe:", tst.GetSharpe(BTC, USDT, ratesbook, t, p))
 
 }
