@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+const (
+	MDS_HOST_SG40 = "178.128.210.218"
+	MDS_PORT      = "9892"
+)
+
 //////////////////////////////////////////////////////////////
 // the RPC MDS connection client instance
 type RPCMDSConnC struct {

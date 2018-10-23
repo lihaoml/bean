@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	mds := bean.NewRPCMDSConnC("tcp", "13.229.125.250:9892")
+	mds := bean.NewRPCMDSConnC("tcp", bean.MDS_HOST_SG40+":"+bean.MDS_PORT)
 	pair := Pair{BTC, USDT}
 
 	end := time.Now()
