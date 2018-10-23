@@ -9,6 +9,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/golang/freetype"
+  packages = [
+    "raster",
+    "truetype"
+  ]
+  revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+
+[[projects]]
+  branch = "master"
   name = "github.com/gonum/blas"
   packages = [
     ".",
@@ -71,6 +80,30 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "github.com/wcharczuk/go-chart"
+  packages = [
+    ".",
+    "drawing",
+    "matrix",
+    "roboto",
+    "seq",
+    "util"
+  ]
+  revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
+  version = "v2.0.1"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/image"
+  packages = [
+    "draw",
+    "font",
+    "math/f64",
+    "math/fixed"
+  ]
+  revision = "991ec62608f3c0da01d400756917825d1e2fd528"
+
+[[projects]]
   branch = "master"
   name = "gonum.org/v1/gonum"
   packages = [
@@ -82,6 +115,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "231472ac06e3fb88a8fbcded5ac05fdfda6d6f3bf54edf8022679af022c13911"
+  inputs-digest = "1b971e1560158436357f7807ebc88373412799f2b5c33d2bda5ccf82c15f0b74"
   solver-name = "gps-cdcl"
   solver-version = 1
