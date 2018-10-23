@@ -129,7 +129,7 @@ func (pfst TradestatPort) GetAvgPnL(mtmBase Coin, ts Transactions, p Portfolio, 
 }
 
 // get AnnReturn (ln return)
-func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) (rtnTS []float64, annrtn float64) {
+func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfolio, ratesbook ReferenceRateBook) (RtnTS []float64, annrtn float64) {
 	ssTS := GenerateSnapshotTS(ts, p)
 	permTS := EvaluateSnapshotTS(ssTS, mtmBase, ratesbook)
 	var returnTS []float64
@@ -142,9 +142,34 @@ func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfoli
 			returnTS = append(returnTS, math.Log(PV[i]/PV[i-1]))
 		}
 	}
-	tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
-	annReturn := floats.Sum(returnTS) / (tmperiod / 365)
-	return returnTS, annReturn
+	var rtnTS []float64
+	if PV[0] == 0 {
+		for i, _ := range PV {
+			PV[i] = PV[i] + 2e-8
+			if i > 0 {
+				if PV[i] * PV[i-1] > 0 {
+					if PV[i] - PV[i-1] > 0 {
+						rtnTS = append(rtnTS, math.Log(PV[i]/PV[i-1]))
+					} else {
+						rtnTS = append(rtnTS, -1 * math.Log(PV[i]/PV[i-1]))
+					}
+				} else {
+					if PV[i-1] > 0 {
+						rtnTS = append(rtnTS, -1 * math.Log((math.Abs(PV[i]) + 2 * PV[i-1]) / PV[i-1]))
+					} else {
+						rtnTS = append(rtnTS, math.Log((PV[i] + 2 * math.Abs(PV[i-1])) / math.Abs(PV[i-1])))
+					}
+				}
+			}
+		}
+		tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
+		annRtn:= floats.Sum(rtnTS) / (tmperiod / 365)
+		return rtnTS, annRtn
+	} else {
+		tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
+		annReturn := floats.Sum(returnTS) / (tmperiod / 365)
+		return returnTS, annReturn
+	}
 }
 
 // get Drawdown series and MaxDrawdown
