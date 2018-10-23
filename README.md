@@ -41,6 +41,7 @@ go run example/orderbook/main.go
 
 # To implement trading strategy, look at [simplemm](strats/simplemm.go)
 
-# To backtest a trading strategy
+# To backtest a trading strategy, look at [run_backtest](example/simplemm/main.go)
 ``` go run example/simplemm/main.go ```
+
 After backtesting the result is visualized on webpage: http://localhost:8080
