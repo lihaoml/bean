@@ -3,14 +3,14 @@ A multi cryptocurrency exchange interface that supports
 * retrieval of historical transaction data and limit order book
 * retrieval of real time limit order book
 
-and (to be done)
+and 
 
 * backtest and simulation of trading strategies
-* real trading strategies
+* real trading strategies 
 
 Bean is a lightweight wrapper of a bunch of remote protocal calls (RPC). 
 
-# To start with
+# Get Real Time OrderBook
 
 * Get real time order book [example](example/exchange/main.go):
 ```go
@@ -36,5 +36,11 @@ To run it:
 go run example/orderbook/main.go 
 ```
 
-* Retrieve historical orderbook and transactions [example](example/mds/main.go):
+# Retrieve historical orderbook and transactions [example](example/mds/main.go):
 ``` go run example/mds/main.go ```
+
+# To implement trading strategy, look at [simplemm](strats/simplemm.go)
+
+# To backtest a trading strategy
+``` go run example/simplemm/main.go ```
+After backtesting the result is visualized on webpage: http://localhost:8080
