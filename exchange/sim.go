@@ -22,6 +22,7 @@ type Simulator struct {
 	// consider using a list of orderstatus
 	myTransactions []Transaction
 	oid            int
+	myPortfolio    Portfolio
 }
 
 func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end time.Time, initPortfolio Portfolio) Simulator {
@@ -148,4 +149,15 @@ func (sim *Simulator) CancelOrder(pair Pair, oid string) error {
 
 func (sim Simulator) GetTrades() Transactions {
 	return sim.myTransactions
+}
+
+// GetPortfolio not implemented yet
+func (sim Simulator) GetPortfolioByCoins(coins Coins) Portfolio {
+	p := sim.GetPortfolio()
+	return p.Filter(coins)
+}
+
+// GetPortfolio -
+func (sim Simulator) GetPortfolio() Portfolio {
+	return sim.myPortfolio
 }
