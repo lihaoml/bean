@@ -4,7 +4,7 @@ import (
 	. "bean"
 )
 
-func performActions(exs *(map[string]Exchange), actions []TradeAction) {
+func PerformActions(exs *(map[string]Exchange), actions []TradeAction) {
 	// exchange to deal with the actions
 	for _, act := range actions {
 		switch act.Op {

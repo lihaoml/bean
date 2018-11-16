@@ -67,14 +67,9 @@ func (pfst TradestatPort) GetPortStat(mtmBase Coin, ts Transactions, p Portfolio
 	portstat.NetPnL = pfst.GetNetPnL(mtmBase, ts, p, ratesbook)
 	portstat.AvgPnL = pfst.GetAvgPnL(mtmBase, ts, p, ratesbook)
 	_, portstat.AnnReturn = pfst.GetAnnReturn(mtmBase, ts, p, ratesbook)
-	portstat.DrawdownTS, _ = pfst.GetMaxDrawdown(mtmBase, ts, p, ratesbook)
-	_, portstat.MaxDrawdown = pfst.GetMaxDrawdown(mtmBase, ts, p, ratesbook)
+	portstat.DrawdownTS, portstat.MaxDrawdown = pfst.GetMaxDrawdown(mtmBase, ts, p, ratesbook)
 	portstat.Sharpe = pfst.GetSharpe(mtmBase, ts, p, ratesbook)
-	portstat.AvgWLRatio, _, _, _ = pfst.GetWLRatio(mtmBase, ts, p, ratesbook)
-	_, portstat.WinRate, _, _ = pfst.GetWLRatio(mtmBase, ts, p, ratesbook)
-	_, _, portstat.LossRate, _ = pfst.GetWLRatio(mtmBase, ts, p, ratesbook)
-	_, _, _, portstat.WLRatio = pfst.GetWLRatio(mtmBase, ts, p, ratesbook)
-
+	portstat.AvgWLRatio, portstat.WinRate, portstat.LossRate, portstat.WLRatio = pfst.GetWLRatio(mtmBase, ts, p, ratesbook)
 	return portstat
 }
 
@@ -147,23 +142,23 @@ func (pfst TradestatPort) GetAnnReturn(mtmBase Coin, ts Transactions, p Portfoli
 		for i, _ := range PV {
 			PV[i] = PV[i] + 2e-8
 			if i > 0 {
-				if PV[i] * PV[i-1] > 0 {
-					if PV[i] - PV[i-1] > 0 {
+				if PV[i]*PV[i-1] > 0 {
+					if PV[i]-PV[i-1] > 0 {
 						rtnTS = append(rtnTS, math.Log(PV[i]/PV[i-1]))
 					} else {
-						rtnTS = append(rtnTS, -1 * math.Log(PV[i]/PV[i-1]))
+						rtnTS = append(rtnTS, -1*math.Log(PV[i]/PV[i-1]))
 					}
 				} else {
 					if PV[i-1] > 0 {
-						rtnTS = append(rtnTS, -1 * math.Log((math.Abs(PV[i]) + 2 * PV[i-1]) / PV[i-1]))
+						rtnTS = append(rtnTS, -1*math.Log((math.Abs(PV[i])+2*PV[i-1])/PV[i-1]))
 					} else {
-						rtnTS = append(rtnTS, math.Log((PV[i] + 2 * math.Abs(PV[i-1])) / math.Abs(PV[i-1])))
+						rtnTS = append(rtnTS, math.Log((PV[i]+2*math.Abs(PV[i-1]))/math.Abs(PV[i-1])))
 					}
 				}
 			}
 		}
 		tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
-		annRtn:= floats.Sum(rtnTS) / (tmperiod / 365)
+		annRtn := floats.Sum(rtnTS) / (tmperiod / 365)
 		return rtnTS, annRtn
 	} else {
 		tmperiod := (permTS[len(permTS)-1].Time.Sub(permTS[0].Time)).Seconds() / (24 * 60 * 60)
@@ -184,10 +179,10 @@ func (pfst TradestatPort) GetMaxDrawdown(mtmBase Coin, ts Transactions, p Portfo
 			drawdown = append(drawdown, 0)
 		}
 		if v.PV > maxsofar {
-			drawdown = append(drawdown, 1-v.PV/maxsofar)
+			drawdown = append(drawdown, maxsofar-v.PV)
 			maxsofar = v.PV
 		} else {
-			drawdown = append(drawdown, 1-v.PV/maxsofar)
+			drawdown = append(drawdown, maxsofar-v.PV)
 		}
 	}
 	cloneDD := drawdown

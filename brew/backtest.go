@@ -8,6 +8,7 @@ import (
 	"github.com/wcharczuk/go-chart"
 	"net/http"
 	"time"
+	"math"
 )
 
 // BackTest data type
@@ -53,7 +54,7 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time) BackTestResult {
 		}
 		actions := strat.Grind(exs)
 		// Perform actions
-		performActions(&exs, actions)
+		PerformActions(&exs, actions)
 	}
 
 	result := BackTestResult{start: start, end: end, pairs: pairs, dbhost: bt.dbhost, dbport: bt.dbport}
@@ -77,17 +78,26 @@ func (res BackTestResult) Show() {
 		txn, _ := mds.GetTransactions(p, res.start, res.end)
 		ratesbook[p] = RefRatesFromTxn(txn)
 		perfts := EvaluateSnapshotTS(snapts, p.Base, ratesbook)
+		snapts.Print()
+		perfts.Print()
 
 		var pfst TradestatPort
 		sta := pfst.GetPortStat(p.Base, res.Txn, NewPortfolio(), ratesbook)
 		fmt.Println("all coin:", sta.AllCoins)
 		fmt.Println("MaxDrawdown:", sta.MaxDrawdown)
 		fmt.Println("NetPnL:", sta.NetPnL)
-		fmt.Println("AnnReturn:", sta.AnnReturn)
-		fmt.Println("Sharpe:", sta.Sharpe)
+		// fmt.Println("AnnReturn:", sta.AnnReturn)
+		// fmt.Println("Sharpe:", sta.Sharpe)
 		fmt.Println("Win/Loss:", sta.WLRatio)
 		fmt.Println("Win/NumofTrade:", sta.WinRate)
 		fmt.Println("AvgWLRatio:", sta.AvgWLRatio)
+
+		totalAmount := 0.0
+		for _, tx := range res.Txn {
+			totalAmount += math.Abs(tx.Amount)
+		}
+		fmt.Println("Total Transaction Amount:", totalAmount)
+		fmt.Println("Final Portfolio:", snapts[len(snapts) - 1])
 
 		xs := make([]time.Time, len(perfts))
 		ys := make([]float64, len(perfts))
@@ -103,10 +113,12 @@ func (res BackTestResult) Show() {
 			},
 			YAxis: chart.YAxis{
 				Style: chart.StyleShow(),
+/*
 				Range: &chart.ContinuousRange{
 					Max: 5,
 					Min: -5,
 				},
+*/
 			},
 			Series: []chart.Series{
 				chart.TimeSeries{
@@ -128,8 +140,7 @@ func (res BackTestResult) Show() {
 func (res BackTestResult) Evaluate(mtmBase Coin) {
 	p := NewPortfolio()
 	snapts := GenerateSnapshotTS(res.Txn, p)
-	//snapts.Print()
-	mds := bean.NewRPCMDSConnC("tcp", "13.229.125.250:9892")
+	mds := bean.NewRPCMDSConnC("tcp", res.dbhost+":"+res.dbport)
 	ratesbook := make(ReferenceRateBook)
 
 	for _, p := range res.pairs {

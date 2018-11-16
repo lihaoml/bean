@@ -52,6 +52,7 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 		txn:      txn,
 		myOrders: myOrders,
 		oid:      0,
+		myPortfolio: initPortfolio,
 	}
 }
 
@@ -83,6 +84,8 @@ func (sim *Simulator) SetTime(t time.Time) {
 					} else {
 						maker = Seller
 					}
+					sim.myPortfolio.AddBalance(p.Coin, o.amount)
+					sim.myPortfolio.AddBalance(p.Base, - o.amount * o.price)
 					newTxn := Transaction{
 						Pair:      p,
 						Price:     o.price,
@@ -92,6 +95,7 @@ func (sim *Simulator) SetTime(t time.Time) {
 						TxnID:     fmt.Sprint(len(sim.myTransactions)),
 					}
 					sim.myTransactions = append(sim.myTransactions, newTxn)
+
 				}
 			}
 		}
