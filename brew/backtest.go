@@ -32,14 +32,13 @@ func NewBackTest(dbhost, dbport string) BackTest {
 	}
 }
 
-func (bt BackTest) Simulate(strat Strat, start, end time.Time) BackTestResult {
+func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfolio) BackTestResult {
 	// fetch historical data ///////////////////////////////////////////
 	exNames := strat.GetExchangeNames()
 	pairs := strat.GetPairs()
 	exSims := make([]exchange.Simulator, len(exNames))
 	exs := make(map[string]Exchange)
 	for i, exName := range exNames {
-		initPort := NewPortfolio() // TODO: allow setting initPortfolio to restrict exposure
 		exSims[i] = exchange.NewSimulator(exName, pairs, bt.dbhost, bt.dbport, start, end, initPort)
 		exs[exName] = &exSims[i]
 	}

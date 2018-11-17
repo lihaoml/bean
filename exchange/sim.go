@@ -5,6 +5,7 @@ import (
 	"bean/rpc"
 	"fmt"
 	"time"
+	"math"
 )
 
 type Simulator struct {
@@ -81,8 +82,12 @@ func (sim *Simulator) SetTime(t time.Time) {
 					var maker TraderType
 					if o.amount > 0 {
 						maker = Buyer
+						currentLockedBase := sim.myPortfolio.Balance(p.Base) - sim.myPortfolio.AvailableBalance(p.Base)
+						sim.myPortfolio.SetLockedBalance(p.Base, currentLockedBase - math.Abs(o.amount) * o.price)
 					} else {
 						maker = Seller
+						currentLockedCoin := sim.myPortfolio.Balance(p.Coin) - sim.myPortfolio.AvailableBalance(p.Coin)
+						sim.myPortfolio.SetLockedBalance(p.Coin, currentLockedCoin - math.Abs(o.amount))
 					}
 					sim.myPortfolio.AddBalance(p.Coin, o.amount)
 					sim.myPortfolio.AddBalance(p.Base, - o.amount * o.price)
@@ -130,6 +135,15 @@ func (sim *Simulator) PlaceLimitOrder(pair Pair, price float64, amount float64) 
 	}
 	sim.myOrders[pair] = append(sim.myOrders[pair], order)
 	sim.oid++
+
+	if amount > 0 {
+		currentLockedBase := sim.myPortfolio.Balance(pair.Base) - sim.myPortfolio.AvailableBalance(pair.Base)
+		sim.myPortfolio.SetLockedBalance(pair.Base, currentLockedBase + price * math.Abs(amount))
+	} else {
+		currentLockedCoin := sim.myPortfolio.Balance(pair.Coin) - sim.myPortfolio.AvailableBalance(pair.Coin)
+		sim.myPortfolio.SetLockedBalance(pair.Coin, currentLockedCoin + math.Abs(amount))
+	}
+
 	return oid, nil
 }
 
