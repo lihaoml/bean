@@ -112,24 +112,42 @@ func (pair Pair) FormatPrice(price float64) string {
 func (pair Pair) OrderPricePrec(price float64) string {
 	var prec int = 0
 	switch pair {
-	case Pair{ETH, USDT}: prec = 2
-	case Pair{BTC, USDT}: prec = 2
-	case Pair{ONT, USDT}: prec = 3
-	case Pair{NEO, USDT}: prec = 3
-	case Pair{ETC, USDT}: prec = 4
-	case Pair{ETH, BTC}: prec = 6
-	case Pair{ONT, ETH}: prec = 6
-	case Pair{NEO, ETH}: prec = 6
-	case Pair{NEO, BTC}: prec = 6
-	case Pair{ETC, BTC}: prec = 6
-	case Pair{ETC, ETH}: prec = 6
-	case Pair{ONT, BTC}: prec = 7
-	case Pair{IOTX, ETH}: prec = 8
-	case Pair{IOTX, BTC}: prec = 8
-	case Pair{ZRX, ETH}: prec = 8
-	case Pair{MFT, ETH}: prec = 8
-	case Pair{TRX, BTC}: prec = 8
-	case Pair{MFT, BTC}: prec = 8
+	case Pair{ETH, USDT}:
+		prec = 2
+	case Pair{BTC, USDT}:
+		prec = 2
+	case Pair{ONT, USDT}:
+		prec = 3
+	case Pair{NEO, USDT}:
+		prec = 3
+	case Pair{ETC, USDT}:
+		prec = 4
+	case Pair{ETH, BTC}:
+		prec = 6
+	case Pair{ONT, ETH}:
+		prec = 6
+	case Pair{NEO, ETH}:
+		prec = 6
+	case Pair{NEO, BTC}:
+		prec = 6
+	case Pair{ETC, BTC}:
+		prec = 6
+	case Pair{ETC, ETH}:
+		prec = 6
+	case Pair{ONT, BTC}:
+		prec = 7
+	case Pair{IOTX, ETH}:
+		prec = 8
+	case Pair{IOTX, BTC}:
+		prec = 8
+	case Pair{ZRX, ETH}:
+		prec = 8
+	case Pair{MFT, ETH}:
+		prec = 8
+	case Pair{TRX, BTC}:
+		prec = 8
+	case Pair{MFT, BTC}:
+		prec = 8
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return ""

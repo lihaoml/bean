@@ -6,9 +6,9 @@ import (
 	"bean/rpc"
 	"fmt"
 	"github.com/wcharczuk/go-chart"
+	"math"
 	"net/http"
 	"time"
-	"math"
 )
 
 // BackTest data type
@@ -96,7 +96,7 @@ func (res BackTestResult) Show() {
 			totalAmount += math.Abs(tx.Amount)
 		}
 		fmt.Println("Total Transaction Amount:", totalAmount)
-		fmt.Println("Final Portfolio:", snapts[len(snapts) - 1])
+		fmt.Println("Final Portfolio:", snapts[len(snapts)-1])
 
 		xs := make([]time.Time, len(perfts))
 		ys := make([]float64, len(perfts))
@@ -112,12 +112,12 @@ func (res BackTestResult) Show() {
 			},
 			YAxis: chart.YAxis{
 				Style: chart.StyleShow(),
-/*
-				Range: &chart.ContinuousRange{
-					Max: 5,
-					Min: -5,
-				},
-*/
+				/*
+					Range: &chart.ContinuousRange{
+						Max: 5,
+						Min: -5,
+					},
+				*/
 			},
 			Series: []chart.Series{
 				chart.TimeSeries{

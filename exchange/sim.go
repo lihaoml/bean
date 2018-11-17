@@ -4,8 +4,8 @@ import (
 	. "bean"
 	"bean/rpc"
 	"fmt"
-	"time"
 	"math"
+	"time"
 )
 
 type Simulator struct {
@@ -47,12 +47,12 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 		myOrders[p] = make([]simOrder, 0)
 	}
 	return Simulator{
-		exName:   exName,
-		now:      start,
-		obts:     obts,
-		txn:      txn,
-		myOrders: myOrders,
-		oid:      0,
+		exName:      exName,
+		now:         start,
+		obts:        obts,
+		txn:         txn,
+		myOrders:    myOrders,
+		oid:         0,
 		myPortfolio: initPortfolio,
 	}
 }
@@ -83,14 +83,14 @@ func (sim *Simulator) SetTime(t time.Time) {
 					if o.amount > 0 {
 						maker = Buyer
 						currentLockedBase := sim.myPortfolio.Balance(p.Base) - sim.myPortfolio.AvailableBalance(p.Base)
-						sim.myPortfolio.SetLockedBalance(p.Base, currentLockedBase - math.Abs(o.amount) * o.price)
+						sim.myPortfolio.SetLockedBalance(p.Base, currentLockedBase-math.Abs(o.amount)*o.price)
 					} else {
 						maker = Seller
 						currentLockedCoin := sim.myPortfolio.Balance(p.Coin) - sim.myPortfolio.AvailableBalance(p.Coin)
-						sim.myPortfolio.SetLockedBalance(p.Coin, currentLockedCoin - math.Abs(o.amount))
+						sim.myPortfolio.SetLockedBalance(p.Coin, currentLockedCoin-math.Abs(o.amount))
 					}
 					sim.myPortfolio.AddBalance(p.Coin, o.amount)
-					sim.myPortfolio.AddBalance(p.Base, - o.amount * o.price)
+					sim.myPortfolio.AddBalance(p.Base, -o.amount*o.price)
 					newTxn := Transaction{
 						Pair:      p,
 						Price:     o.price,
@@ -138,10 +138,10 @@ func (sim *Simulator) PlaceLimitOrder(pair Pair, price float64, amount float64) 
 
 	if amount > 0 {
 		currentLockedBase := sim.myPortfolio.Balance(pair.Base) - sim.myPortfolio.AvailableBalance(pair.Base)
-		sim.myPortfolio.SetLockedBalance(pair.Base, currentLockedBase + price * math.Abs(amount))
+		sim.myPortfolio.SetLockedBalance(pair.Base, currentLockedBase+price*math.Abs(amount))
 	} else {
 		currentLockedCoin := sim.myPortfolio.Balance(pair.Coin) - sim.myPortfolio.AvailableBalance(pair.Coin)
-		sim.myPortfolio.SetLockedBalance(pair.Coin, currentLockedCoin + math.Abs(amount))
+		sim.myPortfolio.SetLockedBalance(pair.Coin, currentLockedCoin+math.Abs(amount))
 	}
 
 	return oid, nil
