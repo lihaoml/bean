@@ -179,3 +179,9 @@ func (sim Simulator) GetPortfolioByCoins(coins Coins) Portfolio {
 func (sim Simulator) GetPortfolio() Portfolio {
 	return sim.myPortfolio
 }
+
+func (sim Simulator) GetOrderStatus(orderID string, pair Pair) (OrderStatus, error) {
+	var ostatus OrderStatus
+	panic("not implemented")
+	return ostatus, nil
+}

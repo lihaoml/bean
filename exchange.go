@@ -27,13 +27,13 @@ type Exchange interface {
 	// if amount is negative then it's a sell order
 	PlaceLimitOrder(pair Pair, price float64, amount float64) (string, error) // return the orderid of the trade
 	CancelOrder(pair Pair, orderID string) error                              // cancel the order
-
+	GetOrderStatus(orderID string, pair Pair) (OrderStatus, error)
 	/*
 		// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
 		GetMyOrders(pair Pair) OrderBook
 		// GetTransactionHistory returns a slice of past transaction, in ascending order
 		CancelAllOrders(pair models.Pair)
-		GetOrderStatus(orderID string, side string, pair models.Pair) (models.OrderStatus, error)
+
 		// if coins is empty get all.
 
 		GetPortfolioByCoins(models.Coins) models.Portfolio
