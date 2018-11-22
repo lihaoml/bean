@@ -169,6 +169,26 @@ func (sim Simulator) GetTrades() Transactions {
 	return sim.myTransactions
 }
 
+func (sim Simulator) GetMyOrders(pair Pair) []OrderStatus {
+	var ostatus []OrderStatus
+	for _, o := range sim.myOrders[pair] {
+		if o.status == ALIVE {
+			os := OrderStatus{
+				OrderID:      o.oid,
+				PlacedTime:   o.timeStamp,
+				Side:         AmountToSide(o.amount),
+				FilledAmount: 0.0, // simulator cannot simulate partial fill for now
+				LeftAmount:   math.Abs(o.amount),
+				PlacedPrice:  o.price,
+				Price:        o.price, // filled price, not applicable here
+				State:        o.status,
+			}
+			ostatus = append(ostatus, os)
+		}
+	}
+	return ostatus
+}
+
 // GetPortfolio not implemented yet
 func (sim Simulator) GetPortfolioByCoins(coins Coins) Portfolio {
 	p := sim.GetPortfolio()

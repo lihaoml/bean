@@ -28,34 +28,16 @@ type Exchange interface {
 	PlaceLimitOrder(pair Pair, price float64, amount float64) (string, error) // return the orderid of the trade
 	CancelOrder(pair Pair, orderID string) error                              // cancel the order
 	GetOrderStatus(orderID string, pair Pair) (OrderStatus, error)
-	/*
-		// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
-		GetMyOrders(pair Pair) OrderBook
-		// GetTransactionHistory returns a slice of past transaction, in ascending order
-		CancelAllOrders(pair models.Pair)
+	// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
+	GetMyOrders(pair Pair) []OrderStatus // returns the current open orders
 
-		// if coins is empty get all.
-
-		GetPortfolioByCoins(models.Coins) models.Portfolio
-		GetMakerFee(pair models.Pair) float64
-		GetTakerFee(pair models.Pair) float64
-		MinimumTick(pair models.Pair) float64
-		GetPairs(base models.Coin) []models.Pair  // get all pairs of the exchange with the given base
+	//////////////////////////////////////////////////////////////////////////////////////
+	/*  // other candidates
+	// GetTransactionHistory returns a slice of past transaction, in ascending order
+	CancelAllOrders(pair models.Pair)
+	GetMakerFee(pair models.Pair) float64
+	GetTakerFee(pair models.Pair) float64
+	MinimumTick(pair models.Pair) float64
+	GetPairs(base models.Coin) []models.Pair  // get all pairs of the exchange with the given base
 	*/
 }
-
-/*
-// Exchange is the interface for all exchanges
-// Any exchange struct should implement all these interfaces
-type Exchange interface {
-	// get name of exchange
-	Name() string
-
-	// get the open orders for a currency pair,
-	// when the exchange query fails, return an empty order book.
-	GetOrderBook(pair Pair) (OrderBook, error)
-
-	// get all pairs of the exchange with the given base
-	GetPairs(base Coin) ([]Pair, error)
-}
-*/

@@ -116,9 +116,6 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	return ob
 }
 
-////////////////////////////////////////////////////////
-// FIXME: move below functions to other module
-
 type OrderState string
 
 const (
@@ -127,8 +124,26 @@ const (
 	CANCELLED OrderState = "CANCELLED"
 )
 
+type Side string
+
+const (
+	BID Side = "BID"
+	ASK Side = "ASK"
+)
+
+func AmountToSide(amt float64) Side {
+	if amt < 0.0 {
+		return ASK
+	} else {
+		return BID
+	}
+}
+
 // Status of the placed order,
 type OrderStatus struct {
+	OrderID      string
+	PlacedTime   time.Time
+	Side         Side
 	FilledAmount float64
 	LeftAmount   float64
 	PlacedPrice  float64 // initial price
