@@ -5,11 +5,17 @@ import (
 	"bean/rpc"
 	"fmt"
 	"time"
+	"flag"
 )
 
 func main() {
-	mds := bean.NewRPCMDSConnC("tcp", bean.MDS_HOST_SG40+":"+bean.MDS_PORT)
+	var dbhost string
+	flag.StringVar(&dbhost, "db", bean.MDS_HOST_SG40, "db host address")
+	flag.Parse()
+
+	mds := bean.NewRPCMDSConnC("tcp", dbhost+":"+bean.MDS_PORT)
 	pair := Pair{BTC, USDT}
+
 
 	end := time.Now()
 	start := end.Add(time.Duration(-10) * time.Second)
@@ -17,9 +23,15 @@ func main() {
 
 	// open book history
 	obts, _ := mds.GetOrderBookTS(pair, start, end, 20)
-	fmt.Println("retrieval time: ", time.Now().Sub(end), "-------------")
+	fmt.Println("OB retrieval time: ", time.Now().Sub(end), "-------------")
 	obts.ShowBrief()
-
+/*
+	fut := "BTC-28DEC18"
+	// open book history
+	obts, _ = mds.GetFutOrderBookTS(fut, start, end, 20)
+	fmt.Println("OBFut retrieval time: ", time.Now().Sub(end), "-------------")
+	obts.ShowBrief()
+*/
 	end = time.Now()
 	// transactino history
 	fmt.Println("Transaction history from", start.Format("15:04:05"), "to", end.Format("15:04:05"))

@@ -32,6 +32,14 @@ type ArgTxn struct {
 	End   time.Time
 }
 
+// arguments to retrieve orderbook time series
+type ArgFutOB struct {
+	FutContract  string
+	Start time.Time
+	End   time.Time
+	Depth int
+}
+
 func NewRPCMDSConnC(network, address string) RPCMDSConnC {
 	// Create a TCP connection to localhost on port 1234
 	// client, err := rpc.DialHTTP("tcp", "localhost:9892")
@@ -50,6 +58,14 @@ func (ex RPCMDSConnC) GetOrderBookTS(pair bean.Pair, start, end time.Time, depth
 	return ob, err
 }
 
+func (ex RPCMDSConnC) GetFutOrderBookTS(futContract string, start, end time.Time, depth int) (bean.OrderBookTS, error) {
+	var err error
+	var ob bean.OrderBookTS
+	arg := ArgFutOB{futContract, start, end, depth}
+	err = ex.client.Call("RPCMDSConnD.GetFutOrderBookTS", arg, &ob)
+	return ob, err
+}
+
 func (ex RPCMDSConnC) GetTransactions(pair bean.Pair, start, end time.Time) (bean.Transactions, error) {
 	var err error
 	var txn bean.Transactions
@@ -57,3 +73,4 @@ func (ex RPCMDSConnC) GetTransactions(pair bean.Pair, start, end time.Time) (bea
 	err = ex.client.Call("RPCMDSConnD.GetTransactions", arg, &txn)
 	return txn, err
 }
+
