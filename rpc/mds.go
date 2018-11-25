@@ -32,12 +32,20 @@ type ArgTxn struct {
 	End   time.Time
 }
 
-// arguments to retrieve orderbook time series
+// arguments to retrieve orderbook time series for futures
 type ArgFutOB struct {
-	FutContract  string
-	Start time.Time
-	End   time.Time
-	Depth int
+	FutContract string
+	Start       time.Time
+	End         time.Time
+	Depth       int
+}
+
+// arguments to retrieve orderbook time series for options
+type ArgOptOB struct {
+	OptInstrument string
+	Start         time.Time
+	End           time.Time
+	Depth         int
 }
 
 func NewRPCMDSConnC(network, address string) RPCMDSConnC {
@@ -66,6 +74,14 @@ func (ex RPCMDSConnC) GetFutOrderBookTS(futContract string, start, end time.Time
 	return ob, err
 }
 
+func (ex RPCMDSConnC) GetOptOrderBookTS(optInstr string, start, end time.Time, depth int) (bean.OrderBookTS, error) {
+	var err error
+	var ob bean.OrderBookTS
+	arg := ArgOptOB{optInstr, start, end, depth}
+	err = ex.client.Call("RPCMDSConnD.GetOptOrderBookTS", arg, &ob)
+	return ob, err
+}
+
 func (ex RPCMDSConnC) GetTransactions(pair bean.Pair, start, end time.Time) (bean.Transactions, error) {
 	var err error
 	var txn bean.Transactions
@@ -73,4 +89,3 @@ func (ex RPCMDSConnC) GetTransactions(pair bean.Pair, start, end time.Time) (bea
 	err = ex.client.Call("RPCMDSConnD.GetTransactions", arg, &txn)
 	return txn, err
 }
-
