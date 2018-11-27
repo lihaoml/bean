@@ -3,6 +3,7 @@ package bean
 import (
 	"sort"
 	"time"
+	"math"
 )
 
 type TraderType int
@@ -28,7 +29,17 @@ func (t Transactions) IsValid() bool {
 	return len(t) > 0
 }
 
-func (t Transactions) Volume() {
+// this function assume all transactions belong to the same pair
+func (t Transactions) Volume(pair Pair) (float64, float64) {
+	volCoin := 0.0
+	volBase := 0.0
+	for _, txn := range t {
+		if pair == txn.Pair {
+			volCoin += math.Abs(txn.Amount)
+			volBase += math.Abs(txn.Amount * txn.Price)
+		}
+	}
+	return volCoin, volBase
 }
 
 func (t Transactions) OHLC() {
@@ -50,6 +61,18 @@ func (txn Transactions) Upto(t time.Time) Transactions {
 		}
 	}
 	res := txn[0 : idx+1]
+	return res
+}
+
+func (txn Transactions) Since(t time.Time) Transactions {
+	idx := 0
+	for i, tt := range txn {
+		if !tt.TimeStamp.Before(t) {
+			idx = i
+			break
+		}
+	}
+	res := txn[idx:]
 	return res
 }
 
