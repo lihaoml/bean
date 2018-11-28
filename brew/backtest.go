@@ -5,10 +5,10 @@ import (
 	"bean/exchange"
 	"bean/rpc"
 	"fmt"
-	"github.com/wcharczuk/go-chart"
-	"math"
 	"net/http"
 	"time"
+
+	"github.com/wcharczuk/go-chart"
 )
 
 // BackTest data type
@@ -66,8 +66,7 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfoli
 
 // TODO: too ad-hoc, make it generic
 func (res BackTestResult) Show() {
-	p := NewPortfolio()
-	snapts := GenerateSnapshotTS(res.Txn, p)
+	//	p := NewPortfolio()
 	mds := bean.NewRPCMDSConnC("tcp", res.dbhost+":"+res.dbport)
 	ratesbook := make(ReferenceRateBook)
 
@@ -76,63 +75,54 @@ func (res BackTestResult) Show() {
 		p := res.pairs[0]
 		txn, _ := mds.GetTransactions(p, res.start, res.end)
 		ratesbook[p] = RefRatesFromTxn(txn)
-		perfts := EvaluateSnapshotTS(snapts, p.Base, ratesbook)
-		snapts.Print()
-		perfts.Print()
+		//		snapts.Print()
+		//		perfts.Print()
 
-		var pfst TradestatPort
-		sta := pfst.GetPortStat(p.Base, res.Txn, NewPortfolio(), ratesbook)
-		fmt.Println("all coin:", sta.AllCoins)
-		fmt.Println("MaxDrawdown:", sta.MaxDrawdown)
-		fmt.Println("NetPnL:", sta.NetPnL)
-		// fmt.Println("AnnReturn:", sta.AnnReturn)
-		// fmt.Println("Sharpe:", sta.Sharpe)
-		fmt.Println("Win/Loss:", sta.WLRatio)
-		fmt.Println("Win/NumofTrade:", sta.WinRate)
-		fmt.Println("AvgWLRatio:", sta.AvgWLRatio)
-
-		totalAmount := 0.0
-		for _, tx := range res.Txn {
-			totalAmount += math.Abs(tx.Amount)
-		}
-		fmt.Println("Total Transaction Amount:", totalAmount)
-		fmt.Println("Final Portfolio:", snapts[len(snapts)-1])
-
-		xs := make([]time.Time, len(perfts))
-		ys := make([]float64, len(perfts))
-		for i, v := range perfts {
-			xs[i] = v.Time
-			ys[i] = v.PV
-		}
-		graph := chart.Chart{
-			XAxis: chart.XAxis{
-				Style:          chart.StyleShow(),
-				ValueFormatter: chart.TimeHourValueFormatter,
-				TickPosition:   chart.TickPositionBetweenTicks,
-			},
-			YAxis: chart.YAxis{
-				Style: chart.StyleShow(),
-				/*
-					Range: &chart.ContinuousRange{
-						Max: 5,
-						Min: -5,
-					},
-				*/
-			},
-			Series: []chart.Series{
-				chart.TimeSeries{
-					XValues: xs,
-					YValues: ys,
-				},
-			},
-		}
-
-		http.HandleFunc("/", func(r http.ResponseWriter, req *http.Request) {
-			r.Header().Set("Content-Type", "image/png")
-			graph.Render(chart.PNG, r)
-		})
-		http.ListenAndServe(":8080", nil)
+		stat := Tradestat(p.Base, res.Txn, NewPortfolio(), ratesbook)
+		stat.Print()
 	}
+}
+
+func (res BackTestResult) Graph() {
+	p := NewPortfolio()
+	snapts := GenerateSnapshotTS(res.Txn, p)
+	ratesbook := make(ReferenceRateBook)
+	perfts := EvaluateSnapshotTS(snapts, res.pairs[0].Base, ratesbook)
+
+	xs := make([]time.Time, len(perfts))
+	ys := make([]float64, len(perfts))
+	for i, v := range perfts {
+		xs[i] = v.Time
+		ys[i] = v.PV
+	}
+	graph := chart.Chart{
+		XAxis: chart.XAxis{
+			Style:          chart.StyleShow(),
+			ValueFormatter: chart.TimeHourValueFormatter,
+			TickPosition:   chart.TickPositionBetweenTicks,
+		},
+		YAxis: chart.YAxis{
+			Style: chart.StyleShow(),
+			/*
+				Range: &chart.ContinuousRange{
+					Max: 5,
+					Min: -5,
+				},
+			*/
+		},
+		Series: []chart.Series{
+			chart.TimeSeries{
+				XValues: xs,
+				YValues: ys,
+			},
+		},
+	}
+
+	http.HandleFunc("/", func(r http.ResponseWriter, req *http.Request) {
+		r.Header().Set("Content-Type", "image/png")
+		graph.Render(chart.PNG, r)
+	})
+	http.ListenAndServe(":8080", nil)
 }
 
 //Evaluate shows the performance for a backtest marked to mtmBase
