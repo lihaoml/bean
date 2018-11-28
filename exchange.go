@@ -31,11 +31,10 @@ type Exchange interface {
 	GetOrderStatus(orderID string, pair Pair) (OrderStatus, error)
 	// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
 	GetMyOrders(pair Pair) []OrderStatus // returns the current open orders
-
+	CancelAllOrders(pair Pair)
 	//////////////////////////////////////////////////////////////////////////////////////
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order
-	CancelAllOrders(pair models.Pair)
 	GetMakerFee(pair models.Pair) float64
 	GetTakerFee(pair models.Pair) float64
 	MinimumTick(pair models.Pair) float64

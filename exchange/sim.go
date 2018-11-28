@@ -165,6 +165,10 @@ func (sim *Simulator) CancelOrder(pair Pair, oid string) error {
 	return nil
 }
 
+func (ex *Simulator) CancelAllOrders(pair Pair) {
+	panic("not implemented")
+}
+
 func (sim Simulator) GetTrades() Transactions {
 	return sim.myTransactions
 }
