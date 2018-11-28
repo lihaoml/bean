@@ -155,3 +155,20 @@ func (s *StackBiasMM) Grind(exs map[string]Exchange) []TradeAction {
 
 	return actions
 }
+
+func priceInAmount(requiredAmount float64, stack []Order) (price, available float64) {
+	amt := 0.0
+	wpr := 0.0
+	for _, ord := range stack {
+		amt += ord.Amount
+		wpr += ord.Amount * ord.Price
+		if amt > requiredAmount {
+			price = wpr / amt
+			available = requiredAmount
+			return
+		}
+	}
+	price = stack[len(stack)-1].Price
+	available = amt
+	return
+}
