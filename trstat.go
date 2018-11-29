@@ -222,6 +222,9 @@ func (pfst TradestatPort) MaxDrawdown() (DD []float64, MaxDD float64) {
 	cloneDD := drawdown
 	sort.Float64s(cloneDD)
 	// find the max of DD series
+	if len(drawdown) == 0 {
+		return drawdown, math.NaN()
+	}
 	return drawdown, cloneDD[len(drawdown)-1]
 }
 
