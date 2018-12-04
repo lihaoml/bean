@@ -1,5 +1,6 @@
 package bean
 
+import "time"
 // the supported exchanges
 // NOTE: the names should all be uppercase
 const (
@@ -32,6 +33,7 @@ type Exchange interface {
 	// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
 	GetMyOrders(pair Pair) []OrderStatus // returns the current open orders
 	CancelAllOrders(pair Pair)
+	GetMyTrades(pair Pair, start, end time.Time) TradeLogS
 	//////////////////////////////////////////////////////////////////////////////////////
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order

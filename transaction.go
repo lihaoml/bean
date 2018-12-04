@@ -22,6 +22,19 @@ type Transaction struct {
 	TxnID     string
 }
 
+// Define my trade
+type TradeLog struct {
+	Pair			string
+	Price           string
+	Quantity        string
+	Commission      string
+	CommissionAsset string
+	Time            string
+	Side			string
+}
+
+type TradeLogS []TradeLog
+
 // To be completed
 type Transactions []Transaction
 
