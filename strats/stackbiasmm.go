@@ -18,6 +18,7 @@ type StackBiasMM struct {
 	largeAmount        float64 // this is the notional used to inspect the stack
 	largeBiasFactor    float64 // this is how much the price is biased by the stack. 0 is unaffected. 1 means mid
 	tradingAmount      float64 // size we will trade in i.e. the small size in the stack
+	neutralPosition    float64 // this is the initial position that we are neutral at
 	maxPosition        float64 // this is the large position long or short it will take
 	positionBiasFactor float64 // 0 to 1, value 1 means when position is maximum, price is biased by 1x bid offer spread
 	widener            float64 // factor applied to averagespread to represent our width
@@ -26,7 +27,7 @@ type StackBiasMM struct {
 	spreadHistory      []float64
 }
 
-func NewStackBiasMM(exName string, pair Pair, tick time.Duration, tradingamount, maxposition, largebiasfactor, positionbiasfactor float64, dump bool) *StackBiasMM {
+func NewStackBiasMM(exName string, pair Pair, tick time.Duration, tradingamount, neutralposition, maxposition, largebiasfactor, positionbiasfactor, largeAmount, widespread float64, dump bool) *StackBiasMM {
 	var f *os.File
 	if dump {
 		f, _ = os.Create("stackbiasanal.csv")
@@ -41,13 +42,14 @@ func NewStackBiasMM(exName string, pair Pair, tick time.Duration, tradingamount,
 		exName:             exName,
 		pair:               pair,
 		tick:               tick,
-		largeAmount:        10.0,
+		largeAmount:        largeAmount,
 		largeBiasFactor:    largebiasfactor,
 		tradingAmount:      tradingamount,
+		neutralPosition:    neutralposition,
 		maxPosition:        maxposition,
 		positionBiasFactor: positionbiasfactor,
 		widener:            1.5,
-		wideSpread:         10.0,
+		wideSpread:         widespread,
 		dumpFile:           f,
 		spreadHistory:      spreadhistory,
 	}
@@ -96,7 +98,7 @@ func (s *StackBiasMM) Grind(exs map[string]Exchange) []TradeAction {
 
 	// get position
 	port := ex.GetPortfolio()
-	position := port.Balance(s.pair.Coin)
+	position := port.Balance(s.pair.Coin) - s.neutralPosition
 
 	// get price stack
 	ob := ex.GetOrderBook(s.pair)

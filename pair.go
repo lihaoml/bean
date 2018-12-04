@@ -137,7 +137,7 @@ func (pair Pair) OrderPricePrec(price float64) string {
 	case Pair{ONT, BTC}:
 		prec = 7
 	case Pair{IOTX, ETH}:
-		prec = 8
+		prec = 7
 	case Pair{IOTX, BTC}:
 		prec = 8
 	case Pair{ZRX, ETH}:

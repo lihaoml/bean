@@ -65,12 +65,13 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfoli
 }
 
 // TODO: too ad-hoc, make it generic
-func (res BackTestResult) Show() {
+func (res BackTestResult) Show() TradestatPort {
 	//	p := NewPortfolio()
 	mds := bean.NewRPCMDSConnC("tcp", res.dbhost+":"+res.dbport)
 	ratesbook := make(ReferenceRateBook)
 
 	// FIXME: think about how to show multi pair result
+	var stat TradestatPort
 	if len(res.pairs) > 0 {
 		p := res.pairs[0]
 		txn, _ := mds.GetTransactions(p, res.start, res.end)
@@ -78,9 +79,10 @@ func (res BackTestResult) Show() {
 		//		snapts.Print()
 		//		perfts.Print()
 
-		stat := Tradestat(p.Base, res.Txn, NewPortfolio(), ratesbook)
+		stat = *Tradestat(p.Base, res.Txn, NewPortfolio(), ratesbook)
 		stat.Print()
 	}
+	return stat
 }
 
 func (res BackTestResult) Graph() {
