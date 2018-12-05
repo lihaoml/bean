@@ -209,3 +209,7 @@ func (sim Simulator) GetOrderStatus(orderID string, pair Pair) (OrderStatus, err
 	panic("not implemented")
 	return ostatus, nil
 }
+
+func (ex Simulator) GetMyTrades(pair Pair, start, end time.Time) TradeLogS {
+	panic("tradelog")
+}
