@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"time"
+	"strconv"
 )
 
 type Simulator struct {
@@ -116,7 +117,8 @@ type simOrder struct {
 	timeStamp time.Time
 }
 
-func (sim *Simulator) PlaceLimitOrder(pair Pair, price float64, amount float64) (string, error) {
+func (sim *Simulator) PlaceLimitOrder(pair Pair, price_ float64, amount float64) (string, error) {
+	price, _ := strconv.ParseFloat(pair.OrderPricePrec(price_), 64)
 	// record the action
 	act := TradeActionT{
 		Time:   sim.now,
