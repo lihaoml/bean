@@ -2,6 +2,7 @@ package bean
 
 import (
 	"time"
+	"fmt"
 )
 
 type Operation int
@@ -16,6 +17,17 @@ type TradeAction struct {
 	Op     Operation
 	Pair   Pair
 	Params map[string]interface{}
+}
+
+func (t TradeAction) Show() string {
+	switch t.Op {
+	case PlaceLimitOrder:
+		return fmt.Sprint(t.ExName, "Placed order", t.Pair, t.Params["price"], t.Params["amount"])
+	case CancelOpenOrder:
+		return fmt.Sprint(t.ExName, "Cancel order", t.Pair, t.Params["orderid"])
+	default:
+		return fmt.Sprint(t)
+	}
 }
 
 type TradeActionT struct {

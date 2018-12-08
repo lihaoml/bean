@@ -1,6 +1,7 @@
 package bean
 
 import "time"
+
 // the supported exchanges
 // NOTE: the names should all be uppercase
 const (

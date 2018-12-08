@@ -5,8 +5,8 @@ import (
 	"bean/rpc"
 	"fmt"
 	"math"
-	"time"
 	"strconv"
+	"time"
 )
 
 type Simulator struct {
