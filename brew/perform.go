@@ -14,6 +14,7 @@ type ExNameWithOID struct {
 func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelled, placed []ExNameWithOID) {
 	// exchange to deal with the actions
 	for _, act := range actions {
+		time.Sleep(time.Millisecond * 300)
 		switch act.Op {
 		case PlaceLimitOrder:
 			// place order,
@@ -33,7 +34,7 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelle
 			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid})
 			break
 		}
-		time.Sleep(time.Millisecond * 300)
+
 	}
 	return
 }
