@@ -2,6 +2,7 @@ package brew
 
 import (
 	. "bean"
+	"time"
 )
 
 type ExNameWithOID struct {
@@ -32,6 +33,7 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelle
 			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid})
 			break
 		}
+		time.Sleep(time.Millisecond * 300)
 	}
 	return
 }
