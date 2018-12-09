@@ -1,9 +1,12 @@
 package bean
 
 import (
-	"sort"
-	"time"
+	"encoding/csv"
 	"math"
+	"os"
+	"sort"
+	"strconv"
+	"time"
 )
 
 type TraderType int
@@ -24,13 +27,26 @@ type Transaction struct {
 
 // Define my trade
 type TradeLog struct {
-	Pair			string
+	OrderID         string
+	Pair            string
 	Price           string
 	Quantity        string
 	Commission      string
 	CommissionAsset string
 	Time            string
-	Side			string
+	Side            string
+}
+
+type TradeLogSummary struct {
+	Pair         Pair
+	SellAmount   float64
+	SellValue    float64
+	AvgSellPrice float64
+	BuyAmount    float64
+	BuyValue     float64
+	AvgBuyPrice  float64
+	AvgCost      float64
+	Fee          map[string]float64
 }
 
 type TradeLogS []TradeLog
@@ -117,17 +133,89 @@ func (txn Transactions) Cross(price, amount float64) bool {
 	if amount < 0 {
 		// selling, so need to check if the highest transaction is larger than the order price
 		for _, t := range txn {
-			if t.Price > price {
+			if t.Price > price*1.001 {
 				return true
 			}
 		}
 	} else {
 		// buying, so need to check if the lowest transaction is lower than the order price
 		for _, t := range txn {
-			if t.Price < price {
+			if t.Price < price*0.999 {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func (trades TradeLogS) ToCSV(pair Pair, filename string) {
+	csvFile, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer csvFile.Close()
+	var data [][]string
+
+	head := []string{
+		"Time",
+		"Pair",
+		"Price",
+		"Quantity",
+		"Commission",
+		"Commission",
+		"CommissionAsset",
+		"Side",
+	}
+	data = append(data, head)
+
+	for _, v := range trades {
+		s := []string{
+			v.Time,
+			v.Pair,
+			v.Price,
+			v.Quantity,
+			v.Commission,
+			v.CommissionAsset,
+			v.Side,
+		}
+		data = append(data, s)
+	}
+	csvWriter := csv.NewWriter(csvFile)
+	csvWriter.WriteAll(data)
+	csvWriter.Flush()
+}
+
+func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
+	sellAmount := 0.0
+	sellValue := 0.0
+	buyAmount := 0.0
+	buyValue := 0.0
+	fee := make(map[string]float64, 3)
+	for _, v := range trades {
+		if v.Pair == string(pair.Coin)+string(pair.Base) {
+			if v.Side == "BUY" {
+				buy, _ := strconv.ParseFloat(v.Quantity, 64)
+				buyAmount += buy
+				price, _ := strconv.ParseFloat(v.Price, 64)
+				buyValue += buy * price
+			} else {
+				sell, _ := strconv.ParseFloat(v.Quantity, 64)
+				sellAmount += sell
+				price, _ := strconv.ParseFloat(v.Price, 64)
+				sellValue += sell * price
+			}
+			comisn, _ := strconv.ParseFloat(v.Commission, 64)
+			fee[v.CommissionAsset] += comisn
+		}
+	}
+	tradesummary.Pair = pair
+	tradesummary.BuyValue = buyValue
+	tradesummary.BuyAmount = buyAmount
+	tradesummary.AvgBuyPrice = (buyValue / buyAmount)
+	tradesummary.SellValue = sellValue
+	tradesummary.SellAmount = sellAmount
+	tradesummary.AvgSellPrice = (sellValue / sellAmount)
+	tradesummary.Fee = fee
+	tradesummary.AvgCost = (sellValue - buyValue) / (buyAmount - sellAmount)
+	return
 }

@@ -1,8 +1,8 @@
 package bean
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 type Operation int

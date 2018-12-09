@@ -108,6 +108,11 @@ func (pair Pair) FormatPrice(price float64) string {
 	return strconv.FormatFloat(price, 'f', prec, 64)
 }
 
+// Format price for reporting purpose (not for trading)
+func (pair Pair) FormatAvgPrice(price float64) string {
+	return fmt.Sprintf("%.4e", price)
+}
+
 // the minimum precision of all exchanges for price of a pair to place an order
 func (pair Pair) OrderPricePrec(price float64) string {
 	var prec int = 0
