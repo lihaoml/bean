@@ -4,6 +4,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"bean/utils"
 )
 
 // Coin is a constant representing a token
@@ -112,8 +113,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	}
 }
 
-/*
-func RenderCoinAmount(coin Coin, amount float64) string {
+func (coin Coin) RenderCoinAmount(amount float64) string {
 	switch coin {
 	case USDT:
 		if math.Abs(amount) < 1 {
@@ -161,4 +161,3 @@ func RenderCoinAmount(coin Coin, amount float64) string {
 		}
 	}
 }
-*/
