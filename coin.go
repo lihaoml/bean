@@ -53,7 +53,7 @@ func (s Coins) Less(i, j int) bool {
 func (c Coin) Format() string {
 	switch c {
 	case IOTX:
-		return "#,###.##"
+		return "#,###."
 	case ETH:
 		return "#,###.###"
 	case USDT:
@@ -119,45 +119,51 @@ func (coin Coin) RenderCoinAmount(amount float64) string {
 		if math.Abs(amount) < 1 {
 			return ""
 		} else {
-			return string("` $ `") + util.RenderFloat("#,###.", amount)
+			return string("`$ `") + util.RenderFloat("#,###.", amount)
+		}
+	case BNB:
+		if math.Abs(amount) < 0.1 {
+			return ""
+		} else {
+			return string("`BNB `") + util.RenderFloat("#,###.#", amount)
 		}
 	case BTC:
 		if math.Abs(amount) < 1e-4 {
 			return ""
 		} else {
-			return string("` ฿ `") + util.RenderFloat("###.####", amount)
+			return string("`฿ `") + util.RenderFloat("###.####", amount)
 		}
 	case ETH:
-		return string("` Ξ `") + util.RenderFloat("###.###", amount)
+		return string("`Ξ `") + util.RenderFloat("###.###", amount)
 	case IOTX:
 		if amount == 0 {
 			return ""
 		} else {
-			return string("` I `") + util.RenderFloat("#,###.", amount)
+			return string("`I `") + util.RenderFloat("#,###.", amount)
 		}
 	case ZRX:
 		if amount == 0 {
 			return ""
 		} else {
-			return string("` Z `") + util.RenderFloat("#,###.", amount)
+			return string("`Z `") + util.RenderFloat("#,###.", amount)
 		}
 	case ONT:
 		if amount == 0 {
 			return ""
 		} else {
-			return string("` O `") + util.RenderFloat("#,###.", amount)
+			return string("`O `") + util.RenderFloat("#,###.", amount)
 		}
 	case FT:
 		if amount < 10 {
 			return ""
 		} else {
-			return string("` F `") + util.RenderFloat("#,###.", amount)
+			return string("`F `") + util.RenderFloat("#,###.", amount)
 		}
 	default:
 		if amount < 1e-2 {
 			return ""
 		} else {
-			return "` " + string(coin) + " `" + util.RenderFloat("#,###.", amount)
+			return "`" + string(coin) + " `" + util.RenderFloat("#,###.", amount)
 		}
 	}
 }
