@@ -162,7 +162,6 @@ func (trades TradeLogS) ToCSV(pair Pair, filename string) {
 		"Price",
 		"Quantity",
 		"Commission",
-		"Commission",
 		"CommissionAsset",
 		"Side",
 	}
