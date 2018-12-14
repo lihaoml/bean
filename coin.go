@@ -1,10 +1,10 @@
 package bean
 
 import (
+	"bean/utils"
 	"math"
 	"strconv"
 	"strings"
-	"bean/utils"
 )
 
 // Coin is a constant representing a token

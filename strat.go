@@ -12,6 +12,15 @@ const ( // iota is reset to 0
 	CancelOpenOrder Operation = 1
 )
 
+// exchange is a struct for holding common member variables and base functions
+type BaseStrat struct {
+	Tick time.Duration
+}
+
+func (s BaseStrat) GetTick() time.Duration {
+	return s.Tick
+}
+
 type TradeAction struct {
 	ExName string
 	Op     Operation
