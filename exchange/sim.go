@@ -215,3 +215,11 @@ func (sim Simulator) GetOrderStatus(orderID string, pair Pair) (OrderStatus, err
 func (ex Simulator) GetMyTrades(pair Pair, start, end time.Time) TradeLogS {
 	panic("tradelog")
 }
+
+// dummy function, simulator doesn't need to trace the orders for each strategy separately
+func (ex *Simulator) TrackOrderID(pair Pair, oid string) {
+}
+
+func (sim Simulator) GetAccountOrders(pair Pair) []OrderStatus {
+	return sim.GetMyOrders(pair)
+}

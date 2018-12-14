@@ -31,10 +31,14 @@ type Exchange interface {
 	PlaceLimitOrder(pair Pair, price float64, amount float64) (string, error) // return the orderid of the trade
 	CancelOrder(pair Pair, orderID string) error                              // cancel the order
 	GetOrderStatus(orderID string, pair Pair) (OrderStatus, error)
+
 	// get our open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
-	GetMyOrders(pair Pair) []OrderStatus // returns the current open orders
+	GetMyOrders(pair Pair) []OrderStatus      // returns the current open orders of the exchange instance (tracked by TrackOrderID() ), use with care
+	GetAccountOrders(pair Pair) []OrderStatus // returns the open orders of the account
+
 	CancelAllOrders(pair Pair)
 	GetMyTrades(pair Pair, start, end time.Time) TradeLogS
+	TrackOrderID(pair Pair, oid string)
 	//////////////////////////////////////////////////////////////////////////////////////
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order

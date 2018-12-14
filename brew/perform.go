@@ -11,10 +11,12 @@ type ExNameWithOID struct {
 	OrderID string
 }
 
-func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelled, placed []ExNameWithOID) {
+func PerformActions(exs *(map[string]Exchange), actions []TradeAction, sep ...time.Duration) (cancelled, placed []ExNameWithOID) {
 	// exchange to deal with the actions
 	for _, act := range actions {
-		time.Sleep(time.Millisecond * 800)
+		if len(sep) > 0 {
+			time.Sleep(sep[0])
+		}
 		switch act.Op {
 		case PlaceLimitOrder:
 			// place order,
@@ -23,6 +25,7 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelle
 				act.Params["price"].(float64),
 				act.Params["amount"].(float64),
 			)
+			(*exs)[act.ExName].TrackOrderID(act.Pair, oid)
 			placed = append(placed, ExNameWithOID{act.ExName, act.Pair, oid})
 			break
 		case CancelOpenOrder:
@@ -34,7 +37,6 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction) (cancelle
 			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid})
 			break
 		}
-
 	}
 	return
 }
