@@ -116,6 +116,33 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	return ob
 }
 
+// sell / buy ratio, alpha in (0, 1]
+func (ob OrderBook) SBRatio(alpha float64) float64 {
+	var sell float64
+	var buy  float64
+	if ob.Valid() {
+		// FIXME: generalize spread, work for IOTX at the moment
+		sprd := (ob.Asks[0].Price - ob.Bids[0].Price) * 1e8
+
+		for i, v := range ob.Asks {
+			if i == 10 {
+				break
+			} else {
+				sell += math.Pow(alpha, float64(i)) * v.Price * v.Amount
+			}
+		}
+		for i, v := range ob.Bids {
+			if i == 10 {
+				break
+			} else {
+				buy += math.Pow(alpha, sprd- 1 + float64(i)) * v.Price * v.Amount
+			}
+		}
+	}
+	return sell / buy
+}
+
+
 type OrderState string
 
 const (
