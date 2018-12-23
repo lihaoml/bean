@@ -2,10 +2,10 @@ package bean
 
 import (
 	"encoding/csv"
+	"fmt"
 	"math"
 	"os"
 	"sort"
-	"strconv"
 	"time"
 )
 
@@ -28,25 +28,51 @@ type Transaction struct {
 // Define my trade
 type TradeLog struct {
 	OrderID         string
-	Pair            string
-	Price           string
-	Quantity        string
-	Commission      string
-	CommissionAsset string
-	Time            string
-	Side            string
+	Pair            Pair
+	Price           float64
+	Quantity        float64
+	Commission      float64
+	CommissionAsset Coin
+	Time            time.Time
+	Side            Side
 }
 
 type TradeLogSummary struct {
-	Pair         Pair
-	SellAmount   float64
-	SellValue    float64
-	AvgSellPrice float64
-	BuyAmount    float64
-	BuyValue     float64
-	AvgBuyPrice  float64
-	AvgCost      float64
-	Fee          map[string]float64
+	Pair       Pair
+	SellAmount float64
+	SellValue  float64
+	BuyAmount  float64
+	BuyValue   float64
+	Fee        map[Coin]float64
+}
+
+func (tls TradeLogSummary) AvgBuyPrice() float64 {
+	return tls.BuyValue / tls.BuyAmount
+}
+
+func (tls TradeLogSummary) AvgSellPrice() float64 {
+	return tls.SellValue / tls.SellAmount
+}
+
+func (tls TradeLogSummary) NetExposure() float64 {
+	return tls.BuyAmount - tls.SellAmount
+}
+
+func (tls TradeLogSummary) RealizedPL() float64 {
+	return tls.BuyAmount - tls.SellAmount
+}
+
+func (tls TradeLogSummary) UnrealizedPL(mid float64) float64 {
+	exposure := tls.NetExposure()
+	if exposure < 0 {
+		return exposure * (mid - tls.AvgSellPrice())
+	} else {
+		return exposure * (mid - tls.AvgBuyPrice())
+	}
+}
+
+func (tls TradeLogSummary) AvgCost() float64 {
+	return (tls.SellValue - tls.BuyValue) / (tls.BuyAmount - tls.SellAmount)
 }
 
 type TradeLogS []TradeLog
@@ -169,13 +195,13 @@ func (trades TradeLogS) ToCSV(pair Pair, filename string) {
 
 	for _, v := range trades {
 		s := []string{
-			v.Time,
-			v.Pair,
-			v.Price,
-			v.Quantity,
-			v.Commission,
-			v.CommissionAsset,
-			v.Side,
+			fmt.Sprint(v.Time),
+			v.Pair.String(),
+			fmt.Sprint(v.Price),
+			fmt.Sprint(v.Quantity),
+			fmt.Sprint(v.Commission),
+			string(v.CommissionAsset),
+			string(v.Side),
 		}
 		data = append(data, s)
 	}
@@ -189,32 +215,24 @@ func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
 	sellValue := 0.0
 	buyAmount := 0.0
 	buyValue := 0.0
-	fee := make(map[string]float64, 3)
+	fee := make(map[Coin]float64)
 	for _, v := range trades {
-		if v.Pair == string(pair.Coin)+string(pair.Base) {
-			if v.Side == "BUY" {
-				buy, _ := strconv.ParseFloat(v.Quantity, 64)
-				buyAmount += buy
-				price, _ := strconv.ParseFloat(v.Price, 64)
-				buyValue += buy * price
-			} else {
-				sell, _ := strconv.ParseFloat(v.Quantity, 64)
-				sellAmount += sell
-				price, _ := strconv.ParseFloat(v.Price, 64)
-				sellValue += sell * price
+		if v.Pair == pair {
+			if v.Side == BUY {
+				buyAmount += v.Quantity
+				buyValue += v.Quantity * v.Price
+			} else if v.Side == SELL {
+				sellAmount += v.Quantity
+				sellValue += v.Quantity * v.Price
 			}
-			comisn, _ := strconv.ParseFloat(v.Commission, 64)
-			fee[v.CommissionAsset] += comisn
+			fee[v.CommissionAsset] += v.Commission
 		}
 	}
 	tradesummary.Pair = pair
 	tradesummary.BuyValue = buyValue
 	tradesummary.BuyAmount = buyAmount
-	tradesummary.AvgBuyPrice = (buyValue / buyAmount)
 	tradesummary.SellValue = sellValue
 	tradesummary.SellAmount = sellAmount
-	tradesummary.AvgSellPrice = (sellValue / sellAmount)
 	tradesummary.Fee = fee
-	tradesummary.AvgCost = (sellValue - buyValue) / (buyAmount - sellAmount)
 	return
 }
