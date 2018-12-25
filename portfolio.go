@@ -99,7 +99,7 @@ func (p portfolio) Subtract(p2 Portfolio) Portfolio {
 func (p portfolio) Filter(coins Coins) Portfolio {
 	r := NewPortfolio()
 	for _, c := range coins {
-		r.AddBalance(c, p.Balance(c))
+		r.SetBalance(c, p.Balance(c))
 		lockedC, locked := p.lockedBalances[c]
 		if locked {
 			r.SetLockedBalance(c, lockedC)
