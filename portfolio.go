@@ -22,10 +22,24 @@ type portfolio struct {
 	lockedBalances map[Coin]float64 // locked blance by exchange, used to calculate the free blance for placing order
 }
 
-func NewPortfolio() Portfolio {
-	return portfolio{
-		balances:       make(map[Coin]float64),
-		lockedBalances: make(map[Coin]float64),
+func NewPortfolio(bal...interface{}) Portfolio {
+	if len(bal) == 0 {
+		return portfolio{
+			balances:       make(map[Coin]float64),
+			lockedBalances: make(map[Coin]float64),
+		}
+	} else if len(bal) == 1 {
+		return portfolio{
+			balances:       bal[0].(map[Coin]float64),
+			lockedBalances: make(map[Coin]float64),
+		}
+	} else if len(bal) == 2 {
+		return portfolio{
+			balances:       bal[0].(map[Coin]float64),
+			lockedBalances: bal[1].(map[Coin]float64),
+		}
+	} else {
+		panic("invalid number of input for NewPortfolio")
 	}
 }
 
