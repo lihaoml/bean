@@ -59,7 +59,7 @@ func (tls TradeLogSummary) NetExposure() float64 {
 }
 
 func (tls TradeLogSummary) RealizedPL() float64 {
-	return tls.BuyAmount - tls.SellAmount
+	return (tls.AvgSellPrice() - tls.AvgBuyPrice()) * math.Min(tls.BuyAmount, tls.SellAmount)
 }
 
 func (tls TradeLogSummary) UnrealizedPL(mid float64) float64 {
