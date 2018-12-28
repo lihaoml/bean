@@ -12,6 +12,7 @@ import (
 type Simulator struct {
 	exName string
 	now    time.Time
+	last   time.Time
 
 	// historical data
 	obts map[Pair]OrderBookTS
@@ -35,7 +36,7 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	// get historical data
 	obts := make(map[Pair]OrderBookTS, len(pairs))
 	for _, p := range pairs {
-		obts[p], _ = mds.GetOrderBookTS(p, start, end, 10) // TODO: hard code 10 depth for now
+		obts[p], _ = mds.GetOrderBookTS(p, start, end, 20) // TODO: hard code 10 depth for now
 		// obts[p].ShowBrief()
 	}
 	txn := make(map[Pair]Transactions, len(pairs))
@@ -67,35 +68,51 @@ func (sim Simulator) GetOrderBook(pair Pair) OrderBook {
 }
 
 func (sim Simulator) GetTransactionHistory(pair Pair) Transactions {
-	return sim.txn[pair].Upto(sim.now)
+	return sim.txn[pair].Between(sim.last, sim.now)
 }
 
 func (sim *Simulator) SetTime(t time.Time) {
 	// update now
-	for p, txn := range sim.txn {
-		recentTxn := txn.Between(sim.now, t)
-		for i, o := range sim.myOrders[p] {
-			if o.status == ALIVE {
-				// determine if recentTxn crosses the order
-				if recentTxn.Cross(o.price, o.amount) {
-					sim.myOrders[p][i].status = FILLED
+	for p := range sim.myOrders {
+		for i, myOrder := range sim.myOrders[p] {
+			if myOrder.status == ALIVE {
+				// first see if the order can be filled against the immediate order book
+				obFill := sim.GetOrderBook(p).Match(Order{Amount: myOrder.amount, Price: myOrder.price})
+
+				txnFill := 0.0
+				if math.Abs(obFill.Amount-myOrder.amount) > 0.0 {
+					// if not then see if it can be filled against subsequent transactions
+					recentTxn := sim.txn[p].Between(sim.now, t)
+					txnFill = recentTxn.Fill(myOrder.price, myOrder.amount-obFill.Amount)
+				}
+
+				fillAmount := obFill.Amount + txnFill
+				fillPrice := (obFill.Price*obFill.Amount + myOrder.price*txnFill) / fillAmount
+
+				// determine if recentTxn crosses the order - updated for partial fills
+				if fillAmount != 0.0 {
+					if fillAmount == myOrder.amount {
+						sim.myOrders[p][i].status = FILLED
+					} else {
+						sim.myOrders[p][i].amount -= fillAmount
+					}
 					// add it to myTransactions
 					var maker TraderType
-					if o.amount > 0 {
+					if fillAmount > 0 {
 						maker = Buyer
 						currentLockedBase := sim.myPortfolio.Balance(p.Base) - sim.myPortfolio.AvailableBalance(p.Base)
-						sim.myPortfolio.SetLockedBalance(p.Base, currentLockedBase-math.Abs(o.amount)*o.price)
+						sim.myPortfolio.SetLockedBalance(p.Base, currentLockedBase-math.Abs(fillAmount)*fillPrice)
 					} else {
 						maker = Seller
 						currentLockedCoin := sim.myPortfolio.Balance(p.Coin) - sim.myPortfolio.AvailableBalance(p.Coin)
-						sim.myPortfolio.SetLockedBalance(p.Coin, currentLockedCoin-math.Abs(o.amount))
+						sim.myPortfolio.SetLockedBalance(p.Coin, currentLockedCoin-math.Abs(fillAmount))
 					}
-					sim.myPortfolio.AddBalance(p.Coin, o.amount)
-					sim.myPortfolio.AddBalance(p.Base, -o.amount*o.price)
+					sim.myPortfolio.AddBalance(p.Coin, fillAmount)
+					sim.myPortfolio.AddBalance(p.Base, -fillAmount*fillPrice)
 					newTxn := Transaction{
 						Pair:      p,
-						Price:     o.price,
-						Amount:    o.amount,
+						Price:     fillPrice,
+						Amount:    fillAmount,
 						TimeStamp: t,
 						Maker:     maker,
 						TxnID:     fmt.Sprint(len(sim.myTransactions)),
@@ -106,6 +123,7 @@ func (sim *Simulator) SetTime(t time.Time) {
 			}
 		}
 	}
+	sim.last = sim.now
 	sim.now = t
 }
 

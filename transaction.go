@@ -148,6 +148,27 @@ func (txn Transactions) Cross(price, amount float64) bool {
 	return false
 }
 
+func (txn Transactions) Fill(price, orderAmount float64) float64 {
+	fillAmount := 0.0
+	if orderAmount < 0 {
+		// selling - add all transactions above the order price. fill is negative
+		for _, t := range txn {
+			if t.Price > price {
+				fillAmount -= t.Amount
+			}
+		}
+		return math.Max(orderAmount, fillAmount)
+	} else {
+		// buying - add all transactions below the order price. fill is positive
+		for _, t := range txn {
+			if t.Price < price {
+				fillAmount += t.Amount
+			}
+		}
+		return math.Min(orderAmount, fillAmount)
+	}
+}
+
 func (trades TradeLogS) ToCSV(pair Pair, filename string) {
 	csvFile, err := os.Create(filename)
 	if err != nil {

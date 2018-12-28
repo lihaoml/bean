@@ -119,7 +119,7 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 // sell / buy ratio, alpha in (0, 1]
 func (ob OrderBook) SBRatio(alpha float64) float64 {
 	var sell float64
-	var buy  float64
+	var buy float64
 	if ob.Valid() {
 		// FIXME: generalize spread, work for IOTX at the moment
 		sprd := (ob.Asks[0].Price - ob.Bids[0].Price) * 1e8
@@ -135,13 +135,45 @@ func (ob OrderBook) SBRatio(alpha float64) float64 {
 			if i == 10 {
 				break
 			} else {
-				buy += math.Pow(alpha, sprd- 1 + float64(i)) * v.Price * v.Amount
+				buy += math.Pow(alpha, sprd-1+float64(i)) * v.Price * v.Amount
 			}
 		}
 	}
 	return sell / buy
 }
 
+// Match ... Takes a placed order and matches against the existing orderbook.
+// If it can be filled then the filled amount and rate are returned
+// Orders (aggressor) are filled at the orderbook (market maker) rate
+func (ob OrderBook) Match(placedOrder Order) Order {
+	fillCounterAmount := 0.0
+	fillAmount := 0.0
+	if placedOrder.Amount > 0.0 {
+		for _, o := range ob.Asks {
+			if o.Price <= placedOrder.Price {
+				fillCounterAmount += math.Min(placedOrder.Amount-fillAmount, o.Amount) * o.Price
+				fillAmount += math.Min(placedOrder.Amount-fillAmount, o.Amount)
+			}
+		}
+		if fillAmount > 0.0 {
+			return Order{Price: fillCounterAmount / fillAmount, Amount: fillAmount}
+		} else {
+			return Order{Price: 0.0, Amount: 0.0}
+		}
+	} else {
+		for _, o := range ob.Bids {
+			if o.Price >= placedOrder.Price {
+				fillCounterAmount += math.Min(-placedOrder.Amount-fillAmount, o.Amount) * o.Price
+				fillAmount += math.Min(-placedOrder.Amount-fillAmount, o.Amount)
+			}
+		}
+		if fillAmount > 0.0 {
+			return Order{Price: fillCounterAmount / fillAmount, Amount: -fillAmount}
+		} else {
+			return Order{Price: 0.0, Amount: 0.0}
+		}
+	}
+}
 
 type OrderState string
 
