@@ -33,3 +33,4 @@ bin/*
 
 # local config
 .env*
+*.csv

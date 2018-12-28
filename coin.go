@@ -116,10 +116,10 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 func (coin Coin) RenderCoinAmount(amount float64) string {
 	switch coin {
 	case USDT:
-		if math.Abs(amount) < 1 {
+		if math.Abs(amount) < 0.01 {
 			return ""
 		} else {
-			return string("`$ `") + util.RenderFloat("#,###.", amount)
+			return string("`$ `") + util.RenderFloat("#,###.##", amount)
 		}
 	case BNB:
 		if math.Abs(amount) < 0.1 {

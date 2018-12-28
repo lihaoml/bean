@@ -12,6 +12,10 @@ type Pair struct {
 	Base Coin
 }
 
+func (p Pair) String() string {
+	return string(p.Coin) + string(p.Base)
+}
+
 // use
 // go run exchange/example/binance_info/binance_info.go
 // as guideline to set the minimum amount of a pair,

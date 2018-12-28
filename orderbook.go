@@ -186,15 +186,15 @@ const (
 type Side string
 
 const (
-	BID Side = "BID"
-	ASK Side = "ASK"
+	BUY  Side = "BUY"
+	SELL Side = "SELL"
 )
 
 func AmountToSide(amt float64) Side {
 	if amt < 0.0 {
-		return ASK
+		return SELL
 	} else {
-		return BID
+		return BUY
 	}
 }
 
