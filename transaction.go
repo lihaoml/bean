@@ -257,3 +257,40 @@ func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
 	tradesummary.Fee = fee
 	return
 }
+
+func (trades TradeLogS) toTransactions() (txns Transactions) {
+	for _, trd := range trades {
+		sign := 1.0
+		maker := Buyer
+		if trd.Side == SELL {
+			sign = -1.0
+			maker = Seller
+		}
+		txn := Transaction{
+			Pair:      trd.Pair,
+			Price:     trd.Price,
+			Amount:    math.Abs(trd.Quantity) * sign,
+			TimeStamp: trd.Time,
+			Maker:     maker,
+			TxnID:     trd.OrderID,
+		}
+		txns = append(txns, txn)
+	}
+	return txns
+}
+
+func (trades TradeLogS) Since(t time.Time) (position Portfolio, after TradeLogS) {
+	var before TradeLogS
+	for _, trd := range trades {
+		if trd.Time.Before(t) {
+			before = append(before, trd)
+		} else {
+			after = append(after, trd)
+		}
+	}
+	snapts := GenerateSnapshotTS(before.toTransactions(), NewPortfolio())
+	if len(snapts) > 0 {
+		position = snapts[len(snapts)-1].Port
+	}
+	return position, after
+}
