@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"bean/utils"
 	"fmt"
 	"math"
 	"strconv"
@@ -162,4 +163,16 @@ func (pair Pair) OrderPricePrec(price float64) string {
 		return ""
 	}
 	return strconv.FormatFloat(price, 'f', prec, 64)
+}
+
+func AllCoins(pairs []Pair) (res Coins) {
+	for _, p := range pairs {
+		if !util.Contains(res, p.Base) {
+			res = append(res, p.Base)
+		}
+		if !util.Contains(res, p.Coin) {
+			res = append(res, p.Coin)
+		}
+	}
+	return res
 }

@@ -5,6 +5,7 @@ type Portfolio interface {
 	// Log(string)
 	Clone() Portfolio
 	Add(Portfolio) Portfolio
+	Minus(Portfolio) Portfolio
 	Subtract(Portfolio) Portfolio
 	Filter(Coins) Portfolio
 	Balances() map[Coin]float64
@@ -14,6 +15,7 @@ type Portfolio interface {
 	SetBalance(Coin, float64)
 	AvailableBalance(c Coin) float64
 	SetLockedBalance(Coin, float64)
+	Coins() Coins
 }
 
 // Portfolio a Portfolio for an account
@@ -22,7 +24,7 @@ type portfolio struct {
 	lockedBalances map[Coin]float64 // locked blance by exchange, used to calculate the free blance for placing order
 }
 
-func NewPortfolio(bal...interface{}) Portfolio {
+func NewPortfolio(bal ...interface{}) Portfolio {
 	if len(bal) == 0 {
 		return portfolio{
 			balances:       make(map[Coin]float64),
@@ -80,6 +82,13 @@ func (p portfolio) AvailableBalance(c Coin) float64 {
 	}
 }
 
+func (p portfolio) Coins() (cs Coins) {
+	for c, _ := range p.balances {
+		cs = append(cs, c)
+	}
+	return cs
+}
+
 func (p portfolio) Clone() Portfolio {
 	r := NewPortfolio()
 	for k, v := range p.balances {
@@ -93,10 +102,18 @@ func (p portfolio) Clone() Portfolio {
 
 // Add - add two portfolios and return a new one
 func (p portfolio) Add(p2 Portfolio) Portfolio {
-
 	port := p.Clone()
 	for c, v := range p2.Balances() {
 		port.AddBalance(c, v)
+	}
+	return port
+}
+
+// Add - add two portfolios and return a new one
+func (p portfolio) Minus(p2 Portfolio) Portfolio {
+	port := p.Clone()
+	for c, v := range p2.Balances() {
+		port.AddBalance(c, -v)
 	}
 	return port
 }

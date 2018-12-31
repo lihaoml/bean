@@ -2,6 +2,7 @@ package bean
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"time"
 )
@@ -19,7 +20,7 @@ type SnapshotTS []Snapshot
 func (s SnapshotTS) Print() {
 	fmt.Println("SnapshotTS")
 	for _, v := range s {
-		fmt.Printf("  Snapshot %v: ", v.Time)
+		fmt.Printf("  Snapshot %v: ", v.Time.Local())
 		balances := v.Port.Balances()
 		for k, e := range balances {
 			fmt.Printf("%v,%v  ", k, e)
@@ -27,6 +28,15 @@ func (s SnapshotTS) Print() {
 		fmt.Println("")
 
 	}
+}
+
+// minus initial portfolio to get PnL portfolio
+func (s SnapshotTS) Minus(initPort Portfolio) SnapshotTS {
+	newTS := SnapshotTS{}
+	for _, v := range s {
+		newTS = append(newTS, Snapshot{v.Time, v.Port.Minus(initPort)})
+	}
+	return newTS
 }
 
 //Performance measures the value of a portfolio at a specific time
@@ -46,6 +56,25 @@ func (ps PerformanceTS) Print() {
 	for _, p := range ps {
 		fmt.Printf("  %v:  MtMBase %v  PV %v  PnL %v\n", p.Time, p.MtMBase, p.PV, p.PnL)
 	}
+}
+
+func (ps PerformanceTS) PnLSince(t time.Time) float64 {
+	if len(ps) == 0 {
+		return 0.0
+	}
+	lastPV := ps[len(ps)-1].PV
+
+	idx := 0
+	minGap := math.Abs(float64(ps[0].Time.Sub(t)))
+
+	fmt.Println(ps[0].Time)
+	for i, p := range ps {
+		if math.Abs(float64(p.Time.Sub(t))) < minGap {
+			idx = i
+			minGap = math.Abs(float64(p.Time.Sub(t)))
+		}
+	}
+	return lastPV - ps[idx].PV
 }
 
 //ReferenceRate holds the reference rates for one pair at a given time
@@ -90,11 +119,10 @@ func (t ReferenceRateBook) Print() {
 }
 
 //GenerateSnapshotTS update portfolio overtime
-func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
+func GenerateSnapshotTS(ts Transactions, initPort Portfolio) SnapshotTS {
 	ts.Sort()
-
 	var snapts SnapshotTS
-
+	p := initPort
 	for _, t := range ts {
 		pClone := p.Clone()
 		snapNew := GenerateSnapshot(t, pClone)
@@ -109,17 +137,7 @@ func GenerateSnapshotTS(ts Transactions, p Portfolio) SnapshotTS {
 			snapts[len(snapts)-1] = snapNew
 		}
 		p = pClone
-
 	}
-	/*
-		fmt.Printf("SnapshotTS:\n")
-		for i, v := range snapts {
-			fmt.Printf("%v,%v\n", i, v.Time)
-			for key, value := range v.Port.Balances() {
-				fmt.Printf("%v:%v\n", key, value)
-			}
-		}
-	*/
 	return snapts
 }
 
@@ -159,17 +177,15 @@ func EvaluateSnapshot(snap Snapshot, mtmBase Coin, ratesbook ReferenceRateBook) 
 			rate = 1
 		} else {
 			rate = LookupRate(Pair{Coin: k, Base: mtmBase}, snap.Time, ratesbook)
-			//			fmt.Printf("%v%v,%v:%v\n", k, mtmBase, snap.Time, rate)
 		}
 		if rate != 0 {
 			pv += v * rate
 		} else {
-			fmt.Printf("%v%v at %v is not availabe\n", k, mtmBase, snap.Time)
+			panic(fmt.Sprint("%v%v at %v is not availabe\n", k, mtmBase, snap.Time))
 		}
 	}
 
 	perf.PV = pv
-
 	return perf
 
 }
