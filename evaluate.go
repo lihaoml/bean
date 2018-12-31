@@ -39,6 +39,14 @@ func (s SnapshotTS) Minus(initPort Portfolio) SnapshotTS {
 	return newTS
 }
 
+func (s SnapshotTS) Times() []time.Time {
+	ts := []time.Time{}
+	for _, v := range s {
+		ts = append(ts, v.Time)
+	}
+	return ts
+}
+
 //Performance measures the value of a portfolio at a specific time
 type Performance struct {
 	Time    time.Time
