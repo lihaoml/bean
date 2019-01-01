@@ -294,3 +294,17 @@ func (trades TradeLogS) Since(t time.Time) (position Portfolio, after TradeLogS)
 	}
 	return position, after
 }
+
+type PricechangeStats24 struct {
+	PriceChange        float64
+	PriceChangePercent float64
+	WeightedAvgPrice   float64
+	PrevClosePrice     float64
+	LastPrice          float64
+	OpenPrice          float64
+	HighPrice          float64
+	LowPrice           float64
+	Volume             float64
+	OpenTime           time.Time
+	CloseTime          time.Time
+} 
