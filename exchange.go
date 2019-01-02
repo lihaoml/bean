@@ -39,7 +39,6 @@ type Exchange interface {
 	CancelAllOrders(pair Pair)
 	GetMyTrades(pair Pair, start, end time.Time) TradeLogS
 	TrackOrderID(pair Pair, oid string)
-	GetPriceChangeStats(pair Pair) PricechangeStats24
 	//////////////////////////////////////////////////////////////////////////////////////
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order
