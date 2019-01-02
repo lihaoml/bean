@@ -35,6 +35,7 @@ type TradeLog struct {
 	CommissionAsset Coin
 	Time            time.Time
 	Side            Side
+	TxnID           string
 }
 
 type TradeLogSummary struct {
