@@ -34,6 +34,14 @@ func (ob OrderBook) Mid() float64 {
 	}
 }
 
+func (ob OrderBook) Spread() float64 {
+	if ob.Valid() {
+		return ob.Asks[0].Price - ob.Bids[0].Price
+	} else {
+		return math.NaN()
+	}
+}
+
 func (ob OrderBook) Valid() bool {
 	return len(ob.Bids) > 0 && len(ob.Asks) > 0
 }
