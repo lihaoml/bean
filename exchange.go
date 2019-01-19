@@ -13,6 +13,7 @@ const (
 	NameFcoin   = "FCOIN"
 	NameBgogo   = "BGOGO"
 	NameBCoin   = "BCOIN"
+	NameBittrex = "BITTREX"
 	NameDeribit = "DERIBIT"
 )
 
