@@ -118,9 +118,7 @@ func (pair Pair) FormatAvgPrice(price float64) string {
 	return fmt.Sprintf("%.4e", price)
 }
 
-// the minimum precision of all exchanges for price of a pair to place an order
-func (pair Pair) OrderPricePrec(price float64) string {
-	var prec int = 0
+func orderPricePrec(pair Pair) (prec int) {
 	switch pair {
 	case Pair{ETH, USDT}:
 		prec = 2
@@ -160,9 +158,20 @@ func (pair Pair) OrderPricePrec(price float64) string {
 		prec = 8
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
-		return ""
+		return
 	}
+	return
+}
+
+// the minimum precision of all exchanges for price of a pair to place an order
+func (pair Pair) OrderPricePrec(price float64) string {
+	prec := orderPricePrec(pair)
 	return strconv.FormatFloat(price, 'f', prec, 64)
+}
+
+func (pair Pair) MinimumTick() float64 {
+	prec := orderPricePrec(pair)
+	return math.Pow10(-prec)
 }
 
 func AllCoins(pairs []Pair) (res Coins) {
