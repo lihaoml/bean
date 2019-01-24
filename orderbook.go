@@ -216,4 +216,6 @@ type OrderStatus struct {
 	PlacedPrice  float64 // initial price
 	Price        float64 // filled price, if not applicable then placed price
 	State        OrderState
+	Commission   float64
+	CommissionAsset Coin
 }
