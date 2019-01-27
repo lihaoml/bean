@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// needs some work. i would like the contracts to go and get their own market data. but mds is the wrong place for this kind of analytics
+
 func PositionSummary(mds RPCMDSConnC, t time.Time) string {
 	ptf := bean.GetLiveContracts()
 

@@ -57,18 +57,18 @@ func (c Contract) Quantity() float64 {
 	return c.qty
 }
 
-func (c Contract) expiry() (dt time.Time) {
+func (c Contract) Expiry() (dt time.Time) {
 	dt, _ = time.Parse("02Jan06", strings.ToTitle(strings.Split(c.name, "-")[1]))
 	dt = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
 	return
 }
 
-func (c Contract) strike() (st float64) {
+func (c Contract) Strike() (st float64) {
 	st, _ = strconv.ParseFloat(strings.Split(c.name, "-")[2], 64)
 	return
 }
 
-func (c Contract) callPut() callOrPut {
+func (c Contract) CallPut() callOrPut {
 	switch strings.Split(c.name, "-")[3] {
 	case "C":
 		return Call
@@ -86,10 +86,11 @@ func (c Contract) Underlying() Pair {
 	panic("Only accept BTC underlying")
 }
 
+// Calculate the implied vol of a contract given its premium
 func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, domRate, optionPrice float64) float64 {
-	expiry := c.expiry()
-	strike := c.strike()
-	cp := c.callPut()
+	expiry := c.Expiry()
+	strike := c.Strike()
+	cp := c.CallPut()
 	expiryDays := dayDiff(asof, expiry)
 	deliveryDays := expiryDays // temp
 
@@ -98,9 +99,9 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, domRate, optionPri
 
 // in fiat
 func (c Contract) PV(asof time.Time, spotPrice, futPrice, domRate, vol float64) float64 {
-	expiry := c.expiry()
-	strike := c.strike()
-	cp := c.callPut()
+	expiry := c.Expiry()
+	strike := c.Strike()
+	cp := c.CallPut()
 	expiryDays := dayDiff(asof, expiry)
 	deliveryDays := expiryDays // temp
 	return c.Quantity() * forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * dF(deliveryDays, domRate)
@@ -115,16 +116,6 @@ func (c Contract) Vega(asof time.Time, spotPrice, futPrice, vol, domRate float64
 func (c Contract) Delta(asof time.Time, spotPrice, futPrice, vol, domRate float64) float64 {
 	deltaFiat := (c.PV(asof, spotPrice*1.005, futPrice*1.005, domRate, vol) - c.PV(asof, spotPrice*0.995, futPrice*0.995, domRate, vol)) * 100.0
 	return deltaFiat / spotPrice
-}
-
-// only until can get this info directly from deribit
-func GetLiveContracts() []Contract {
-	return []Contract{
-		{"BTC-29MAR19-2750-P", 4.0},
-		{"BTC-29MAR19-4250-C", -2.0},
-		{"BTC-29MAR19-4500-C", -2.0},
-		{"BTC-29MAR19-6000-C", -2.0},
-		{"BTC-29MAR19-4000-C", -2.0}}
 }
 
 // maths stuff now
