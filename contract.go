@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -13,80 +14,172 @@ type callOrPut string
 const (
 	Call callOrPut = "C"
 	Put  callOrPut = "P"
+	NA   callOrPut = "N"
 )
 
 const USDiscountRate = 0.02
 
 type Contract struct {
-	name string
-	qty  float64
+	isOption   bool
+	underlying Pair
+	expiry     time.Time
+	delivery   time.Time
+	strike     float64
+	callPut    callOrPut
 }
 
-func ContractFromName(name string, quantity float64) Contract {
-	return Contract{name, quantity}
+type Contracts map[Contract]float64
+
+func ContractFromName(name string) (Contract, error) {
+	var expiry time.Time
+	var callPut callOrPut
+	var underlying Pair
+	var strike float64
+	var err error
+
+	st := strings.Split(name, "-")
+	if len(st) != 4 && len(st) != 2 {
+		err = errors.New("not a good contract formation")
+		return Contract{}, err
+	}
+
+	switch st[0] {
+	case "BTC":
+		underlying = Pair{BTC, USDT}
+	default:
+		err = errors.New("do not recognise coin")
+		return Contract{}, err
+	}
+
+	dt, err := time.Parse("02Jan06", strings.ToTitle(st[1]))
+	if err != nil {
+		return Contract{}, err
+	}
+	expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
+
+	if len(st) == 2 {
+		return Contract{
+			isOption:   false,
+			underlying: underlying,
+			expiry:     expiry,
+			delivery:   expiry,
+			callPut:    NA,
+			strike:     0.0}, nil
+	}
+
+	strike, err = strconv.ParseFloat(st[2], 64)
+	if err != nil {
+		return Contract{}, err
+	}
+
+	switch st[3] {
+	case "C":
+		callPut = Call
+	case "P":
+		callPut = Put
+	default:
+		return Contract{}, errors.New("Need C OR P")
+
+	}
+	return Contract{
+		isOption:   true,
+		underlying: underlying,
+		expiry:     expiry,
+		delivery:   expiry,
+		callPut:    callPut,
+		strike:     strike}, nil
+
 }
 
-func ContractsFromNames(names []string, quantities []float64) (c []Contract) {
-	c = make([]Contract, 0, 0)
+func ContractsFromNames(names []string, quantities []float64) (pos Contracts, err error) {
+	var c Contract
+	pos = make(Contracts)
 	for i := range names {
+		c, err = ContractFromName(names[i])
+		if err != nil {
+			return
+		}
 		if quantities != nil {
-			c = append(c, Contract{names[i], quantities[i]})
+			pos[c] = quantities[i]
 		} else {
-			c = append(c, Contract{names[i], 0.0})
+			pos[c] = 0.0
 		}
 	}
 	return
 }
 
-func ContractFromDets(c Coin, d time.Time, strike float64, cp callOrPut, quantity float64) Contract {
-	var cptext string
-	if cp == Call {
-		cptext = "C"
-	} else {
-		cptext = "P"
-	}
+func OptContractFromDets(c Coin, d time.Time, strike float64, cp callOrPut) Contract {
+	return Contract{
+		isOption:   true,
+		underlying: Pair{c, USDT},
+		expiry:     d,
+		delivery:   d,
+		strike:     strike,
+		callPut:    cp}
+}
 
-	return Contract{fmt.Sprintf("%s-%s-%4.0f-%s", c.Format(), d.Format("2JAN06"), strike, cptext), quantity}
+func FutContractFromDets(c Coin, d time.Time, price float64) Contract {
+	return Contract{
+		isOption:   false,
+		underlying: Pair{c, USDT},
+		expiry:     d,
+		delivery:   d,
+		strike:     price, // strike doubles up as price for futures
+		callPut:    NA}
+}
+
+func (c Contract) UnderFuture() Contract {
+	return Contract{
+		isOption:   false,
+		underlying: c.underlying,
+		expiry:     c.expiry,
+		delivery:   c.delivery,
+		strike:     0.0,
+		callPut:    NA}
+
 }
 
 func (c Contract) Name() string {
-	return c.name
-}
-
-func (c Contract) Quantity() float64 {
-	return c.qty
+	if c.isOption {
+		var cptext string
+		if c.callPut == Call {
+			cptext = "C"
+		} else {
+			cptext = "P"
+		}
+		n := fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
+		return n
+	} else {
+		n := fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
+		return n
+	}
 }
 
 func (c Contract) Expiry() (dt time.Time) {
-	dt, _ = time.Parse("02Jan06", strings.ToTitle(strings.Split(c.name, "-")[1]))
-	dt = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
-	return
+	return c.expiry
+}
+
+func (c Contract) Delivery() time.Time {
+	return c.delivery
 }
 
 func (c Contract) Strike() (st float64) {
-	st, _ = strconv.ParseFloat(strings.Split(c.name, "-")[2], 64)
-	return
+	return c.strike
 }
 
 func (c Contract) CallPut() callOrPut {
-	switch strings.Split(c.name, "-")[3] {
-	case "C":
-		return Call
-	case "P":
-		return Put
-	}
-	panic("Need C OR P")
+	return c.callPut
 }
 
 func (c Contract) Underlying() Pair {
-	switch strings.Split(c.name, "-")[0] {
-	case "BTC":
-		return Pair{BTC, USDT}
-	}
-	panic("Only accept BTC underlying")
+	return c.underlying
 }
 
-// Calculate the implied vol of a contract given its premium
+func (c Contract) IsOption() bool {
+	return c.isOption
+}
+
+// Calculate the implied vol of a contract given its price in LHS coin
 func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, domRate, optionPrice float64) float64 {
 	expiry := c.Expiry()
 	strike := c.Strike()
@@ -97,25 +190,41 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, domRate, optionPri
 	return optionImpliedVol(expiryDays, deliveryDays, strike, futPrice, domRate, optionPrice*spotPrice, cp)
 }
 
-// in fiat
+// Calculate the price of a contract given market parameters. Price is in RHS coin
 func (c Contract) PV(asof time.Time, spotPrice, futPrice, domRate, vol float64) float64 {
 	expiry := c.Expiry()
-	strike := c.Strike()
-	cp := c.CallPut()
 	expiryDays := dayDiff(asof, expiry)
 	deliveryDays := expiryDays // temp
-	return c.Quantity() * forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * dF(deliveryDays, domRate)
+	if c.IsOption() {
+		strike := c.Strike()
+		cp := c.CallPut()
+		return forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * dF(deliveryDays, domRate)
+	} else {
+		return (futPrice - c.Strike()) * dF(deliveryDays, domRate) // strike doubles up as future price
+	}
 }
 
-// in fiat
+// in rhs coin
 func (c Contract) Vega(asof time.Time, spotPrice, futPrice, vol, domRate float64) float64 {
 	return c.PV(asof, spotPrice, futPrice, domRate, vol+0.005) - c.PV(asof, spotPrice, futPrice, domRate, vol-0.005)
 }
 
-//in coin
+//in lhs coin
 func (c Contract) Delta(asof time.Time, spotPrice, futPrice, vol, domRate float64) float64 {
 	deltaFiat := (c.PV(asof, spotPrice*1.005, futPrice*1.005, domRate, vol) - c.PV(asof, spotPrice*0.995, futPrice*0.995, domRate, vol)) * 100.0
 	return deltaFiat / spotPrice
+}
+
+//in lhs coin
+func (c Contract) Gamma(asof time.Time, spotPrice, futPrice, vol, domRate float64) float64 {
+	gammaFiat := c.Delta(asof, spotPrice*1.005, futPrice*1.005, domRate, vol) - c.Delta(asof, spotPrice*0.995, futPrice*0.995, domRate, vol)
+
+	return gammaFiat
+}
+
+//in rhs coin
+func (c Contract) Theta(asof time.Time, spotPrice, futPrice, vol, domRate float64) float64 {
+	return c.PV(asof.Add(24*time.Hour), spotPrice, futPrice, domRate, vol) - c.PV(asof, spotPrice, futPrice, domRate, vol)
 }
 
 // maths stuff now
@@ -127,6 +236,7 @@ func dayDiff(t1, t2 time.Time) int {
 	return int(math.Round(t2.Sub(t1).Truncate(time.Hour).Hours() / 24.0))
 }
 
+// premium expected in domestic - rhs coin
 func optionImpliedVol(expiryDays, deliveryDays int, strike, forward, domRate, prm float64, callPut callOrPut) (bs float64) {
 	// newton raphson on vega and bs
 	//	guessVol := math.Sqrt(2.0*math.Pi/(float64(expiryDays)/365)) * prm / forward
@@ -146,7 +256,7 @@ func dF(days int, rate float64) float64 {
 	return math.Exp(-float64(days) / 365 * rate)
 }
 
-// in fiat
+// in domestic - rhs coin
 func forwardOptionPrice(expiryDays int, strike, forward, vol float64, callPut callOrPut) (prm float64) {
 	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
 	d2 := d1 - vol*math.Sqrt(float64(expiryDays)/365.0)
@@ -168,10 +278,4 @@ func optionVega(expiryDays, deliveryDays int, strike, forward, vol, domRate floa
 	//	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
 	//	return forward * cumNormDist(d1) * math.Sqrt(float64(expiryDays)/365.0) * dF(deliveryDays, domRate)
 	return dF(deliveryDays, domRate) * (forwardOptionPrice(expiryDays, strike, forward, vol+0.005, Call) - forwardOptionPrice(expiryDays, strike, forward, vol-0.005, Call))
-}
-
-func optionDelta(expiryDays, deliveryDays int, callPut callOrPut, strike, forward, vol, domRate float64) float64 {
-	//	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
-	//	return forward * cumNormDist(d1) * math.Sqrt(float64(expiryDays)/365.0) * dF(deliveryDays, domRate)
-	return dF(deliveryDays, domRate) * (forwardOptionPrice(expiryDays, strike, forward, vol, callPut) - forwardOptionPrice(expiryDays, strike, forward, vol, callPut))
 }
