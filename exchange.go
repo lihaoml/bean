@@ -15,6 +15,7 @@ const (
 	NameBCoin   = "BCOIN"
 	NameBittrex = "BITTREX"
 	NameDeribit = "DERIBIT"
+	NameAllbit  = "ALLBIT"
 )
 
 // Exchange is the interface for all exchanges
