@@ -143,7 +143,7 @@ func ContractHistory(mds RPCMDSConnC, cName string) (string, error) {
 		if t.Equal(st) {
 			fmt.Fprintf(&output, "%s   %6.1f\n", c.Name(), spotMid)
 		}
-		fmt.Fprintf(&output, "%s %5.1f/%5.1f   %6.4f/%6.4f\n", t.Format("02Jan06"), volBid*100.0, volAsk*100.0)
+		fmt.Fprintf(&output, "%s %5.1f/%5.1f\n", t.Format("02Jan06"), volBid*100.0, volAsk*100.0)
 	}
 	return output.String(), nil
 }
