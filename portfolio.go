@@ -16,12 +16,16 @@ type Portfolio interface {
 	AvailableBalance(c Coin) float64
 	SetLockedBalance(Coin, float64)
 	Coins() Coins
+	AddContract(Contract, float64)
+	SetContracts(Contracts)
+	Contracts() Contracts
 }
 
 // Portfolio a Portfolio for an account
 type portfolio struct {
 	balances       map[Coin]float64 // total balance of each coin
 	lockedBalances map[Coin]float64 // locked blance by exchange, used to calculate the free blance for placing order
+	contracts      map[Contract]float64
 }
 
 func NewPortfolio(bal ...interface{}) Portfolio {
@@ -29,16 +33,20 @@ func NewPortfolio(bal ...interface{}) Portfolio {
 		return portfolio{
 			balances:       make(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
+			contracts:      make(map[Contract]float64),
+			//			contracts:      make([]Contract, 0),
 		}
 	} else if len(bal) == 1 {
 		return portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
+			contracts:      make(map[Contract]float64),
 		}
 	} else if len(bal) == 2 {
 		return portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: bal[1].(map[Coin]float64),
+			contracts:      make(map[Contract]float64),
 		}
 	} else {
 		panic("invalid number of input for NewPortfolio")
@@ -137,6 +145,21 @@ func (p portfolio) Filter(coins Coins) Portfolio {
 		}
 	}
 	return r
+}
+
+func (p portfolio) AddContract(c Contract, qty float64) {
+	p.contracts[c] += qty
+	//	p.contracts = append(p.contracts, c)
+}
+
+func (p portfolio) Contracts() Contracts {
+	return p.contracts
+}
+
+func (p portfolio) SetContracts(cs Contracts) {
+	for c, q := range cs {
+		p.AddContract(c, q)
+	}
 }
 
 /*
