@@ -4,6 +4,7 @@ import (
 	"bean"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"time"
 )
@@ -12,6 +13,26 @@ import (
 // it sits in the mds section because it needs to go and get it's own market data - DOESN'T SEEM OPTIMAL TBH
 
 // all reports need to be extended to describe the portfolio cash/coin risk better
+
+type Risk struct {
+	spot  map[bean.Pair]float64
+	pv    map[bean.Coin]float64
+	pvusd float64
+	delta map[bean.Pair]float64
+	gamma map[bean.Pair]float64
+	vega  map[bean.Pair]float64
+	theta float64
+}
+
+func newRisk() Risk {
+	return Risk{
+		spot:  make(map[bean.Pair]float64),
+		pv:    make(map[bean.Coin]float64),
+		delta: make(map[bean.Pair]float64),
+		gamma: make(map[bean.Pair]float64),
+		vega:  make(map[bean.Pair]float64),
+	}
+}
 
 func PortfolioPositionSummary(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time) string {
 
@@ -40,61 +61,86 @@ func PortfolioPositionSummary(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time) 
 	return output.String()
 }
 
-func PortfolioRiskSummary(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time) string {
+func PortfolioRisk(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time, spotBump float64) (r Risk) {
 
-	var output strings.Builder
-	pvSum, deltaSum, gammaSum, vegaSum, thetaSum := 0.0, 0.0, 0.0, 0.0, 0.0
+	r = newRisk()
 
-	// REALLY DIRTY. come back here.
-	_, _, btcSpot := SpotPrice(mds, t, bean.Pair{bean.BTC, bean.USDT})
-	pvSum = ptf.Balance(bean.BTC) * btcSpot
-	deltaSum = ptf.Balance(bean.BTC)
+	for c, bal := range ptf.Balances() {
+		r.pv[c] += bal
+		p := bean.Pair{c, bean.USDT}
+		r.delta[p] += bal
+		_, _, spot := SpotPrice(mds, t, p)
+		if c != bean.USDT {
+			r.pvusd += bal * spot * (1.0 + spotBump)
+		} else {
+			r.pvusd += bal
+		}
+	}
 
 	for c, q := range ptf.Contracts() {
 		spotMid, futMid, domRate, volBid, volAsk := ContractMarket(mds, t, c)
 		volMid := (volBid + volAsk) / 2.0
+		p := c.Underlying()
 
-		pv := q * c.PV(t, spotMid, futMid, domRate, volMid)
-		delta := q * c.Delta(t, spotMid, futMid, volMid, domRate)
-		gamma := q * c.Gamma(t, spotMid, futMid, volMid, domRate)
-		theta := q * c.Theta(t, spotMid, futMid, volMid, domRate)
-		vega := q * c.Vega(t, spotMid, futMid, volMid, domRate)
+		spotMid *= (1.0 + spotBump)
+		futMid *= (1.0 + spotBump)
 
-		pvSum += pv
-		deltaSum += delta
-		vegaSum += vega
-		gammaSum += gamma
-		thetaSum += theta
+		r.spot[p] = spotMid
+		r.pv[p.Coin] += q * c.PV(t, r.spot[p], futMid, domRate, volMid) / r.spot[p]
+		r.pvusd += q * c.PV(t, r.spot[p], futMid, domRate, volMid)
+		r.delta[p] += q * c.Delta(t, r.spot[p], futMid, volMid, domRate)
+		r.gamma[p] += q * c.Gamma(t, r.spot[p], futMid, volMid, domRate)
+		r.theta += q * c.Theta(t, r.spot[p], futMid, volMid, domRate)
+		r.vega[p] += q * c.Vega(t, r.spot[p], futMid, volMid, domRate)
 	}
 
-	fmt.Fprintf(&output, "Spot:       %7.1f\n", btcSpot)
-	fmt.Fprintf(&output, "PV (BTC)    %6.3f\n", pvSum/btcSpot)
-	fmt.Fprintf(&output, "PV (USD)    %6.1f\n", pvSum)
-	fmt.Fprintf(&output, "DELTA (BTC) %6.3f\n", deltaSum)
-	fmt.Fprintf(&output, "GAMMA (BTC) %6.3f\n", gammaSum)
-	fmt.Fprintf(&output, "VEGA (USD)  %6.1f\n", vegaSum)
-	fmt.Fprintf(&output, "THETA (USD) %6.1f\n", thetaSum)
+	return
+}
+
+func PortfolioRiskSummary(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time, pair bean.Pair) string {
+
+	var output strings.Builder
+
+	risk := PortfolioRisk(ptf, mds, t, 0.0)
+
+	fmt.Fprintf(&output, "Spot:       %7.1f\n", risk.spot[pair])
+	fmt.Fprintf(&output, "PV (%s)    %6.3f\n", pair.Coin, risk.pv[pair.Coin])
+	fmt.Fprintf(&output, "PV (USD)    %6.1f\n", risk.pvusd)
+	fmt.Fprintf(&output, "DELTA (%s) %6.3f\n", pair.Coin, risk.delta[pair])
+	fmt.Fprintf(&output, "GAMMA (%s) %6.3f\n", pair.Coin, risk.gamma[pair])
+	fmt.Fprintf(&output, "VEGA (USD)  %6.1f\n", risk.vega[pair])
+	fmt.Fprintf(&output, "THETA (USD) %6.1f\n", risk.theta)
 
 	return output.String()
 }
 
-func PortfolioRiskLadder(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time) string {
-	var output strings.Builder
+func PortfolioRiskLadder(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time) map[float64]Risk {
 	spotBump := [10]float64{-0.50, -0.25, -0.10, -0.05, 0.0, 0.05, 0.10, 0.25, 0.50, 1.0}
-	var pv, delta, vega [len(spotBump)]float64
-	var spotMid float64
 
-	fmt.Fprintf(&output, "SPOT   PV     DELTA VEGA\n")
-	for j, s := range spotBump {
-		for c, q := range ptf.Contracts() {
-			spotMid, futMid, domRate, volBid, volAsk := ContractMarket(mds, t, c)
-			volMid := (volBid + volAsk) / 2.0
+	r := make(map[float64]Risk, 10)
 
-			pv[j] += q * c.PV(t, (1.0+s)*spotMid, (1.0+s)*futMid, domRate, volMid)
-			delta[j] += q * c.Delta(t, (1.0+s)*spotMid, (1.0+s)*futMid, volMid, domRate)
-			vega[j] += q * c.Vega(t, (1.0+s)*spotMid, (1.0+s)*futMid, volMid, domRate)
-		}
-		fmt.Fprintf(&output, "%6.1f %6.0f %5.2f %4.1f\n", (1.0+s)*spotMid, pv[j], delta[j], vega[j])
+	for _, bump := range spotBump {
+		r[bump] = PortfolioRisk(ptf, mds, t, bump)
+	}
+
+	return r
+}
+
+func PortfolioRiskLadderSummary(ptf bean.Portfolio, mds RPCMDSConnC, t time.Time, pair bean.Pair) string {
+	var output strings.Builder
+
+	riskLadder := PortfolioRiskLadder(ptf, mds, t)
+	fmt.Fprintf(&output, "SPOT   PV     VAR DELTA VEGA\n")
+
+	bumps := make(sort.Float64Slice, 0, len(riskLadder))
+	for spotBump, _ := range riskLadder {
+		bumps = append(bumps, spotBump)
+	}
+	bumps.Sort()
+
+	for _, spotBump := range bumps {
+		r := riskLadder[spotBump]
+		fmt.Fprintf(&output, "%6.1f %6.0f %-3.0f %5.2f %4.1f\n", r.spot[pair], r.pvusd, r.pvusd-riskLadder[0.0].pvusd, r.delta[pair], r.vega[pair])
 	}
 
 	return output.String()
