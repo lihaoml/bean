@@ -26,6 +26,7 @@ type Contract struct {
 	delivery   time.Time
 	strike     float64
 	callPut    callOrPut
+	perp       bool
 }
 
 type Contracts map[Contract]float64
@@ -36,6 +37,7 @@ func ContractFromName(name string) (Contract, error) {
 	var underlying Pair
 	var strike float64
 	var err error
+	var perp bool
 
 	st := strings.Split(name, "-")
 	if len(st) != 4 && len(st) != 2 {
@@ -51,11 +53,16 @@ func ContractFromName(name string) (Contract, error) {
 		return Contract{}, err
 	}
 
-	dt, err := time.Parse("02Jan06", strings.ToTitle(st[1]))
-	if err != nil {
-		return Contract{}, err
+	if st[1] == "PERPETUAL" {
+		perp = true
+	} else {
+		perp = false
+		dt, err := time.Parse("02Jan06", strings.ToTitle(st[1]))
+		if err != nil {
+			return Contract{}, err
+		}
+		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
 	}
-	expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
 
 	if len(st) == 2 {
 		return Contract{
@@ -64,7 +71,8 @@ func ContractFromName(name string) (Contract, error) {
 			expiry:     expiry,
 			delivery:   expiry,
 			callPut:    NA,
-			strike:     0.0}, nil
+			strike:     0.0,
+			perp:       perp}, nil
 	}
 
 	strike, err = strconv.ParseFloat(st[2], 64)
@@ -89,6 +97,10 @@ func ContractFromName(name string) (Contract, error) {
 		callPut:    callPut,
 		strike:     strike}, nil
 
+}
+
+func PerpContract(c Coin) (Contract, error) {
+	return ContractFromName(string(c) + "-PERPETUAL")
 }
 
 func ContractsFromNames(names []string, quantities []float64) (pos Contracts, err error) {
@@ -147,16 +159,22 @@ func (c Contract) Name() string {
 		} else {
 			cptext = "P"
 		}
-		n := fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
-		return n
+		return fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
 	} else {
-		n := fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
-		return n
+		if c.perp {
+			return fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
+		} else {
+			return fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
+		}
 	}
 }
 
 func (c Contract) Expiry() (dt time.Time) {
 	return c.expiry
+}
+
+func (c Contract) Perp() bool {
+	return c.perp
 }
 
 func (c Contract) Delivery() time.Time {
