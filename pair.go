@@ -187,3 +187,28 @@ func AllCoins(pairs []Pair) (res Coins) {
 	}
 	return res
 }
+
+func RightPair(coin1, coin2 Coin) (Pair, bool) {
+	if coin1 == USDT {
+		return Pair{coin2, coin1}, true
+	}
+	if coin2 == USDT {
+		return Pair{coin1, coin2}, true
+	}
+	if coin1 == BTC {
+		return Pair{coin2, coin1}, true
+	}
+	if coin2 == BTC {
+		return Pair{coin1, coin2}, true
+	}
+	if coin1 == ETH {
+		return Pair{coin2, coin1}, true
+	}
+	if coin2 == ETH {
+		return Pair{coin1, coin2}, true
+	}
+	if (coin1 == IOTX && coin2 == APOT) || (coin1 == APOT && coin2 == IOTX) {
+		return Pair{IOTX, APOT}, true
+	}
+	return Pair{}, false
+}
