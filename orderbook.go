@@ -208,14 +208,14 @@ func AmountToSide(amt float64) Side {
 
 // Status of the placed order,
 type OrderStatus struct {
-	OrderID      string
-	PlacedTime   time.Time
-	Side         Side
-	FilledAmount float64
-	LeftAmount   float64
-	PlacedPrice  float64 // initial price
-	Price        float64 // filled price, if not applicable then placed price
-	State        OrderState
-	Commission   float64
+	OrderID         string
+	PlacedTime      time.Time
+	Side            Side
+	FilledAmount    float64
+	LeftAmount      float64
+	PlacedPrice     float64 // initial price
+	Price           float64 // filled price, if not applicable then placed price
+	State           OrderState
+	Commission      float64
 	CommissionAsset Coin
 }
