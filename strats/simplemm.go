@@ -6,18 +6,18 @@ import (
 )
 
 type SimpleMM struct {
+	BaseStrat
 	pair   Pair
 	exName string
-	tick   time.Duration
 	spread float64
 }
 
 func NewSimpleMM(exName string, pair Pair, spread float64, tick time.Duration) SimpleMM {
 	return SimpleMM{
-		exName: exName,
-		pair:   pair,
-		tick:   tick,
-		spread: spread,
+		exName:    exName,
+		pair:      pair,
+		BaseStrat: BaseStrat{tick},
+		spread:    spread,
 	}
 }
 
@@ -27,10 +27,6 @@ func (s SimpleMM) GetExchangeNames() []string {
 
 func (s SimpleMM) GetPairs() []Pair {
 	return []Pair{s.pair}
-}
-
-func (s SimpleMM) GetTick() time.Duration {
-	return s.tick
 }
 
 func (s SimpleMM) Grind(exs map[string]Exchange) []TradeAction {

@@ -21,6 +21,14 @@ func (s BaseStrat) GetTick() time.Duration {
 	return s.Tick
 }
 
+func (s BaseStrat) Name() string {
+	return "bean"
+}
+
+func (s BaseStrat) FormatParams() string {
+	return ""
+}
+
 type TradeAction struct {
 	ExName string
 	Op     Operation
@@ -72,4 +80,7 @@ type Strat interface {
 	GetPairs() []Pair                            // get relevant pairs
 	GetTick() time.Duration                      // get tick duration
 	Grind(exs map[string]Exchange) []TradeAction // called at each tick, generates trading actions
+
+	Name() string         // name of the strategy, for reporting purpose
+	FormatParams() string // a compact way to format key params of the strategy, to save to TDS for reference
 }
