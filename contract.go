@@ -99,6 +99,60 @@ func ContractFromName(name string) (Contract, error) {
 
 }
 
+func ContractFromPartialName(partialName string) (Contract, error) {
+	sts := strings.Split(partialName, "-")
+	defaultExpiry, _ := time.Parse("02Jan06", "29Mar19")
+	c := Contract{
+		isOption:   true,
+		underlying: Pair{BTC, USDT},
+		expiry:     defaultExpiry,
+		delivery:   defaultExpiry,
+		callPut:    Call,
+		strike:     3500}
+
+	for _, s := range sts {
+		switch strings.ToUpper(s) {
+		case "MAR":
+			c.expiry, _ = time.Parse("02Jan06", "29Mar19")
+			c.delivery = c.expiry
+			continue
+		case "JUN":
+			c.expiry, _ = time.Parse("02Jan06", "28Jun19")
+			c.delivery = c.expiry
+			continue
+		case "SEP":
+			c.expiry, _ = time.Parse("02Jan06", "27Sep19")
+			c.delivery = c.expiry
+			continue
+		case "BTC":
+			c.underlying = Pair{BTC, USDT}
+			continue
+		case "ETH":
+			c.underlying = Pair{ETH, USDT}
+			continue
+		case "C":
+			c.callPut = Call
+			continue
+		case "P":
+			c.callPut = Put
+			continue
+		case "":
+			continue
+		}
+		if d, err := time.Parse("02Jan06", strings.ToTitle(s)); err == nil {
+			c.expiry = d
+			c.delivery = d
+			continue
+		}
+		if n, err := strconv.Atoi(s); err == nil {
+			c.strike = float64(n)
+			continue
+		}
+		return c, errors.New("Don't recognise as contract component:" + s)
+	}
+	return c, nil
+}
+
 func PerpContract(c Coin) (Contract, error) {
 	return ContractFromName(string(c) + "-PERPETUAL")
 }
