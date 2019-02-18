@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"time"
+	"bean/utils"
 )
 
 type TraderType int
@@ -256,6 +257,23 @@ func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
 	tradesummary.SellValue = sellValue
 	tradesummary.SellAmount = sellAmount
 	tradesummary.Fee = fee
+	return
+}
+
+// res = trd1 - trd2
+func (trds1 TradeLogS) Minus(trds2 TradeLogS) (res TradeLogS) {
+	// force alignment of time
+	for i, v := range trds2 {
+		trds2[i].Time = time.Unix(v.Time.Unix(), 0)
+	}
+	for _, v := range trds1 {
+		v.Time = time.Unix(v.Time.Unix(), 0)
+		if util.Contains(trds2, v) {
+			continue
+		} else {
+			res = append(res, v)
+		}
+	}
 	return
 }
 

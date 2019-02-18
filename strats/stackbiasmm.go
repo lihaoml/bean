@@ -12,9 +12,9 @@ import (
 // in a small amount. Add a bias based on the accumulated position
 
 type StackBiasMM struct {
+	BaseStrat
 	pair               Pair
 	exName             string
-	tick               time.Duration
 	largeAmount        float64 // this is the notional used to inspect the stack
 	largeBiasFactor    float64 // this is how much the price is biased by the stack. 0 is unaffected. 1 means mid
 	tradingAmount      float64 // size we will trade in i.e. the small size in the stack
@@ -41,7 +41,7 @@ func NewStackBiasMM(exName string, pair Pair, tick time.Duration, tradingamount,
 	return &StackBiasMM{
 		exName:             exName,
 		pair:               pair,
-		tick:               tick,
+		BaseStrat:          BaseStrat{tick},
 		largeAmount:        largeAmount,
 		largeBiasFactor:    largebiasfactor,
 		tradingAmount:      tradingamount,
@@ -78,10 +78,6 @@ func (s StackBiasMM) GetExchangeNames() []string {
 
 func (s StackBiasMM) GetPairs() []Pair {
 	return []Pair{s.pair}
-}
-
-func (s StackBiasMM) GetTick() time.Duration {
-	return s.tick
 }
 
 func (s *StackBiasMM) Grind(exs map[string]Exchange) []TradeAction {
