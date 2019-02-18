@@ -124,6 +124,29 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	return ob
 }
 
+func (ob OrderBook) PriceIn(size float64) (bid, ask, bidSize, askSize float64) {
+	bid, bidSize = priceInAmount(size, ob.Bids)
+	ask, askSize = priceInAmount(size, ob.Asks)
+	return
+}
+
+func priceInAmount(requiredAmount float64, stack []Order) (price, available float64) {
+	amt := 0.0
+	wpr := 0.0
+	for _, ord := range stack {
+		amt += ord.Amount
+		wpr += ord.Amount * ord.Price
+		if amt > requiredAmount {
+			price = wpr / amt
+			available = requiredAmount
+			return
+		}
+	}
+	price = stack[len(stack)-1].Price
+	available = amt
+	return
+}
+
 // sell / buy ratio, alpha in (0, 1]
 func (ob OrderBook) SBRatio(alpha float64) float64 {
 	var sell float64
