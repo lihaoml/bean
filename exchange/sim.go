@@ -68,7 +68,7 @@ func (sim Simulator) GetOrderBook(pair Pair) OrderBook {
 }
 
 func (sim Simulator) GetTransactionHistory(pair Pair) Transactions {
-	return sim.txn[pair].Between(sim.last, sim.now)
+	return sim.txn[pair].Between(sim.now.Add(-10*time.Minute), sim.now) // exchanges typically give about 10mins of trade data
 }
 
 func (sim *Simulator) SetTime(t time.Time) {
