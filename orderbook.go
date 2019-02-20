@@ -142,8 +142,13 @@ func priceInAmount(requiredAmount float64, stack []Order) (price, available floa
 			return
 		}
 	}
-	price = stack[len(stack)-1].Price
-	available = amt
+	if len(stack) > 0 {
+		price = stack[len(stack)-1].Price
+		available = amt
+	} else {
+		price = math.NaN()
+		available = 0.0
+	}
 	return
 }
 
