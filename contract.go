@@ -57,7 +57,7 @@ func ContractFromName(name string) (Contract, error) {
 		perp = true
 	} else {
 		perp = false
-		dt, err := time.Parse("02Jan06", strings.ToTitle(st[1]))
+		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
 		if err != nil {
 			return Contract{}, err
 		}
@@ -103,7 +103,7 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 	sts := strings.Split(partialName, "-")
 	defaultExpiry, _ := time.Parse("02Jan06", "29Mar19")
 	c := Contract{
-		isOption:   true,
+		isOption:   false,
 		underlying: Pair{BTC, USDT},
 		expiry:     defaultExpiry,
 		delivery:   defaultExpiry,
@@ -112,6 +112,10 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 
 	for _, s := range sts {
 		switch strings.ToUpper(s) {
+		case "PERP":
+			c.perp = true
+			c.isOption = false
+			continue
 		case "MAR":
 			c.expiry, _ = time.Parse("02Jan06", "29Mar19")
 			c.delivery = c.expiry
@@ -132,9 +136,11 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 			continue
 		case "C":
 			c.callPut = Call
+			c.isOption = true
 			continue
 		case "P":
 			c.callPut = Put
+			c.isOption = true
 			continue
 		case "":
 			continue
@@ -146,6 +152,7 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 		}
 		if n, err := strconv.Atoi(s); err == nil {
 			c.strike = float64(n)
+			c.isOption = true
 			continue
 		}
 		return c, errors.New("Don't recognise as contract component:" + s)
@@ -195,14 +202,17 @@ func FutContractFromDets(c Coin, d time.Time, price float64) Contract {
 }
 
 func (c Contract) UnderFuture() Contract {
-	return Contract{
-		isOption:   false,
-		underlying: c.underlying,
-		expiry:     c.expiry,
-		delivery:   c.delivery,
-		strike:     0.0,
-		callPut:    NA}
-
+	if c.IsOption() {
+		return Contract{
+			isOption:   false,
+			underlying: c.underlying,
+			expiry:     c.expiry,
+			delivery:   c.delivery,
+			strike:     0.0,
+			callPut:    NA}
+	} else {
+		return c
+	}
 }
 
 func (c Contract) Name() string {
@@ -251,6 +261,11 @@ func (c Contract) IsOption() bool {
 	return c.isOption
 }
 
+// this is temporary until we add price field
+func (c *Contract) SetPrice(price float64) {
+	c.strike = price
+}
+
 // Calculate the implied vol of a contract given its price in LHS coin
 func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, domRate, optionPrice float64) float64 {
 	expiry := c.Expiry()
@@ -272,7 +287,7 @@ func (c Contract) PV(asof time.Time, spotPrice, futPrice, domRate, vol float64) 
 		cp := c.CallPut()
 		return forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * dF(deliveryDays, domRate)
 	} else {
-		return (futPrice - c.Strike()) * dF(deliveryDays, domRate) // strike doubles up as future price
+		return 10.0 * (1.0/c.Strike() - 1.0/futPrice) * futPrice // strike doubles up as future price. Deribit futures in multiples of 10$. need to check the discounting
 	}
 }
 
