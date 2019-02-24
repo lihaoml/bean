@@ -241,6 +241,15 @@ func (c Contract) Perp() bool {
 	return c.perp
 }
 
+func (c Contract) IsStandardExpiry() bool {
+	if c.perp ||
+		c.expiry.Equal(time.Date(2019, 3, 29, 0, 0, 0, 0, nil)) { // come back to this
+		return true
+	} else {
+		return false
+	}
+}
+
 func (c Contract) Delivery() time.Time {
 	return c.delivery
 }
