@@ -1,13 +1,13 @@
 package bean
 
 import (
+	"bean/utils"
 	"encoding/csv"
 	"fmt"
 	"math"
 	"os"
 	"sort"
 	"time"
-	"bean/utils"
 )
 
 type TraderType int
