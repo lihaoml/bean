@@ -1,5 +1,11 @@
 package bean
 
+import (
+	"bean/utils"
+	"fmt"
+	"sort"
+)
+
 // note that portfolio algebra does not carry locked portfolio, only clone() does
 type Portfolio interface {
 	// Log(string)
@@ -19,6 +25,7 @@ type Portfolio interface {
 	AddContract(Contract, float64)
 	SetContracts(Contracts)
 	Contracts() Contracts
+	ShowBrief()
 }
 
 // Portfolio a Portfolio for an account
@@ -106,6 +113,18 @@ func (p portfolio) Clone() Portfolio {
 		r.SetLockedBalance(k, v)
 	}
 	return r
+}
+
+// Log - log to logger, note that we do not log locked balance since it's only for exchange
+func (p portfolio) ShowBrief() {
+	cs := p.Coins()
+	sort.Sort(cs)
+	for _, c := range cs {
+		v := p.balances[c]
+		if v != 0 {
+			fmt.Println(string(c), util.RenderFloat("#,###.####", v), "[LOCKED]", util.RenderFloat("#,###.####", p.lockedBalances[c]))
+		}
+	}
 }
 
 // Add - add two portfolios and return a new one
