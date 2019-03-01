@@ -3,6 +3,7 @@ package bean
 import (
 	"fmt"
 	"time"
+	"math"
 )
 
 type Operation int
@@ -39,9 +40,13 @@ type TradeAction struct {
 func (t TradeAction) Show() string {
 	switch t.Op {
 	case PlaceLimitOrder:
-		return fmt.Sprint(t.ExName, "Placed order", t.Pair, t.Params["price"], t.Params["amount"])
+		if t.Params["amount"].(float64) > 0 {
+			return "`b[" + t.Pair.String() + "]:" + t.ExName[0:3] + " " + t.Pair.FormatPrice(t.Params["price"].(float64)) + " " + fmt.Sprint(math.Round(t.Params["amount"].(float64)*100)/100) + "`\n"
+		} else {
+			return "`s[" + t.Pair.String() + "]:" + t.ExName[0:3] + " " + t.Pair.FormatPrice(t.Params["price"].(float64)) + " " + fmt.Sprint(math.Round(t.Params["amount"].(float64)*100)/100) + "`\n"
+		}
 	case CancelOpenOrder:
-		return fmt.Sprint(t.ExName, "Cancel order", t.Pair, t.Params["orderid"])
+		return fmt.Sprint(t.ExName[0:2], " Cancel order ", t.Pair, t.Params["orderid"])
 	default:
 		return fmt.Sprint(t)
 	}
