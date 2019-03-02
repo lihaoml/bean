@@ -241,3 +241,11 @@ func (ex *Simulator) TrackOrderID(pair Pair, oid string) {
 func (sim Simulator) GetAccountOrders(pair Pair) []OrderStatus {
 	return sim.GetMyOrders(pair)
 }
+
+// TODO: Consider shift the fee to constructor and member variable
+func (sim Simulator) GetMakerFee(pair Pair) float64 {
+	return 0.001
+}
+func (sim Simulator) GetTakerFee(pair Pair) float64 {
+	return 0.001
+}

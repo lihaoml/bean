@@ -43,10 +43,10 @@ type Exchange interface {
 	GetMyTrades(pair Pair, start, end time.Time) TradeLogS
 	TrackOrderID(pair Pair, oid string)
 	//////////////////////////////////////////////////////////////////////////////////////
+	GetMakerFee(pair Pair) float64
+	GetTakerFee(pair Pair) float64
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order
-	GetMakerFee(pair models.Pair) float64
-	GetTakerFee(pair models.Pair) float64
 	MinimumTick(pair models.Pair) float64
 	GetPairs(base models.Coin) []models.Pair  // get all pairs of the exchange with the given base
 	*/
