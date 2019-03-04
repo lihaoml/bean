@@ -11,8 +11,8 @@ type Portfolio interface {
 	// Log(string)
 	Clone() Portfolio
 	Add(Portfolio) Portfolio
-	Minus(Portfolio) Portfolio
 	Subtract(Portfolio) Portfolio
+	Age(TradeLogS) Portfolio
 	Filter(Coins) Portfolio
 	Balances() map[Coin]float64
 	Balance(Coin) float64
@@ -136,15 +136,6 @@ func (p portfolio) Add(p2 Portfolio) Portfolio {
 	return port
 }
 
-// Add - add two portfolios and return a new one
-func (p portfolio) Minus(p2 Portfolio) Portfolio {
-	port := p.Clone()
-	for c, v := range p2.Balances() {
-		port.AddBalance(c, -v)
-	}
-	return port
-}
-
 // Subtract - subtract one Portfolio from another and return a new one
 func (p portfolio) Subtract(p2 Portfolio) Portfolio {
 	port := p.Clone()
@@ -152,6 +143,31 @@ func (p portfolio) Subtract(p2 Portfolio) Portfolio {
 		port.AddBalance(c, -v)
 	}
 	return port
+}
+
+func (p_ portfolio) Age(s TradeLogS) Portfolio {
+	p := p_.Clone()
+	// put it in current snapshot
+	for _, t := range s {
+		if t.Side == BUY {
+			p.AddBalance(t.Pair.Coin, t.Quantity)
+			p.RemoveBalance(t.Pair.Base, t.Quantity * t.Price)
+		} else {
+			p.RemoveBalance(t.Pair.Coin, t.Quantity)
+			p.AddBalance(t.Pair.Base, t.Quantity * t.Price)
+		}
+		// remove commission
+		// FIXME: hack for FCoin maker fee, should be put into FCOIN
+		if t.Commission == 0 {
+			if t.Side == BUY {
+				p.AddBalance(t.Pair.Coin, t.Quantity*0.0005)
+			} else {
+				p.AddBalance(t.Pair.Base, t.Quantity*t.Price*0.0005)
+			}
+		}
+		p.RemoveBalance(t.CommissionAsset, t.Commission)
+	}
+	return p
 }
 
 func (p portfolio) Filter(coins Coins) Portfolio {

@@ -26,7 +26,6 @@ func (s SnapshotTS) Print() {
 			fmt.Printf("%v,%v  ", k, e)
 		}
 		fmt.Println("")
-
 	}
 }
 
@@ -34,7 +33,7 @@ func (s SnapshotTS) Print() {
 func (s SnapshotTS) Minus(initPort Portfolio) SnapshotTS {
 	newTS := SnapshotTS{}
 	for _, v := range s {
-		newTS = append(newTS, Snapshot{v.Time, v.Port.Minus(initPort)})
+		newTS = append(newTS, Snapshot{v.Time, v.Port.Subtract(initPort)})
 	}
 	return newTS
 }
@@ -148,6 +147,7 @@ func GenerateSnapshotTS(ts Transactions, initPort Portfolio) SnapshotTS {
 	}
 	return snapts
 }
+
 
 //GenerateSnapshot updates the portfolio status after single transaction
 func GenerateSnapshot(t Transaction, p Portfolio) Snapshot {
