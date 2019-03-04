@@ -79,6 +79,11 @@ func (tls TradeLogSummary) AvgCost() float64 {
 
 type TradeLogS []TradeLog
 
+func (t TradeLogS) Sort() TradeLogS {
+	sort.Slice(t, func(i, j int) bool { return t[i].Time.Before(t[j].Time) })
+	return t
+}
+
 // To be completed
 type Transactions []Transaction
 
