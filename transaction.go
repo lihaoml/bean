@@ -318,3 +318,13 @@ func (trades TradeLogS) Since(t time.Time) (position Portfolio, after TradeLogS)
 	}
 	return position, after
 }
+
+func (tls TradeLogS) Pairs() []Pair {
+	pairs := []Pair{}
+	for _, t := range tls {
+		if !util.Contains(pairs, t.Pair) {
+			pairs = append(pairs, t.Pair)
+		}
+	}
+	return pairs
+}

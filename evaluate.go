@@ -148,7 +148,6 @@ func GenerateSnapshotTS(ts Transactions, initPort Portfolio) SnapshotTS {
 	return snapts
 }
 
-
 //GenerateSnapshot updates the portfolio status after single transaction
 func GenerateSnapshot(t Transaction, p Portfolio) Snapshot {
 	var snap Snapshot

@@ -2,8 +2,8 @@ package bean
 
 import (
 	"fmt"
-	"time"
 	"math"
+	"time"
 )
 
 type Operation int

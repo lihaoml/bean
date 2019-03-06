@@ -1,30 +1,33 @@
-package bean
+package strats
 
 import (
+	"bean/rpc"
+	"beanex/db/mds"
 	"fmt"
 	"github.com/gonum/floats"
 	"github.com/gonum/stat"
 	"math"
 	"time"
+	. "bean"
 )
 
 type Perf struct {
-	Inception time.Time   // starting time
-	Interval  time.Duration  // time inverval between each snapshot
-	Port []Portfolio  // portfolio snapshot for each interval
-	MtMBTC  []float64  // mtm snapshot for each interval, in BTC
-	MtMUSD  []float64  // mtm snapshot for each interval, in USD
+	Inception time.Time     // starting time
+	Interval  time.Duration // time inverval between each snapshot
+	Port      []Portfolio   // portfolio snapshot for each interval
+	MtMBTC    []float64     // mtm snapshot for each interval, in BTC
+	MtMUSD    []float64     // mtm snapshot for each interval, in USD
 }
 
 func (perf Perf) Sharpe() float64 {
-	pnl := make([]float64, len(perf.MtMUSD) - 1)
+	pnl := make([]float64, len(perf.MtMUSD)-1)
 	for i := 1; i < len(perf.MtMUSD); i++ {
 		pnl[i-1] = perf.MtMUSD[i] - perf.MtMUSD[i-1]
 	}
 	fmt.Println(pnl)
 	ret := perf.MtMUSD[len(pnl)] / float64(len(pnl))
 	vol := stat.StdDev(pnl, nil)
-	return ret / vol * math.Sqrt(365 * float64(time.Hour) * 24 / float64(perf.Interval))
+	return ret / vol * math.Sqrt(365*float64(time.Hour)*24/float64(perf.Interval))
 }
 
 // get Drawdown series and MaxDrawdown
@@ -40,16 +43,43 @@ func (perf Perf) MaxDrawdown() float64 {
 	return floats.Max(drawdown)
 }
 
+
 // evaluate performance of TradeLogS, assuming initial portoflio is empty.
 // dividing trades into intervals, and generate Perf stats, mtmBase is normally USDT and/or BTC
-func (tls TradeLogS) GenPerf0(interval time.Duration) (perf Perf) {
+func GenPerf0(tls TradeLogS, interval time.Duration) (perf Perf) {
 	init := NewPortfolio()
-	return tls.GenPerf(init, interval)
+	pairs := tls.Pairs()
+	mds := bean.NewRPCMDSConnC("tcp", mds.DB_HOST_BEANEX_SG_40+":"+bean.MDS_PORT)
+	// get start and end of trade logs
+	if len(tls) == 0 {
+		return
+	}
+	start := tls[0].Time
+	end := tls[0].Time
+	for _, t := range tls {
+		if t.Time.Before(start) {
+			start = t.Time
+		}
+		if t.Time.After(end) {
+			end = t.Time
+		}
+	}
+	// FIXME: try to sample the transaction
+	txn, _ := mds.GetTransactions(Pair{BTC, USDT}, start, end)
+	for _, c := range AllCoins(pairs) {
+		if c != BTC && c != USDT {
+			txn_, _ := mds.GetTransactions(Pair{c, BTC}, start, end)
+			txn = append(txn, txn_...)
+		}
+	}
+	// sample transaction by interval
+	return GenPerf(tls, init, interval, txn.Sort())
 }
+
 
 // evaluate performance of TradeLogS
 // dividing trades into intervals, and generate Perf stats, mtmBase is normally USDT and/or BTC
-func (tls TradeLogS) GenPerf(init Portfolio, interval time.Duration) (perf Perf) {
+func GenPerf(tls TradeLogS, init Portfolio, interval time.Duration, txn Transactions) (perf Perf) {
 	if len(tls) == 0 {
 		return
 	}
@@ -69,14 +99,12 @@ func (tls TradeLogS) GenPerf(init Portfolio, interval time.Duration) (perf Perf)
 	}
 	perf.Port = append(perf.Port, port.Clone())
 
-	// TODO: re-engineer below
 	for i, p := range perf.Port {
 		mtmBTC := 0.0
 		for c, v := range p.Balances() {
-			// FIXME: feed rates to the function would be better
-			mtmBTC += v * ts.inBTC(c, perf.Inception.Add(interval * time.Duration(i)))
+			mtmBTC += v * inBTC(txn, c, perf.Inception.Add(interval*time.Duration(i)))
 		}
-		if (i == 0) {
+		if i == 0 {
 			fmt.Println(mtmBTC)
 			fmt.Println(p.Balances())
 			fmt.Println(init.Balances())
@@ -85,7 +113,7 @@ func (tls TradeLogS) GenPerf(init Portfolio, interval time.Duration) (perf Perf)
 		if mtmBTC == 0 {
 			perf.MtMUSD = append(perf.MtMUSD, 0.0)
 		} else {
-			perf.MtMUSD = append(perf.MtMUSD, mtmBTC / ts.inBTC(USDT, perf.Inception.Add(interval * time.Duration(i))))
+			perf.MtMUSD = append(perf.MtMUSD, mtmBTC/inBTC(txn, USDT, perf.Inception.Add(interval*time.Duration(i))))
 		}
 	}
 	return
@@ -93,19 +121,19 @@ func (tls TradeLogS) GenPerf(init Portfolio, interval time.Duration) (perf Perf)
 
 // FIXME: we can do better
 // assuming tls is sorted
-func (tls TradeLogS) inBTC(coin Coin, cut time.Time) float64 {
+func inBTC(txn Transactions, coin Coin, cut time.Time) float64 {
 	if coin == BTC {
 		return 1.0
 	} else {
 		rate := math.NaN()
-		for _, t := range tls {
+		for _, t := range txn {
 			if t.Pair.Coin == coin && t.Pair.Base == BTC {
 				rate = t.Price
 			}
 			if t.Pair.Base == coin && t.Pair.Coin == BTC {
 				rate = 1.0 / t.Price
 			}
-			if t.Time.After(cut) {
+			if t.TimeStamp.After(cut) {
 				break
 			}
 		}

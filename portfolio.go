@@ -151,10 +151,10 @@ func (p_ portfolio) Age(s TradeLogS) Portfolio {
 	for _, t := range s {
 		if t.Side == BUY {
 			p.AddBalance(t.Pair.Coin, t.Quantity)
-			p.RemoveBalance(t.Pair.Base, t.Quantity * t.Price)
+			p.RemoveBalance(t.Pair.Base, t.Quantity*t.Price)
 		} else {
 			p.RemoveBalance(t.Pair.Coin, t.Quantity)
-			p.AddBalance(t.Pair.Base, t.Quantity * t.Price)
+			p.AddBalance(t.Pair.Base, t.Quantity*t.Price)
 		}
 		// remove commission
 		// FIXME: hack for FCoin maker fee, should be put into FCOIN
