@@ -1,14 +1,14 @@
 package strats
 
 import (
+	. "bean"
 	"bean/rpc"
-	"beanex/db/mds"
 	"fmt"
 	"github.com/gonum/floats"
 	"github.com/gonum/stat"
 	"math"
+	"os"
 	"time"
-	. "bean"
 )
 
 type Perf struct {
@@ -43,13 +43,12 @@ func (perf Perf) MaxDrawdown() float64 {
 	return floats.Max(drawdown)
 }
 
-
 // evaluate performance of TradeLogS, assuming initial portoflio is empty.
 // dividing trades into intervals, and generate Perf stats, mtmBase is normally USDT and/or BTC
 func GenPerf0(tls TradeLogS, interval time.Duration) (perf Perf) {
 	init := NewPortfolio()
 	pairs := tls.Pairs()
-	mds := bean.NewRPCMDSConnC("tcp", mds.DB_HOST_BEANEX_SG_40+":"+bean.MDS_PORT)
+	mds := bean.NewRPCMDSConnC("tcp", os.Getenv("MDS_DB_ADDRESS")+":"+bean.MDS_PORT)
 	// get start and end of trade logs
 	if len(tls) == 0 {
 		return
@@ -75,7 +74,6 @@ func GenPerf0(tls TradeLogS, interval time.Duration) (perf Perf) {
 	// sample transaction by interval
 	return GenPerf(tls, init, interval, txn.Sort())
 }
-
 
 // evaluate performance of TradeLogS
 // dividing trades into intervals, and generate Perf stats, mtmBase is normally USDT and/or BTC
