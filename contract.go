@@ -267,6 +267,17 @@ func (c *Contract) SetPrice(price float64) {
 	c.strike = price
 }
 
+// if a call, return the identical put and vice versa
+func (c *Contract) CallPutMirror() (p Contract) {
+	p = *c
+	if c.callPut == Call {
+		p.callPut = Put
+	} else {
+		p.callPut = Call
+	}
+	return
+}
+
 // Calculate the implied vol of a contract given its price in LHS coin value spot
 func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float64) float64 {
 	if !c.IsOption() {
