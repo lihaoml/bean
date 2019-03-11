@@ -25,6 +25,7 @@ const (
 	EOS  Coin = "EOS"
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
+	XRP  Coin = "XRP"
 
 	BGG Coin = "BGG"
 	FT  Coin = "FT"
