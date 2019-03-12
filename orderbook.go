@@ -113,7 +113,7 @@ func (obts OrderBookTS) Sort() OrderBookTS {
 
 // return the orderbook of time t (the closest in sample), assuming the obts is sorted
 func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
-	var ob OrderBook
+	ob := obts[0].OB
 	for _, obt := range obts {
 		if t.After(obt.Time) {
 			ob = obt.OB
