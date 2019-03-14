@@ -234,3 +234,17 @@ func RightPair(coin1, coin2 Coin) (Pair, bool) {
 	}
 	return Pair{}, false
 }
+
+// all possible pairs for a given list of coins
+func PossiblePairs(coins []Coin) (pairs []Pair) {
+	for i := 0; i < len(coins); i++ {
+		for j := i + 1; j < len(coins); j++ {
+			p, valid := RightPair(coins[i], coins[j])
+			if valid {
+				pairs = append(pairs, p)
+				fmt.Println(p)
+			}
+		}
+	}
+	return
+}
