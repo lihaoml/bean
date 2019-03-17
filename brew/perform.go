@@ -6,9 +6,10 @@ import (
 )
 
 type ExNameWithOID struct {
-	ExName  string
-	Pair    Pair
-	OrderID string
+	ExName    string
+	Pair      Pair
+	OrderID   string
+	TimeStamp time.Time
 }
 
 func PerformActions(exs *(map[string]Exchange), actions []TradeAction, sep ...time.Duration) (cancelled, placed []ExNameWithOID) {
@@ -26,7 +27,7 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction, sep ...ti
 				act.Params["amount"].(float64),
 			)
 			(*exs)[act.ExName].TrackOrderID(act.Pair, oid)
-			placed = append(placed, ExNameWithOID{act.ExName, act.Pair, oid})
+			placed = append(placed, ExNameWithOID{act.ExName, act.Pair, oid, time.Now()})
 			break
 		case CancelOpenOrder:
 			oid := act.Params["orderid"].(string)
@@ -34,7 +35,7 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction, sep ...ti
 				act.Pair,
 				oid,
 			)
-			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid})
+			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid, time.Now()})
 			break
 		}
 	}
