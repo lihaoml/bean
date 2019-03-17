@@ -224,10 +224,19 @@ func RightPair(coin1, coin2 Coin) (Pair, bool) {
 		return Pair{coin1, coin2}, true
 	}
 	if coin1 == ETH {
-		return Pair{coin2, coin1}, true
+		if coin2 != BCH {
+			return Pair{coin2, coin1}, true
+		} else {
+			return Pair{}, false
+		}
+
 	}
 	if coin2 == ETH {
-		return Pair{coin1, coin2}, true
+		if coin1 != BCH {
+			return Pair{coin1, coin2}, true
+		} else {
+			return Pair{}, false
+		}
 	}
 	if (coin1 == IOTX && coin2 == APOT) || (coin1 == APOT && coin2 == IOTX) {
 		return Pair{IOTX, APOT}, true
