@@ -265,6 +265,20 @@ func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
 	return
 }
 
+func (trades TradeLogS) Net() Portfolio {
+	port := NewPortfolio()
+	for _, t := range trades {
+		sign := 1.0
+		if t.Side == SELL {
+			sign = -1.0
+		}
+		port.AddBalance(t.Pair.Coin, t.Quantity*sign)
+		port.AddBalance(t.Pair.Base, t.Quantity*sign*-1*t.Price)
+		port.AddBalance(t.CommissionAsset, t.Commission*-1)
+	}
+	return port
+}
+
 // res = trd1 - trd2
 func (trds1 TradeLogS) Minus(trds2 TradeLogS) (res TradeLogS) {
 	// force alignment of time
