@@ -18,6 +18,7 @@ const (
 )
 
 type Contract struct {
+	name       string
 	isOption   bool
 	underlying Pair
 	expiry     time.Time
@@ -216,22 +217,25 @@ func (c Contract) UnderFuture() Contract {
 	}
 }
 
-func (c Contract) Name() string {
-	if c.isOption {
-		var cptext string
-		if c.callPut == Call {
-			cptext = "C"
+func (c *Contract) Name() string {
+	if c.name == "" {
+		if c.isOption {
+			var cptext string
+			if c.callPut == Call {
+				cptext = "C"
+			} else {
+				cptext = "P"
+			}
+			c.name = fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
 		} else {
-			cptext = "P"
-		}
-		return fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
-	} else {
-		if c.perp {
-			return fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
-		} else {
-			return fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
+			if c.perp {
+				c.name = fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
+			} else {
+				c.name = fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
+			}
 		}
 	}
+	return c.name
 }
 
 func (c Contract) Expiry() (dt time.Time) {
@@ -268,13 +272,14 @@ func (c *Contract) SetPrice(price float64) {
 }
 
 // if a call, return the identical put and vice versa
-func (c *Contract) CallPutMirror() (p Contract) {
-	p = *c
+func (c Contract) CallPutMirror() (p Contract) {
+	p = c
 	if c.callPut == Call {
 		p.callPut = Put
 	} else {
 		p.callPut = Call
 	}
+	p.name = ""
 	return
 }
 

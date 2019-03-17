@@ -15,6 +15,8 @@ type Coins []Coin
 // token's names
 const (
 	BTC  Coin = "BTC"
+	XBT  Coin = "XBT"
+	USD  Coin = "USD"
 	ETH  Coin = "ETH"
 	USDT Coin = "USDT"
 	XRP  Coin = "XRP"
