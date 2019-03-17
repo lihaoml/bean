@@ -22,6 +22,7 @@ const (
 	XRP  Coin = "XRP"
 	EOS  Coin = "EOS"
 	LTC  Coin = "LTC"
+	BCH  Coin = "BCH"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
@@ -41,7 +42,6 @@ const (
 	MFT  Coin = "MFT"
 	MITH Coin = "MITH"
 	MDT  Coin = "MDT"
-	GTC  Coin = "GTC"
 	BNB  Coin = "BNB"
 	APOT Coin = "APOT"
 )
