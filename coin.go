@@ -17,15 +17,17 @@ const (
 	BTC  Coin = "BTC"
 	ETH  Coin = "ETH"
 	USDT Coin = "USDT"
+	XRP  Coin = "XRP"
+	EOS  Coin = "EOS"
+	LTC  Coin = "LTC"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
 	ONT  Coin = "ONT"
 	ETC  Coin = "ETC"
-	EOS  Coin = "EOS"
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
-	XRP  Coin = "XRP"
+
 
 	BGG Coin = "BGG"
 	FT  Coin = "FT"
