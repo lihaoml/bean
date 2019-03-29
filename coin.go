@@ -30,6 +30,7 @@ const (
 	ETC  Coin = "ETC"
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
+	ADA  Coin = "ADA"
 
 
 	BGG Coin = "BGG"

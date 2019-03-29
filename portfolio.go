@@ -15,6 +15,7 @@ type Portfolio interface {
 	Age(TradeLogS) Portfolio
 	Filter(Coins) Portfolio
 	Balances() map[Coin]float64
+	LockedBalances() map[Coin]float64
 	Balance(Coin) float64
 	AddBalance(Coin, float64)
 	RemoveBalance(Coin, float64)
@@ -62,6 +63,10 @@ func NewPortfolio(bal ...interface{}) Portfolio {
 
 func (p portfolio) Balances() map[Coin]float64 {
 	return p.balances
+}
+
+func (p portfolio) LockedBalances() map[Coin]float64 {
+	return p.lockedBalances
 }
 
 func (p portfolio) Balance(c Coin) float64 {
