@@ -100,7 +100,7 @@ func ContractFromName(name string) (Contract, error) {
 
 func ContractFromPartialName(partialName string) (Contract, error) {
 	sts := strings.Split(partialName, "-")
-	defaultExpiry, _ := time.Parse("02Jan06", "29Mar19")
+	defaultExpiry, _ := time.Parse("02Jan06", "28Jun19")
 	c := Contract{
 		isOption:   false,
 		underlying: Pair{BTC, USDT},
@@ -117,6 +117,10 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 			continue
 		case "MAR":
 			c.expiry, _ = time.Parse("2Jan06", "29Mar19")
+			c.delivery = c.expiry
+			continue
+		case "APR":
+			c.expiry, _ = time.Parse("2Jan06", "26Apr19")
 			c.delivery = c.expiry
 			continue
 		case "JUN":
@@ -358,6 +362,7 @@ func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm f
 	for i := 0; i < 1000; i++ {
 		guessPrm := spot / forward * forwardOptionPrice(expiryDays, strike, forward, guessVol, callPut)
 		vega := optionVega(expiryDays, deliveryDays, strike, spot, forward, guessVol)
+		vega = math.Max(vega, 0.0001) // floor the vega to avoid guesses flying off
 		guessVol = guessVol - (guessPrm-prm)/(vega*100.0)
 		if math.Abs(guessPrm-prm)/forward < 0.00001 {
 			return guessVol
