@@ -32,7 +32,6 @@ const (
 	IOTA Coin = "IOTA"
 	ADA  Coin = "ADA"
 
-
 	BGG Coin = "BGG"
 	FT  Coin = "FT"
 	HT  Coin = "HT"
