@@ -182,6 +182,13 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 8
 	case Pair{ADA, USDT}:
 		prec = 5
+
+	case Pair{DASH, USDT}:
+		prec = 2
+	case Pair{DASH, BTC}:
+		prec = 6
+	case Pair{DASH, ETH}:
+		prec = 5
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return

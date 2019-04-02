@@ -31,6 +31,7 @@ const (
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
 	ADA  Coin = "ADA"
+	DASH Coin = "DASH"
 
 	BGG Coin = "BGG"
 	FT  Coin = "FT"
@@ -115,6 +116,8 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amount*1e6) / 1e6
 	case ADA:
 		return math.Floor(amount)
+	case DASH:
+		return math.Floor(amount*1e5) / 1e5
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
