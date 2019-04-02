@@ -114,7 +114,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	case NEO:
 		return math.Floor(amount*1e6) / 1e6
 	case ADA:
-		return math.Floor(amount*1e1) / 1e1
+		return math.Floor(amount)
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
