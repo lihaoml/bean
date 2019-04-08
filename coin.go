@@ -31,6 +31,7 @@ const (
 	NEO  Coin = "NEO"
 	IOTA Coin = "IOTA"
 	ADA  Coin = "ADA"
+	DASH Coin = "DASH"
 
 	BGG Coin = "BGG"
 	FT  Coin = "FT"
@@ -80,8 +81,12 @@ func FormatProfit(v float64, base Coin) string {
 		symb = "Ξ"
 		break
 	case USDT:
-		prec = 2
+		prec = 3
 		symb = "$"
+		break
+	case BTC:
+		prec = 6
+		symb = "฿"
 		break
 	}
 	return symb + " " + strconv.FormatFloat(v, 'f', prec, 64)
@@ -113,6 +118,10 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amount*1e6) / 1e6
 	case NEO:
 		return math.Floor(amount*1e6) / 1e6
+	case ADA:
+		return math.Floor(amount)
+	case DASH:
+		return math.Floor(amount*1e5) / 1e5
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
