@@ -28,7 +28,15 @@ type Contract struct {
 	perp       bool
 }
 
-type Contracts map[Contract]float64
+//type Contracts map[Contract]float64
+
+type Position struct {
+	Con   Contract
+	Qty   float64
+	Price float64
+}
+
+type Positions []Position
 
 func ContractFromName(name string) (Contract, error) {
 	var expiry time.Time
@@ -170,21 +178,27 @@ func PerpContract(p Pair) Contract {
 		underlying: p}
 }
 
-func ContractsFromNames(names []string, quantities []float64) (pos Contracts, err error) {
+func PositionsFromNames(names []string, quantities []float64,prices []float64) (posns Positions, err error) {
 	var c Contract
-	pos = make(Contracts)
+	posns = make(Positions, 0)
 	for i := range names {
 		c, err = ContractFromName(names[i])
 		if err != nil {
 			return
 		}
-		if quantities != nil {
-			pos[c] = quantities[i]
+		var p Position
+		if prices == nil || quantities == nil {
+			p = NewPosition(c, 0.0, 0.0)
 		} else {
-			pos[c] = 0.0
+			p = NewPosition(c, quantities[i], prices[i])
 		}
+		posns = append(posns, p)
 	}
 	return
+}
+
+func NewPosition(c Contract, qty, price float64) Position {
+	return Position{Con: c, Qty: qty, Price: price}
 }
 
 func OptContractFromDets(c Coin, d time.Time, strike float64, cp CallOrPut) Contract {
@@ -197,13 +211,12 @@ func OptContractFromDets(c Coin, d time.Time, strike float64, cp CallOrPut) Cont
 		callPut:    cp}
 }
 
-func FutContractFromDets(c Coin, d time.Time, price float64) Contract {
+func FutContractFromDets(c Coin, d time.Time) Contract {
 	return Contract{
 		isOption:   false,
 		underlying: Pair{c, USDT},
 		expiry:     d,
 		delivery:   d,
-		strike:     price, // strike doubles up as price for futures
 		callPut:    NA}
 }
 
@@ -270,11 +283,6 @@ func (c Contract) IsOption() bool {
 	return c.isOption
 }
 
-// this is temporary until we add price field
-func (c *Contract) SetPrice(price float64) {
-	c.strike = price
-}
-
 // if a call, return the identical put and vice versa
 func (c Contract) CallPutMirror() (p Contract) {
 	p = c
@@ -303,39 +311,39 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 
 // Calculate the price of a contract given market parameters. Price is in RHS coin value spot
 // Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USDT rates float and are generally negative.
-func (c Contract) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	expiry := c.Expiry()
+func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	expiry := p.Con.Expiry()
 	expiryDays := dayDiff(asof, expiry)
-	if c.IsOption() {
-		strike := c.Strike()
-		cp := c.CallPut()
-		return forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * spotPrice / futPrice
+	if p.Con.IsOption() {
+		strike := p.Con.Strike()
+		cp := p.Con.CallPut()
+		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
 	} else {
-		return 10.0 * (1.0/c.Strike() - 1.0/futPrice) * spotPrice // strike doubles up as future price. Deribit futures in multiples of 10$. need to check the discounting
+		return 10.0 * (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit futures in multiples of 10$. need to check the discounting
 	}
 }
 
 // in rhs coin spot value
-func (c Contract) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return c.PV(asof, spotPrice, futPrice, vol+0.005) - c.PV(asof, spotPrice, futPrice, vol-0.005)
+func (p Position) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	return p.PV(asof, spotPrice, futPrice, vol+0.005) - p.PV(asof, spotPrice, futPrice, vol-0.005)
 }
 
 //in lhs coin spot value
-func (c Contract) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	deltaFiat := (c.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - c.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
+func (p Position) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	deltaFiat := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
 	return deltaFiat / spotPrice
 }
 
 //in lhs coin spot value
-func (c Contract) Gamma(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	gammaFiat := c.Delta(asof, spotPrice*1.005, futPrice*1.005, vol) - c.Delta(asof, spotPrice*0.995, futPrice*0.995, vol)
+func (p Position) Gamma(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	gammaFiat := p.Delta(asof, spotPrice*1.005, futPrice*1.005, vol) - p.Delta(asof, spotPrice*0.995, futPrice*0.995, vol)
 
 	return gammaFiat
 }
 
 //in rhs coin spot value
-func (c Contract) Theta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return c.PV(asof.Add(24*time.Hour), spotPrice, futPrice, vol) - c.PV(asof, spotPrice, futPrice, vol)
+func (p Position) Theta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	return p.PV(asof.Add(24*time.Hour), spotPrice, futPrice, vol) - p.PV(asof, spotPrice, futPrice, vol)
 }
 
 // maths stuff now
@@ -362,8 +370,10 @@ func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm f
 	for i := 0; i < 1000; i++ {
 		guessPrm := spot / forward * forwardOptionPrice(expiryDays, strike, forward, guessVol, callPut)
 		vega := optionVega(expiryDays, deliveryDays, strike, spot, forward, guessVol)
-		vega = math.Max(vega, 0.0001) // floor the vega to avoid guesses flying off
+		vega = math.Max(vega, 0.0001*spot) // floor the vega at 1bp to avoid guesses flying off
 		guessVol = guessVol - (guessPrm-prm)/(vega*100.0)
+		guessVol=math.Max(guessVol,0.0) // floor guess vol at zero
+		guessVol=math.Min(guessVol,4.0)// cap guess vol at 400%
 		if math.Abs(guessPrm-prm)/forward < 0.00001 {
 			return guessVol
 		}

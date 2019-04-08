@@ -1,7 +1,7 @@
 package bean
 
 import (
-	"bean/utils"
+	util "bean/utils"
 	"fmt"
 	"sort"
 )
@@ -23,9 +23,9 @@ type Portfolio interface {
 	AvailableBalance(c Coin) float64
 	SetLockedBalance(Coin, float64)
 	Coins() Coins
-	AddContract(Contract, float64)
-	SetContracts(Contracts)
-	Contracts() Contracts
+	AddPosition(Position)
+	SetPositions(Positions)
+	Positions() Positions
 	ShowBrief()
 }
 
@@ -33,28 +33,28 @@ type Portfolio interface {
 type portfolio struct {
 	balances       map[Coin]float64 // total balance of each coin
 	lockedBalances map[Coin]float64 // locked blance by exchange, used to calculate the free blance for placing order
-	contracts      map[Contract]float64
+	positions      *Positions
 }
 
 func NewPortfolio(bal ...interface{}) Portfolio {
+	pos := make(Positions, 0)
 	if len(bal) == 0 {
 		return portfolio{
 			balances:       make(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
-			contracts:      make(map[Contract]float64),
-			//			contracts:      make([]Contract, 0),
+			positions:      &pos,
 		}
 	} else if len(bal) == 1 {
 		return portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
-			contracts:      make(map[Contract]float64),
+			positions:      &pos, //make([]Position, 0),
 		}
 	} else if len(bal) == 2 {
 		return portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: bal[1].(map[Coin]float64),
-			contracts:      make(map[Contract]float64),
+			positions:      &pos, //make([]Position, 0),
 		}
 	} else {
 		panic("invalid number of input for NewPortfolio")
@@ -187,18 +187,18 @@ func (p portfolio) Filter(coins Coins) Portfolio {
 	return r
 }
 
-func (p portfolio) AddContract(c Contract, qty float64) {
-	p.contracts[c] += qty
+func (p portfolio) AddPosition(pos Position) {
+	*p.positions = append(*p.positions, pos) //contracts[c] += qty
 	//	p.contracts = append(p.contracts, c)
 }
 
-func (p portfolio) Contracts() Contracts {
-	return p.contracts
+func (p portfolio) Positions() Positions {
+	return *p.positions
 }
 
-func (p portfolio) SetContracts(cs Contracts) {
-	for c, q := range cs {
-		p.AddContract(c, q)
+func (p portfolio) SetPositions(ps Positions) {
+	for _, pos := range ps {
+		p.AddPosition(pos)
 	}
 }
 
