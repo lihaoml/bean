@@ -62,6 +62,7 @@ func ContractFromName(name string) (Contract, error) {
 
 	if st[1] == "PERPETUAL" {
 		perp = true
+		expiry = time.Now()
 	} else {
 		perp = false
 		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
@@ -115,12 +116,13 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 		expiry:     defaultExpiry,
 		delivery:   defaultExpiry,
 		callPut:    Call,
-		strike:     3500}
+		strike:     5000}
 
 	for _, s := range sts {
 		switch strings.ToUpper(s) {
 		case "PERP":
 			c.perp = true
+			c.expiry = time.Now()
 			c.isOption = false
 			continue
 		case "MAR":
@@ -175,10 +177,11 @@ func PerpContract(p Pair) Contract {
 	return Contract{
 		isOption:   false,
 		perp:       true,
+		expiry:     time.Now(),
 		underlying: p}
 }
 
-func PositionsFromNames(names []string, quantities []float64,prices []float64) (posns Positions, err error) {
+func PositionsFromNames(names []string, quantities []float64, prices []float64) (posns Positions, err error) {
 	var c Contract
 	posns = make(Positions, 0)
 	for i := range names {
@@ -317,7 +320,9 @@ func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if p.Con.IsOption() {
 		strike := p.Con.Strike()
 		cp := p.Con.CallPut()
-		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
+		//		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
+		// deribit includes option price in the cash balance
+		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * spotPrice / futPrice) * p.Qty
 	} else {
 		return 10.0 * (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit futures in multiples of 10$. need to check the discounting
 	}
@@ -372,8 +377,8 @@ func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm f
 		vega := optionVega(expiryDays, deliveryDays, strike, spot, forward, guessVol)
 		vega = math.Max(vega, 0.0001*spot) // floor the vega at 1bp to avoid guesses flying off
 		guessVol = guessVol - (guessPrm-prm)/(vega*100.0)
-		guessVol=math.Max(guessVol,0.0) // floor guess vol at zero
-		guessVol=math.Min(guessVol,4.0)// cap guess vol at 400%
+		guessVol = math.Max(guessVol, 0.0) // floor guess vol at zero
+		guessVol = math.Min(guessVol, 4.0) // cap guess vol at 400%
 		if math.Abs(guessPrm-prm)/forward < 0.00001 {
 			return guessVol
 		}
