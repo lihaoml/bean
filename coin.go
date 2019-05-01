@@ -1,7 +1,7 @@
 package bean
 
 import (
-	"bean/utils"
+	util "bean/utils"
 	"math"
 	"strconv"
 	"strings"
@@ -38,6 +38,7 @@ const (
 	HT  Coin = "HT"
 	XMX Coin = "XMX"
 	NKN Coin = "NKN"
+	PAX Coin = "PAX"
 
 	TRX  Coin = "TRX"
 	MFT  Coin = "MFT"
