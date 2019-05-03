@@ -363,6 +363,10 @@ func dayDiff(t1, t2 time.Time) int {
 // premium expected in domestic - rhs coin value spot
 func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm float64, callPut CallOrPut) (bs float64) {
 
+	if expiryDays==0 {
+		return math.NaN()
+	}
+
 	// if premium is less than intrinsic then return zero
 	floorPrm := spot / forward * forwardOptionPrice(expiryDays, strike, forward, 0.0, callPut)
 	if prm <= floorPrm {
@@ -392,6 +396,10 @@ func dF(days int, rate float64) float64 {
 
 // in domestic - rhs coin forward value
 func forwardOptionPrice(expiryDays int, strike, forward, vol float64, callPut CallOrPut) (prm float64) {
+	if expiryDays==0 {
+		vol=0
+	}
+
 	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
 	d2 := d1 - vol*math.Sqrt(float64(expiryDays)/365.0)
 

@@ -18,6 +18,7 @@ const (
 	NameAllbit  = "ALLBIT"
 	NameUpBit   = "UPBIT"
 	NameFcoinC  = "FCOINC"
+	NameGopax = "GOPAX"
 )
 
 // Exchange is the interface for all exchanges
