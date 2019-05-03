@@ -45,6 +45,7 @@ const (
 	MDT  Coin = "MDT"
 	BNB  Coin = "BNB"
 	APOT Coin = "APOT"
+	GT   Coin = "GT"
 )
 
 func (s Coins) Len() int {
