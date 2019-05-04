@@ -39,6 +39,7 @@ const (
 	XMX Coin = "XMX"
 	NKN Coin = "NKN"
 	PAX Coin = "PAX"
+	KRW Coin = "KRW"
 
 	TRX  Coin = "TRX"
 	MFT  Coin = "MFT"
