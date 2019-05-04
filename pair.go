@@ -1,7 +1,7 @@
 package bean
 
 import (
-	"bean/utils"
+	util "bean/utils"
 	"fmt"
 	"math"
 	"strconv"
@@ -189,6 +189,8 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 6
 	case Pair{DASH, ETH}:
 		prec = 5
+	case Pair{IOTX, KRW}:
+		prec = 2
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
