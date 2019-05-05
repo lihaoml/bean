@@ -192,12 +192,16 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{IOTX, KRW}:
 		prec = 2
 
-	case Pair{ LTC, USDT}:
+	case Pair{LTC, USDT}:
 		prec = 2
-	case Pair{ LTC, PAX}:
+	case Pair{LTC, PAX}:
 		prec = 2
-	case Pair{ EOS, PAX}:
+	case Pair{EOS, PAX}:
 		prec = 3
+	case Pair{ETH, PAX}:
+		prec = 2
+	case Pair{BTC, PAX}:
+		prec = 1
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
