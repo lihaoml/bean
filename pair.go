@@ -167,7 +167,7 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{EOS, BTC}:
 		prec = 8
 	case Pair{EOS, USDT}:
-		prec = 4
+		prec = 4 // fcoin uses 3
 	case Pair{EOS, ETH}:
 		prec = 6
 	case Pair{XRP, USDT}:
@@ -191,6 +191,17 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 5
 	case Pair{IOTX, KRW}:
 		prec = 2
+
+	case Pair{LTC, USDT}:
+		prec = 2
+	case Pair{LTC, PAX}:
+		prec = 2
+	case Pair{EOS, PAX}:
+		prec = 3
+	case Pair{ETH, PAX}:
+		prec = 2
+	case Pair{BTC, PAX}:
+		prec = 1
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
