@@ -108,6 +108,7 @@ func ContractFromName(name string) (Contract, error) {
 }
 
 func ContractFromPartialName(partialName string) (Contract, error) {
+	const example = "\nDon't understand contract\nExample JUN or 3500 or MAR-4000-C or BTC-3000-P"
 	sts := strings.Split(partialName, "-")
 	defaultExpiry, _ := time.Parse("02Jan06", "28Jun19")
 	c := Contract{
@@ -168,7 +169,7 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 			c.isOption = true
 			continue
 		}
-		return c, errors.New("Don't recognise as contract component:" + s)
+		return c, errors.New("Don't recognise:" + s + example)
 	}
 	return c, nil
 }
