@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 )
 
 // Pair is representing a trading pair
@@ -15,6 +16,11 @@ type Pair struct {
 
 func (p Pair) String() string {
 	return string(p.Coin) + string(p.Base)
+}
+
+func Parse(mpair string, sep string) Pair {
+	cs := strings.Split(mpair, sep)
+	return Pair{Coin(cs[0]), Coin(cs[1])}
 }
 
 // use
