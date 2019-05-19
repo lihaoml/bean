@@ -202,6 +202,40 @@ func (txn Transactions) Fill(price, orderAmount float64) float64 {
 	}
 }
 
+func (txn Transactions) ToCSV(pair Pair, filename string) {
+	csvFile, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer csvFile.Close()
+	var data [][]string
+
+	head := []string{
+		"Time",
+		"Pair",
+		"Price",
+		"Quantity",
+		"Commission",
+		"CommissionAsset",
+		"Side",
+	}
+	data = append(data, head)
+
+	for _, v := range txn {
+		s := []string{
+			fmt.Sprint(v.TimeStamp),
+			v.Pair.String(),
+			fmt.Sprint(v.Price),
+			fmt.Sprint(v.Amount),
+			fmt.Sprint(v.Maker),
+		}
+		data = append(data, s)
+	}
+	csvWriter := csv.NewWriter(csvFile)
+	csvWriter.WriteAll(data)
+	csvWriter.Flush()
+}
+
 func (trades TradeLogS) ToCSV(pair Pair, filename string) {
 	csvFile, err := os.Create(filename)
 	if err != nil {
