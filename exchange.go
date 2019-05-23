@@ -18,8 +18,9 @@ const (
 	NameAllbit  = "ALLBIT"
 	NameUpBit   = "UPBIT"
 	NameFcoinC  = "FCOINC"
-	NameFcoinM  = "FCOINM"  // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
+	NameFcoinM  = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
 	NameGopax   = "GOPAX"
+	NamePiexgo  = "PIEXGO"
 )
 
 // Exchange is the interface for all exchanges
