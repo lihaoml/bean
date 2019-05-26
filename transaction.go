@@ -3,6 +3,7 @@ package bean
 import (
 	"bean/utils"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -24,6 +25,16 @@ type Transaction struct {
 	TimeStamp time.Time
 	Maker     TraderType // buyer or seller
 	TxnID     string
+}
+
+type OHLCVBS struct {
+	Open float64
+	High float64
+	Low float64
+	Close float64
+	Volume float64
+	BuyVolume float64
+	SellVolume float64
 }
 
 // Define my trade
@@ -104,7 +115,36 @@ func (t Transactions) Volume(pair Pair) (float64, float64) {
 	return volCoin, volBase
 }
 
-func (t Transactions) OHLC() {
+// assuming transactions is sorted
+func (t Transactions) OHLCVBS() (OHLCVBS, error) {
+	var res OHLCVBS
+	var err error
+	if len(t) > 0 {
+		res.Open = t[0].Price
+		res.Close = t[len(t)-1].Price
+		res.High = res.Open
+		res.Low = res.Open
+		res.Volume = 0
+		res.BuyVolume = 0
+		res.SellVolume = 0
+		for _, txn := range t {
+			if txn.Price > res.High {
+				res.High = txn.Price
+			}
+			if txn.Price < res.Low {
+				res.Low = txn.Price
+			}
+			res.Volume += math.Abs(txn.Amount) * txn.Price
+			if txn.Maker == Buyer {
+				res.SellVolume += math.Abs(txn.Amount) * txn.Price
+			} else {
+				res.BuyVolume += math.Abs(txn.Amount) * txn.Price
+			}
+		}
+	} else {
+		err = errors.New("OHLCVBS: empty transactions")
+	}
+	return res, err
 }
 
 func (t Transactions) Sort() Transactions {
@@ -215,9 +255,7 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 		"Pair",
 		"Price",
 		"Quantity",
-		"Commission",
-		"CommissionAsset",
-		"Side",
+		"Maker",
 	}
 	data = append(data, head)
 
