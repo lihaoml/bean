@@ -313,17 +313,25 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 	return optionImpliedVol(expiryDays, deliveryDays, strike, spotPrice, futPrice, optionPrice*spotPrice, cp)
 }
 
+func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	if c.IsOption() {
+		expiry := c.Expiry()
+		expiryDays := dayDiff(asof, expiry)
+		strike := c.Strike()
+		cp := c.CallPut()
+		//		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
+		// deribit includes option price in the cash balance
+		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * spotPrice / futPrice)
+	} else {
+		return math.NaN()
+	}
+}
+
 // Calculate the price of a contract given market parameters. Price is in RHS coin value spot
 // Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USDT rates float and are generally negative.
 func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	expiry := p.Con.Expiry()
-	expiryDays := dayDiff(asof, expiry)
 	if p.Con.IsOption() {
-		strike := p.Con.Strike()
-		cp := p.Con.CallPut()
-		//		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
-		// deribit includes option price in the cash balance
-		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp) * spotPrice / futPrice) * p.Qty
+		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty
 	} else {
 		return 10.0 * (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit futures in multiples of 10$. need to check the discounting
 	}
