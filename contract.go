@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -28,17 +29,18 @@ type Contract struct {
 	perp       bool
 }
 
-//type Contracts map[Contract]float64
+var conCacheLock sync.Mutex
+var contractCache = make(map[string]*Contract)
 
 type Position struct {
-	Con   Contract
+	Con   *Contract
 	Qty   float64
 	Price float64
 }
 
 type Positions []Position
 
-func ContractFromName(name string) (Contract, error) {
+func ContractFromName(name string) (*Contract, error) {
 	var expiry time.Time
 	var callPut CallOrPut
 	var underlying Pair
@@ -46,10 +48,19 @@ func ContractFromName(name string) (Contract, error) {
 	var err error
 	var perp bool
 
+	conCacheLock.Lock()
+	defer conCacheLock.Unlock()
+
+	con, exists := contractCache[name]
+
+	if exists {
+		return con, nil
+	}
+
 	st := strings.Split(name, "-")
 	if len(st) != 4 && len(st) != 2 {
 		err = errors.New("not a good contract formation")
-		return Contract{}, err
+		return nil, err
 	}
 
 	switch st[0] {
@@ -57,7 +68,7 @@ func ContractFromName(name string) (Contract, error) {
 		underlying = Pair{BTC, USDT}
 	default:
 		err = errors.New("do not recognise coin")
-		return Contract{}, err
+		return nil, err
 	}
 
 	if st[1] == "PERPETUAL" {
@@ -67,25 +78,27 @@ func ContractFromName(name string) (Contract, error) {
 		perp = false
 		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
 		if err != nil {
-			return Contract{}, err
+			return nil, err
 		}
 		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
 	}
 
 	if len(st) == 2 {
-		return Contract{
+		con = &Contract{
 			isOption:   false,
 			underlying: underlying,
 			expiry:     expiry,
 			delivery:   expiry,
 			callPut:    NA,
 			strike:     0.0,
-			perp:       perp}, nil
+			perp:       perp}
+		contractCache[name] = con
+		return con, nil
 	}
 
 	strike, err = strconv.ParseFloat(st[2], 64)
 	if err != nil {
-		return Contract{}, err
+		return nil, err
 	}
 
 	switch st[3] {
@@ -94,20 +107,22 @@ func ContractFromName(name string) (Contract, error) {
 	case "P":
 		callPut = Put
 	default:
-		return Contract{}, errors.New("Need C OR P")
+		return nil, errors.New("Need C OR P")
 
 	}
-	return Contract{
+	con = &Contract{
 		isOption:   true,
 		underlying: underlying,
 		expiry:     expiry,
 		delivery:   expiry,
 		callPut:    callPut,
-		strike:     strike}, nil
+		strike:     strike}
+	contractCache[name] = con
+	return con, nil
 
 }
 
-func ContractFromPartialName(partialName string) (Contract, error) {
+func ContractFromPartialName(partialName string) (*Contract, error) {
 	const example = "\nDon't understand contract\nExample JUN or 3500 or MAR-4000-C or BTC-3000-P"
 	sts := strings.Split(partialName, "-")
 	defaultExpiry, _ := time.Parse("02Jan06", "28Jun19")
@@ -169,9 +184,9 @@ func ContractFromPartialName(partialName string) (Contract, error) {
 			c.isOption = true
 			continue
 		}
-		return c, errors.New("Don't recognise:" + s + example)
+		return &c, errors.New("Don't recognise:" + s + example)
 	}
-	return c, nil
+	return &c, nil
 }
 
 func PerpContract(p Pair) Contract {
@@ -183,7 +198,7 @@ func PerpContract(p Pair) Contract {
 }
 
 func PositionsFromNames(names []string, quantities []float64, prices []float64) (posns Positions, err error) {
-	var c Contract
+	var c *Contract
 	posns = make(Positions, 0)
 	for i := range names {
 		c, err = ContractFromName(names[i])
@@ -201,7 +216,7 @@ func PositionsFromNames(names []string, quantities []float64, prices []float64) 
 	return
 }
 
-func NewPosition(c Contract, qty, price float64) Position {
+func NewPosition(c *Contract, qty, price float64) Position {
 	return Position{Con: c, Qty: qty, Price: price}
 }
 
@@ -346,6 +361,18 @@ func (p Position) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64
 func (p Position) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	deltaFiat := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
 	return deltaFiat / spotPrice
+}
+
+func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) map[string]float64 {
+	totdelta := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
+	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
+
+	underFuture := p.Con.UnderFuture()
+	delta := map[string]float64{
+		"CASH":             spotDelta / spotPrice,
+		underFuture.Name(): (totdelta - spotDelta) / spotPrice}
+
+	return delta
 }
 
 //in lhs coin spot value
