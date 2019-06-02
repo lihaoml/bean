@@ -220,20 +220,20 @@ func NewPosition(c *Contract, qty, price float64) Position {
 	return Position{Con: c, Qty: qty, Price: price}
 }
 
-func OptContractFromDets(c Coin, d time.Time, strike float64, cp CallOrPut) Contract {
+func OptContractFromDets(p Pair, d time.Time, strike float64, cp CallOrPut) Contract {
 	return Contract{
 		isOption:   true,
-		underlying: Pair{c, USDT},
+		underlying: p,
 		expiry:     d,
 		delivery:   d,
 		strike:     strike,
 		callPut:    cp}
 }
 
-func FutContractFromDets(c Coin, d time.Time) Contract {
+func FutContractFromDets(p Pair, d time.Time) Contract {
 	return Contract{
 		isOption:   false,
-		underlying: Pair{c, USDT},
+		underlying: p,
 		expiry:     d,
 		delivery:   d,
 		callPut:    NA}
@@ -342,6 +342,12 @@ func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) flo
 	}
 }
 
+// Return the 'simple' delta computed analytically
+func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
+	expiryDays := dayDiff(asof, c.expiry)
+	return cumNormDist((math.Log(futPrice/c.strike) + (vol*vol/2.0)*(float64(expiryDays)/365.0)) / (vol * float64(expiryDays) / 365.0))
+}
+
 // Calculate the price of a contract given market parameters. Price is in RHS coin value spot
 // Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USDT rates float and are generally negative.
 func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
@@ -394,6 +400,10 @@ func dayDiff(t1, t2 time.Time) int {
 	t1 = time.Date(t1.Year(), t1.Month(), t1.Day(), 0, 0, 0, 0, time.UTC) // remove time information and force to utc
 	t2 = time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, time.UTC)
 	return int(math.Round(t2.Sub(t1).Truncate(time.Hour).Hours() / 24.0))
+}
+
+func (c Contract) ExpiryDays(now time.Time) int {
+	return dayDiff(now, c.Expiry())
 }
 
 // premium expected in domestic - rhs coin value spot
@@ -449,7 +459,7 @@ func forwardOptionPrice(expiryDays int, strike, forward, vol float64, callPut Ca
 
 // Seems to work!
 func cumNormDist(x float64) float64 {
-	return 0.5 * math.Erfc(-x/math.Sqrt(2))
+	return 0.5 * math.Erfc(-x/math.Sqrt2)
 }
 
 func optionVega(expiryDays, deliveryDays int, strike, spot, forward, vol float64) float64 {
