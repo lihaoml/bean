@@ -24,6 +24,7 @@ const (
 	LTC  Coin = "LTC"
 	BCH  Coin = "BCH"
 	XLM  Coin = "XLM"
+	ZEC  Coin = "ZEC"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
