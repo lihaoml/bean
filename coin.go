@@ -23,6 +23,7 @@ const (
 	EOS  Coin = "EOS"
 	LTC  Coin = "LTC"
 	BCH  Coin = "BCH"
+	XLM  Coin = "XLM"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
