@@ -211,6 +211,23 @@ func orderPricePrec(pair Pair) (prec int) {
 
 	case Pair{PAX, USDT}:
 		prec = 1
+
+	case Pair{BCH, USDT}:
+		prec = 2
+	case Pair{BCH, BTC}:
+		prec = 5
+	case Pair{XLM, USDT}:
+		prec = 4
+	case Pair{XLM, BTC}:
+		prec = 8
+	case Pair{XLM, ETH}:
+		prec = 6
+	case Pair{ZEC, USDT}:
+		prec = 2
+	case Pair{ZEC, BTC}:
+		prec = 5
+	case Pair{ZEC, ETH}:
+		prec = 6
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
