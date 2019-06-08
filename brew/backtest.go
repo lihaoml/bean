@@ -4,11 +4,13 @@ import (
 	. "bean"
 	"bean/exchange"
 	"bean/rpc"
+	util "bean/utils"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/wcharczuk/go-chart"
+	"beanex/db/mds"
 )
 
 // BackTest data type
@@ -56,6 +58,7 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfoli
 		PerformActions(&exs, actions)
 	}
 
+	fmt.Println("done simulation")
 	result := BackTestResult{start: start, end: end, pairs: pairs, dbhost: bt.dbhost, dbport: bt.dbport}
 	for i, _ := range exNames {
 		txn := exSims[i].GetTrades()
@@ -64,17 +67,74 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfoli
 	return result
 }
 
+func (bt BackTest) SimulateN(strats []Strat, start, end time.Time, initPort Portfolio) []BackTestResult {
+	// fetch historical data ///////////////////////////////////////////
+	var exNames []string
+	pairs := make(map[string]([]Pair))
+	for _, s := range strats {
+		exns := s.GetExchangeNames()
+		ps := s.GetPairs()
+		for _, n := range exns {
+			if !util.Contains(exNames, n) {
+				exNames = append(exNames, n)
+			}
+			for _, p := range ps {
+				if !util.Contains(pairs[n], p) {
+					pairs[n] = append(pairs[n], p)
+				}
+			}
+		}
+	}
+	fmt.Println("exNames: ", exNames)
+	fmt.Println("pairs: ", pairs)
+	exSims := make([]exchange.Simulator, len(exNames))
+	exs := make(map[string]Exchange)
+	for i, exName := range exNames {
+		exSims[i] = exchange.NewSimulator(exName, pairs[exName], bt.dbhost, bt.dbport, start, end, initPort)
+		exs[exName] = &exSims[i]
+	}
+	fmt.Println("ex constructed")
+	// now we can simulate each strategy
+	result := make([]BackTestResult, len(strats))
+	for k, strat := range strats {
+		tick := strat.GetTick()
+		// from start to end, call strat's Work
+		for t := start; t.Before(end); t = t.Add(tick) {
+			// update now in exSIm
+			for i, _ := range exNames {
+				exSims[i].SetTime(t)
+			}
+			actions := strat.Grind(exs)
+			// Perform actions
+			PerformActions(&exs, actions)
+		}
+
+		result[k] = BackTestResult{start: start, end: end, pairs: strat.GetPairs(), dbhost: bt.dbhost, dbport: bt.dbport}
+		for nm, _ := range exNames {
+			txn := exSims[nm].GetTrades()
+			result[k].Txn = append(result[k].Txn, txn...)
+		}
+
+		for i, _ := range exs {
+			exs[i].(*exchange.Simulator).Reset(start, initPort)
+		}
+
+		fmt.Println("done simulation for ", strat.Name(), strat.FormatParams(), len(result[k].Txn))
+	}
+	return result
+}
+
 // TODO: too ad-hoc, make it generic
 func (res BackTestResult) Show() TradestatPort {
 	//	p := NewPortfolio()
-	mds := bean.NewRPCMDSConnC("tcp", res.dbhost+":"+res.dbport)
+	// mds := bean.NewRPCMDSConnC("tcp", res.dbhost+":"+res.dbport)
 	ratesbook := make(ReferenceRateBook)
 
 	// FIXME: think about how to show multi pair result
 	var stat TradestatPort
 	if len(res.pairs) > 0 {
 		p := res.pairs[0]
-		txn, _ := mds.GetTransactions(p, res.start, res.end)
+		txn, _ := mds.GetTransactions2(NameFcoin, p, res.start, res.end)
 		ratesbook[p] = RefRatesFromTxn(txn)
 		//		snapts.Print()
 		//		perfts.Print()
