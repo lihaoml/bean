@@ -210,3 +210,16 @@ func (res BackTestResult) Evaluate(mtmBase Coin) {
 		perfts.Print()
 	}
 }
+
+// quick evaluation for single pair transactions
+func (res BackTestResult) QuickEval() TradestatPort {
+	if (len(res.pairs) == 1) {
+		ratesbook := make(ReferenceRateBook)
+		ratesbook[res.pairs[0]] = RefRatesFromTxn(res.Txn)
+		stats := *Tradestat(res.pairs[0].Base, res.Txn, NewPortfolio(), ratesbook)
+		return stats
+	} else {
+		panic("QuickEval supports single pair only")
+	}
+
+}

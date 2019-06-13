@@ -44,9 +44,6 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	txn := make(map[Pair]Transactions, len(pairs))
 	for _, p := range pairs {
 		txn[p], _ = mds.GetTransactions2(exName, p, start, end)
-		for _, tx := range txn[p] {
-			fmt.Println(tx.TimeStamp, tx.Pair, tx.Price, tx.Amount)
-		}
 	}
 	// construct exSim
 	myOrders := make(map[Pair]([]simOrder))
