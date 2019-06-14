@@ -2,7 +2,7 @@ package exchange
 
 import (
 	. "bean"
-	"bean/rpc"
+	"beanex/db/mds"
 	"fmt"
 	"math"
 	"strconv"
@@ -32,16 +32,18 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	// create MDS
 	// mds := mds.NewMDS(exName, dbhost, dbport)
 	// FIXME: be able to pass exName to RPC MDS, right now we only use Binance
-	mds := bean.NewRPCMDSConnC("tcp", dbhost+":"+dbport)
+	// mds := bean.NewRPCMDSConnC("tcp", dbhost+":"+dbport)
 	// get historical data
 	obts := make(map[Pair]OrderBookTS, len(pairs))
+	fmt.Println(exName)
 	for _, p := range pairs {
-		obts[p], _ = mds.GetOrderBookTS(p, start, end, 20) // TODO: hard code 10 depth for now
-		// obts[p].ShowBrief()
+		// obts[p], _ = mds.GetOrderBookTS(p, start, end, 20) // TODO: hard code 20 depth for now
+		obts[p], _ = mds.GetOrderBookTS2(exName, p, start, end) // TODO: hard code 20 depth for now
+//		obts[p].ShowBrief()
 	}
 	txn := make(map[Pair]Transactions, len(pairs))
 	for _, p := range pairs {
-		txn[p], _ = mds.GetTransactions(p, start, end)
+		txn[p], _ = mds.GetTransactions2(exName, p, start, end)
 	}
 	// construct exSim
 	myOrders := make(map[Pair]([]simOrder))
@@ -59,12 +61,26 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	}
 }
 
+// reset simulator, keep ob and txn history, reset orders, and trades
+func (sim *Simulator) Reset(start time.Time, initPortfolio Portfolio) {
+	// clear my orders
+	for p, _ := range sim.myOrders {
+		sim.myOrders[p] = make([]simOrder, 0)
+	}
+	sim.oid = 0
+	sim.myPortfolio = initPortfolio
+	sim.now = start
+	sim.myActions = make([]TradeActionT, 0)
+	sim.myTransactions = make([]Transaction, 0)
+}
+
 func (sim Simulator) Name() string {
 	return sim.exName
 }
 
 func (sim Simulator) GetOrderBook(pair Pair) OrderBook {
-	return sim.obts[pair].GetOrderBook(sim.now)
+	ob := sim.obts[pair].GetOrderBook(sim.now)
+	return ob
 }
 
 func (sim Simulator) GetTransactionHistory(pair Pair) Transactions {
@@ -113,7 +129,7 @@ func (sim *Simulator) SetTime(t time.Time) {
 						Pair:      p,
 						Price:     fillPrice,
 						Amount:    fillAmount,
-						TimeStamp: t,
+						TimeStamp: sim.now,
 						Maker:     maker,
 						TxnID:     fmt.Sprint(len(sim.myTransactions)),
 					}
@@ -179,6 +195,14 @@ func (sim *Simulator) CancelOrder(pair Pair, oid string) error {
 	for i, _ := range sim.myOrders[pair] {
 		if sim.myOrders[pair][i].oid == oid {
 			sim.myOrders[pair][i].status = CANCELLED
+			// release locked balance
+			if sim.myOrders[pair][i].amount > 0 {
+				currentLockedBase := sim.myPortfolio.Balance(pair.Base) - sim.myPortfolio.AvailableBalance(pair.Base)
+				sim.myPortfolio.SetLockedBalance(pair.Base, currentLockedBase-sim.myOrders[pair][i].price*math.Abs(sim.myOrders[pair][i].amount))
+			} else {
+				currentLockedCoin := sim.myPortfolio.Balance(pair.Coin) - sim.myPortfolio.AvailableBalance(pair.Coin)
+				sim.myPortfolio.SetLockedBalance(pair.Coin, currentLockedCoin-math.Abs(sim.myOrders[pair][i].amount))
+			}
 		}
 		// TODO: might need to handel invlid input
 	}

@@ -188,7 +188,7 @@ func (txn Transactions) Between(from, to time.Time) Transactions {
 	var res Transactions
 	startIdx := len(txn)
 	for i, tt := range txn {
-		if !tt.TimeStamp.Before(from) {
+		if tt.TimeStamp.After(from) {
 			startIdx = i
 			break
 		}
@@ -196,7 +196,7 @@ func (txn Transactions) Between(from, to time.Time) Transactions {
 	if startIdx < len(txn) {
 		endIdx := startIdx
 		for i := startIdx; i < len(txn); i++ {
-			if txn[i].TimeStamp.Before(to) {
+			if !txn[i].TimeStamp.After(to) {
 				endIdx = i
 			} else {
 				break
@@ -373,7 +373,7 @@ func (trds1 TradeLogS) Minus(trds2 TradeLogS) (res TradeLogS) {
 	return
 }
 
-func (trades TradeLogS) toTransactions() (txns Transactions) {
+func (trades TradeLogS) ToTransactions() (txns Transactions) {
 	for _, trd := range trades {
 		sign := 1.0
 		maker := Buyer
@@ -403,7 +403,7 @@ func (trades TradeLogS) Since(t time.Time) (position Portfolio, after TradeLogS)
 			after = append(after, trd)
 		}
 	}
-	snapts := GenerateSnapshotTS(before.toTransactions(), NewPortfolio())
+	snapts := GenerateSnapshotTS(before.ToTransactions(), NewPortfolio())
 	if len(snapts) > 0 {
 		position = snapts[len(snapts)-1].Port
 	}
