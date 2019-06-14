@@ -28,14 +28,19 @@ type Transaction struct {
 }
 
 type OHLCVBS struct {
-	Open float64
-	High float64
-	Low float64
-	Close float64
-	Volume float64
-	BuyVolume float64
-	SellVolume float64
+	Open 			float64
+	High 			float64
+	Low 			float64
+	Close 			float64
+	Volume 			float64
+	BuyVolume 		float64
+	SellVolume		float64
+	Start			time.Time
+	End  			time.Time
 }
+
+type OHLCVBSTS []OHLCVBS
+
 
 // Define my trade
 type TradeLog struct {
