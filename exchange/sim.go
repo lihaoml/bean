@@ -217,9 +217,9 @@ func (sim Simulator) GetTrades() Transactions {
 	return sim.myTransactions
 }
 
-func (sim Simulator) GetKline(pair Pair, interval string, limit int) OHLCVBSTS {
+func (sim Simulator) GetKline(pair Pair, interval string, limit int) (OHLCVBSTS, error) {
 	panic("not implement")
-	return nil
+	return nil, nil
 }
 
 func (sim Simulator) GetMyOrders(pair Pair) []OrderStatus {

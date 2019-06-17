@@ -49,7 +49,7 @@ type Exchange interface {
 	//////////////////////////////////////////////////////////////////////////////////////
 	GetMakerFee(pair Pair) float64
 	GetTakerFee(pair Pair) float64
-	GetKline(pair Pair, interval string, limit int) OHLCVBSTS
+	GetKline(pair Pair, interval string, limit int) (OHLCVBSTS, error)
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order
 	MinimumTick(pair models.Pair) float64
