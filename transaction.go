@@ -125,6 +125,8 @@ func (t Transactions) OHLCVBS() (OHLCVBS, error) {
 	var res OHLCVBS
 	var err error
 	if len(t) > 0 {
+		res.Start = t[0].TimeStamp
+		res.End = t[len(t)-1].TimeStamp
 		res.Open = t[0].Price
 		res.Close = t[len(t)-1].Price
 		res.High = res.Open
