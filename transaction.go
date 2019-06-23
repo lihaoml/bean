@@ -268,7 +268,7 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 
 	for _, v := range txn {
 		s := []string{
-			fmt.Sprint(v.TimeStamp),
+			v.TimeStamp.Format(time.RFC3339),
 			v.Pair.String(),
 			fmt.Sprint(v.Price),
 			fmt.Sprint(v.Amount),
