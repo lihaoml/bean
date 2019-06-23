@@ -26,6 +26,22 @@ type Order struct {
 	Amount float64
 }
 
+func (ob OrderBook) BestBid() Order {
+	if len(ob.Bids) > 0 {
+		return ob.Bids[0]
+	} else {
+		return Order{Price: 0.0, Amount: 99.0} // There's always a zero bid in any amount
+	}
+}
+
+func (ob OrderBook) BestAsk() Order {
+	if len(ob.Asks) > 0 {
+		return ob.Asks[0]
+	} else {
+		return Order{Price: math.NaN(), Amount: 0.0}
+	}
+}
+
 func (ob OrderBook) Mid() float64 {
 	if ob.Valid() {
 		return (ob.Bids[0].Price + ob.Asks[0].Price) / 2.0
@@ -44,6 +60,37 @@ func (ob OrderBook) Spread() float64 {
 
 func (ob OrderBook) Valid() bool {
 	return len(ob.Bids) > 0 && len(ob.Asks) > 0
+}
+
+func (ob OrderBook) Copy() OrderBook {
+	ob2 := OrderBook{
+		Bids: make([]Order, len(ob.Bids)),
+		Asks: make([]Order, len(ob.Asks)),
+	}
+	for i := range ob.Bids {
+		ob2.Bids[i] = ob.Bids[i]
+	}
+	for i := range ob.Asks {
+		ob2.Asks[i] = ob.Asks[i]
+	}
+	return ob2
+}
+
+func (obt OrderBookT) Copy() OrderBookT {
+	return OrderBookT{
+		Time: obt.Time,
+		OB:   obt.OB.Copy(),
+	}
+}
+
+// Compare two orderbooks. Equal if the best bid and best offer hasn't changed
+func (ob1 *OrderBook) Equal(ob2 *OrderBook) bool {
+	if len(ob1.Bids) > 0 && len(ob2.Bids) > 0 && ob1.Bids[0].Price == ob2.Bids[0].Price &&
+		len(ob1.Asks) > 0 && len(ob2.Asks) > 0 && ob1.Asks[0].Price == ob2.Asks[0].Price {
+		return true
+	} else {
+		return false
+	}
 }
 
 // filter out orders with amount less than the Coin minimum trading amount
@@ -124,31 +171,41 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	return ob
 }
 
+// Returns the worst bid and worst ask that need to be hit in the orderbook in order to execute a requested size
+// Also returns the total size available at that price (may be more than requested size)
+// If orderstack does not have sufficient liquidity, then it returns the size available
 func (ob OrderBook) PriceIn(size float64) (bid, ask, bidSize, askSize float64) {
-	bid, bidSize = priceInAmount(size, ob.Bids)
-	ask, askSize = priceInAmount(size, ob.Asks)
+	bid, bidSize = ob.BidIn(size)
+	ask, askSize = ob.AskIn(size)
+	return
+}
+
+func (ob OrderBook) BidIn(size float64) (price, available float64) {
+	price, available = priceInAmount(size, ob.Bids)
+	return
+}
+
+func (ob OrderBook) AskIn(size float64) (price, available float64) {
+	price, available = priceInAmount(size, ob.Asks)
 	return
 }
 
 func priceInAmount(requiredAmount float64, stack []Order) (price, available float64) {
-	amt := 0.0
-	wpr := 0.0
+	available = 0.0
+
+	if len(stack) == 0 {
+		price = math.NaN()
+		return
+	}
+
 	for _, ord := range stack {
-		amt += ord.Amount
-		wpr += ord.Amount * ord.Price
-		if amt > requiredAmount {
-			price = wpr / amt
-			available = requiredAmount
+		available += ord.Amount
+		if available > requiredAmount {
+			price = ord.Price
 			return
 		}
 	}
-	if len(stack) > 0 {
-		price = stack[len(stack)-1].Price
-		available = amt
-	} else {
-		price = math.NaN()
-		available = 0.0
-	}
+	price = stack[len(stack)-1].Price
 	return
 }
 
