@@ -21,7 +21,8 @@ const (
 	NameFcoinM  = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
 	NameGopax   = "GOPAX"
 	NamePiexgo  = "PIEXGO"
-	NameCodex = "CODEX"
+	NameCodex   = "CODEX"
+	NameElitex  = "ELITEX"
 )
 
 // Exchange is the interface for all exchanges
