@@ -98,35 +98,40 @@ func FormatProfit(v float64, base Coin) string {
 }
 
 func (c Coin) RoundCoinAmount(amount float64) float64 {
+	sgn := 1.0
+	if amount < 0 {
+		sgn = -1.0
+	}
+	amtAbs := math.Abs(amount)
 	switch c {
 	case IOTX:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case ETH:
-		return math.Floor(amount*1e3) / 1e3
+		return math.Floor(amtAbs*1e3) / 1e3 * sgn
 	case ZRX:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case ONT:
-		return math.Floor(amount*1e2) / 1e2
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case TRX:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case FT:
-		return math.Floor(amount*1e2) / 1e2
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case MFT:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case MDT:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case BTC:
-		return math.Floor(amount*1e6) / 1e6
+		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case ETC:
-		return math.Floor(amount*1e6) / 1e6
+		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case EOS:
-		return math.Floor(amount*1e6) / 1e6
+		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case NEO:
-		return math.Floor(amount*1e6) / 1e6
+		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case ADA:
-		return math.Floor(amount)
+		return math.Floor(amtAbs) * sgn
 	case DASH:
-		return math.Floor(amount*1e5) / 1e5
+		return math.Floor(amtAbs*1e5) / 1e5 * sgn
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
