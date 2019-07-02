@@ -21,6 +21,8 @@ const (
 	NameFcoinM  = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
 	NameGopax   = "GOPAX"
 	NamePiexgo  = "PIEXGO"
+	NameCodex   = "CODEX"
+	NameElitex  = "ELITEX"
 )
 
 // Exchange is the interface for all exchanges
@@ -49,6 +51,7 @@ type Exchange interface {
 	//////////////////////////////////////////////////////////////////////////////////////
 	GetMakerFee(pair Pair) float64
 	GetTakerFee(pair Pair) float64
+	GetKline(pair Pair, interval string, limit int) (OHLCVBSTS, error)
 	/*  // other candidates
 	// GetTransactionHistory returns a slice of past transaction, in ascending order
 	MinimumTick(pair models.Pair) float64

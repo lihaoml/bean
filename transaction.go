@@ -28,14 +28,19 @@ type Transaction struct {
 }
 
 type OHLCVBS struct {
-	Open float64
-	High float64
-	Low float64
-	Close float64
-	Volume float64
-	BuyVolume float64
-	SellVolume float64
+	Open 			float64
+	High 			float64
+	Low 			float64
+	Close 			float64
+	Volume 			float64
+	BuyVolume 		float64
+	SellVolume		float64
+	Start			time.Time
+	End  			time.Time
 }
+
+type OHLCVBSTS []OHLCVBS
+
 
 // Define my trade
 type TradeLog struct {
@@ -120,6 +125,8 @@ func (t Transactions) OHLCVBS() (OHLCVBS, error) {
 	var res OHLCVBS
 	var err error
 	if len(t) > 0 {
+		res.Start = t[0].TimeStamp
+		res.End = t[len(t)-1].TimeStamp
 		res.Open = t[0].Price
 		res.Close = t[len(t)-1].Price
 		res.High = res.Open
@@ -183,7 +190,7 @@ func (txn Transactions) Between(from, to time.Time) Transactions {
 	var res Transactions
 	startIdx := len(txn)
 	for i, tt := range txn {
-		if !tt.TimeStamp.Before(from) {
+		if tt.TimeStamp.After(from) {
 			startIdx = i
 			break
 		}
@@ -191,7 +198,7 @@ func (txn Transactions) Between(from, to time.Time) Transactions {
 	if startIdx < len(txn) {
 		endIdx := startIdx
 		for i := startIdx; i < len(txn); i++ {
-			if txn[i].TimeStamp.Before(to) {
+			if !txn[i].TimeStamp.After(to) {
 				endIdx = i
 			} else {
 				break
@@ -261,7 +268,7 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 
 	for _, v := range txn {
 		s := []string{
-			fmt.Sprint(v.TimeStamp),
+			v.TimeStamp.Format(time.RFC3339),
 			v.Pair.String(),
 			fmt.Sprint(v.Price),
 			fmt.Sprint(v.Amount),
@@ -368,7 +375,7 @@ func (trds1 TradeLogS) Minus(trds2 TradeLogS) (res TradeLogS) {
 	return
 }
 
-func (trades TradeLogS) toTransactions() (txns Transactions) {
+func (trades TradeLogS) ToTransactions() (txns Transactions) {
 	for _, trd := range trades {
 		sign := 1.0
 		maker := Buyer
@@ -398,7 +405,7 @@ func (trades TradeLogS) Since(t time.Time) (position Portfolio, after TradeLogS)
 			after = append(after, trd)
 		}
 	}
-	snapts := GenerateSnapshotTS(before.toTransactions(), NewPortfolio())
+	snapts := GenerateSnapshotTS(before.ToTransactions(), NewPortfolio())
 	if len(snapts) > 0 {
 		position = snapts[len(snapts)-1].Port
 	}
