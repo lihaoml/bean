@@ -26,24 +26,24 @@ type Order struct {
 	Amount float64
 }
 
-func (ob OrderBook) BestBid() Order {
-	if len(ob.Bids) > 0 {
+func (ob *OrderBook) BestBid() Order {
+	if ob != nil && len(ob.Bids) > 0 {
 		return ob.Bids[0]
 	} else {
 		return Order{Price: 0.0, Amount: 99.0} // There's always a zero bid in any amount
 	}
 }
 
-func (ob OrderBook) BestAsk() Order {
-	if len(ob.Asks) > 0 {
+func (ob *OrderBook) BestAsk() Order {
+	if ob != nil && len(ob.Asks) > 0 {
 		return ob.Asks[0]
 	} else {
 		return Order{Price: math.NaN(), Amount: 0.0}
 	}
 }
 
-func (ob OrderBook) Mid() float64 {
-	if ob.Valid() {
+func (ob *OrderBook) Mid() float64 {
+	if ob != nil && len(ob.Bids) > 0 && len(ob.Asks) > 0 {
 		return (ob.Bids[0].Price + ob.Asks[0].Price) / 2.0
 	} else {
 		return math.NaN()

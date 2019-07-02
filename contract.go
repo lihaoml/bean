@@ -374,9 +374,9 @@ func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
 
 	underFuture := p.Con.UnderFuture()
-	delta := map[string]float64{
-		"CASH":             spotDelta / spotPrice,
-		underFuture.Name(): (totdelta - spotDelta) / spotPrice}
+	delta := make(map[string]float64)
+	delta["CASH"] = spotDelta / spotPrice
+	delta[underFuture.Name()] = (totdelta - spotDelta) / spotPrice
 
 	return delta
 }
