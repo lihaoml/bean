@@ -141,20 +141,20 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.expiry = time.Now()
 			c.isOption = false
 			continue
-		case "MAR":
-			c.expiry, _ = time.Parse("2Jan06", "29Mar19")
-			c.delivery = c.expiry
-			continue
-		case "APR":
-			c.expiry, _ = time.Parse("2Jan06", "26Apr19")
-			c.delivery = c.expiry
-			continue
 		case "JUN":
 			c.expiry, _ = time.Parse("2Jan06", "28Jun19")
 			c.delivery = c.expiry
 			continue
+		case "JUL":
+			c.expiry, _ = time.Parse("2Jan06", "26Jul19")
+			c.delivery = c.expiry
+			continue
 		case "SEP":
 			c.expiry, _ = time.Parse("2Jan06", "27Sep19")
+			c.delivery = c.expiry
+			continue
+		case "DEC":
+			c.expiry, _ = time.Parse("2Jan06", "27Dec19")
 			c.delivery = c.expiry
 			continue
 		case "BTC":
@@ -354,7 +354,7 @@ func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if p.Con.IsOption() {
 		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty
 	} else {
-		return 10.0 * (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit futures in multiples of 10$. need to check the discounting
+		return (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit quantity now in 1$.
 	}
 }
 
@@ -374,9 +374,9 @@ func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
 
 	underFuture := p.Con.UnderFuture()
-	delta := map[string]float64{
-		"CASH":             spotDelta / spotPrice,
-		underFuture.Name(): (totdelta - spotDelta) / spotPrice}
+	delta := make(map[string]float64)
+	delta["CASH"] = spotDelta / spotPrice
+	delta[underFuture.Name()] = (totdelta - spotDelta) / spotPrice
 
 	return delta
 }
@@ -421,14 +421,14 @@ func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm f
 
 	// newton raphson on vega and bs
 	//	guessVol := math.Sqrt(2.0*math.Pi/(float64(expiryDays)/365)) * prm / forward
-	guessVol := 0.80
+	guessVol := 1.0
 	for i := 0; i < 1000; i++ {
 		guessPrm := spot / forward * forwardOptionPrice(expiryDays, strike, forward, guessVol, callPut)
 		vega := optionVega(expiryDays, deliveryDays, strike, spot, forward, guessVol)
-		vega = math.Max(vega, 0.0001*spot) // floor the vega at 1bp to avoid guesses flying off
+		vega = math.Max(vega, 0.00001*spot) // floor the vega at 1bp to avoid guesses flying off
 		guessVol = guessVol - (guessPrm-prm)/(vega*100.0)
 		guessVol = math.Max(guessVol, 0.0) // floor guess vol at zero
-		guessVol = math.Min(guessVol, 4.0) // cap guess vol at 400%
+		guessVol = math.Min(guessVol, 5.0) // cap guess vol at 500%
 		if math.Abs(guessPrm-prm)/forward < 0.00001 {
 			return guessVol
 		}
