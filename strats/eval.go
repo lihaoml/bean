@@ -4,7 +4,6 @@ import (
 	. "bean"
 	"bean/rpc"
 	"fmt"
-	"github.com/gonum/floats"
 	"github.com/gonum/stat"
 	"math"
 	"os"
@@ -32,15 +31,7 @@ func (perf Perf) Sharpe() float64 {
 
 // get Drawdown series and MaxDrawdown
 func (perf Perf) MaxDrawdown() float64 {
-	var drawdown []float64
-	var maxsofar float64
-	for i, v := range perf.MtMUSD {
-		if i == 0 || v > maxsofar {
-			maxsofar = v
-		}
-		drawdown = append(drawdown, maxsofar-v)
-	}
-	return floats.Max(drawdown)
+	return MaxDD(perf.MtMUSD)
 }
 
 // evaluate performance of TradeLogS, assuming initial portoflio is empty.
@@ -76,7 +67,7 @@ func GenPerf0(tls TradeLogS, interval time.Duration) (perf Perf) {
 }
 
 // evaluate performance of TradeLogS
-// dividing trades into intervals, and generate Perf stats, mtmBase is normally USDT and/or BTC
+// dividing trades into intervals, and generate Perf stats
 func GenPerf(tls TradeLogS, init Portfolio, interval time.Duration, txn Transactions) (perf Perf) {
 	if len(tls) == 0 {
 		return

@@ -2,10 +2,26 @@ package bean
 
 import (
 	"fmt"
+	"github.com/gonum/floats"
 	"math"
 	"sort"
 	"time"
 )
+
+
+func MaxDD(pv []float64) float64 {
+	var drawdown []float64
+	var maxsofar float64
+	for i, v := range pv {
+		if i == 0 || v > maxsofar {
+			maxsofar = v
+		}
+		drawdown = append(drawdown, maxsofar-v)
+	}
+	return floats.Max(drawdown)
+}
+
+
 
 //Snapshot represents the state of a portfolio at a specific time
 type Snapshot struct {

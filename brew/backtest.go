@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/wcharczuk/go-chart"
 	"beanex/db/mds"
+	"github.com/wcharczuk/go-chart"
 )
 
 // BackTest data type
@@ -213,7 +213,7 @@ func (res BackTestResult) Evaluate(mtmBase Coin) {
 
 // quick evaluation for single pair transactions
 func (res BackTestResult) QuickEval() TradestatPort {
-	if (len(res.pairs) == 1) {
+	if len(res.pairs) == 1 {
 		ratesbook := make(ReferenceRateBook)
 		ratesbook[res.pairs[0]] = RefRatesFromTxn(res.Txn)
 		stats := *Tradestat(res.pairs[0].Base, res.Txn, NewPortfolio(), ratesbook)
