@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-
 func MaxDD(pv []float64) float64 {
 	var drawdown []float64
 	var maxsofar float64
@@ -20,8 +19,6 @@ func MaxDD(pv []float64) float64 {
 	}
 	return floats.Max(drawdown)
 }
-
-
 
 //Snapshot represents the state of a portfolio at a specific time
 type Snapshot struct {

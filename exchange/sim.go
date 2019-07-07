@@ -39,7 +39,7 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	for _, p := range pairs {
 		// obts[p], _ = mds.GetOrderBookTS(p, start, end, 20) // TODO: hard code 20 depth for now
 		obts[p], _ = mds.GetOrderBookTS2(exName, p, start, end) // TODO: hard code 20 depth for now
-//		obts[p].ShowBrief()
+		//		obts[p].ShowBrief()
 	}
 	txn := make(map[Pair]Transactions, len(pairs))
 	for _, p := range pairs {

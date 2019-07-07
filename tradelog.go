@@ -20,7 +20,7 @@ type TradeLog struct {
 	CommissionAsset Coin
 	Time            time.Time
 	Side            Side
-	TxnID           string  // if any
+	TxnID           string // if any
 }
 
 type TradeLogSummary struct {
@@ -80,15 +80,15 @@ func (trds TradeLogS) PrintStats(p Pair) {
 			if v.Side == "SELL" {
 				sign = -1.0
 			}
-			baseAmt = baseAmt - v.Price * v.Quantity * sign
-			assetAmt = assetAmt + v.Quantity * sign
+			baseAmt = baseAmt - v.Price*v.Quantity*sign
+			assetAmt = assetAmt + v.Quantity*sign
 			if v.CommissionAsset == v.Pair.Base {
 				baseAmt = baseAmt - v.Commission
 			} else {
 				assetAmt = assetAmt - v.Commission
 			}
-			pl = append(pl, baseAmt + assetAmt * v.Price - pv[len(pv)-1])
-			pv = append(pv, baseAmt + assetAmt * v.Price)
+			pl = append(pl, baseAmt+assetAmt*v.Price-pv[len(pv)-1])
+			pv = append(pv, baseAmt+assetAmt*v.Price)
 		}
 	}
 	maxdd := MaxDD(pv)
@@ -127,15 +127,15 @@ func (trds TradeLogS) ToCSV(filename string) {
 		if v.Side == "SELL" {
 			sign = -1.0
 		}
-		baseAmt = baseAmt - v.Price * v.Quantity * sign
-		assetAmt = assetAmt + v.Quantity * sign
+		baseAmt = baseAmt - v.Price*v.Quantity*sign
+		assetAmt = assetAmt + v.Quantity*sign
 		if v.CommissionAsset == v.Pair.Base {
 			baseAmt = baseAmt - v.Commission
 		} else {
 			assetAmt = assetAmt - v.Commission
 		}
-		pl = baseAmt + assetAmt * v.Price - pv
-		pv = baseAmt + assetAmt * v.Price
+		pl = baseAmt + assetAmt*v.Price - pv
+		pv = baseAmt + assetAmt*v.Price
 		s := []string{
 			v.Time.Format(time.RFC3339),
 			v.Pair.String(),
@@ -155,7 +155,6 @@ func (trds TradeLogS) ToCSV(filename string) {
 	csvWriter.WriteAll(data)
 	csvWriter.Flush()
 }
-
 
 func (trades TradeLogS) Summary(pair Pair) (tradesummary TradeLogSummary) {
 	sellAmount := 0.0

@@ -40,7 +40,6 @@ type OHLCVBS struct {
 
 type OHLCVBSTS []OHLCVBS
 
-
 // To be completed
 type Transactions []Transaction
 
