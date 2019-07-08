@@ -87,6 +87,9 @@ func (pair Pair) MinimumTradingAmount() float64 {
 	case Pair{FT, USDT}:
 		return 1.0 // // binance requires 0.001 BTC as minimum notional, approx price 500s
 
+	case Pair{ADA, USDT}:
+		return 15.0 // // binance requires 0.001 BTC as minimum notional, approx price 500s
+
 	default:
 		//logger.Warn().Interface("pair", pair).Msg("minimum trading amount not implemented use 1.0 by default")
 		return 1.0
