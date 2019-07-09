@@ -205,6 +205,8 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 2
 	case Pair{LTC, PAX}:
 		prec = 2
+	case Pair{LTC, BTC}:
+		prec = 6
 	case Pair{EOS, PAX}:
 		prec = 3
 	case Pair{ETH, PAX}:
