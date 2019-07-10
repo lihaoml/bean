@@ -141,20 +141,30 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.expiry = time.Now()
 			c.isOption = false
 			continue
-		case "JUN":
-			c.expiry, _ = time.Parse("2Jan06", "28Jun19")
-			c.delivery = c.expiry
-			continue
 		case "JUL":
-			c.expiry, _ = time.Parse("2Jan06", "26Jul19")
+			c.expiry, _ = time.Parse("2Jan06 15:04", "26Jul19 08:00")
 			c.delivery = c.expiry
 			continue
 		case "SEP":
-			c.expiry, _ = time.Parse("2Jan06", "27Sep19")
+			c.expiry, _ = time.Parse("2Jan06 15:04", "27Sep19 08:00")
 			c.delivery = c.expiry
 			continue
 		case "DEC":
-			c.expiry, _ = time.Parse("2Jan06", "27Dec19")
+			c.expiry, _ = time.Parse("2Jan06 15:04", "27Dec19 08:00")
+			c.delivery = c.expiry
+			continue
+		case "FRI": // The next friday date. Today if a friday
+			n := time.Now()
+			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
+			daysToAdd := (5 - int64(tod.Weekday())) % 7
+			c.expiry = tod.Add(time.Duration(daysToAdd) * time.Hour * 24)
+			c.delivery = c.expiry
+			continue
+		case "2FR": // The following friday
+			n := time.Now()
+			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
+			daysToAdd := (5-int64(tod.Weekday()))%7 + 7
+			c.expiry = tod.Add(time.Duration(daysToAdd) * time.Hour * 24)
 			c.delivery = c.expiry
 			continue
 		case "BTC":
