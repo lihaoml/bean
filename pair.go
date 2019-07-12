@@ -161,6 +161,10 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 6
 	case Pair{ZRX, ETH}:
 		prec = 8
+	case Pair{ZRX, BTC}:
+		prec = 8
+	case Pair{ZRX, USDT}:
+		prec = 4
 	case Pair{MFT, ETH}:
 		prec = 8
 	case Pair{TRX, BTC}:
