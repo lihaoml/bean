@@ -80,7 +80,7 @@ func ContractFromName(name string) (*Contract, error) {
 		if err != nil {
 			return nil, err
 		}
-		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 9, 0, 0, 0, time.UTC) // 9am london expiry
+		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
 	}
 
 	if len(st) == 2 {
