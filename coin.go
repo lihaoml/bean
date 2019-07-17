@@ -126,7 +126,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	case ETC:
 		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case EOS:
-		return math.Floor(amtAbs*1e6) / 1e6 * sgn
+		return math.Floor(amtAbs*1e4) / 1e4 * sgn
 	case NEO:
 		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case ADA:
