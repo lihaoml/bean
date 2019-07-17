@@ -178,7 +178,7 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{FT, ETH}:
 		prec = 8
 	case Pair{EOS, BTC}:
-		prec = 8
+		prec = 7
 	case Pair{EOS, USDT}:
 		prec = 4 // fcoin uses 3
 	case Pair{EOS, ETH}:
