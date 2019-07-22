@@ -18,13 +18,18 @@ const (
 	XBT  Coin = "XBT"
 	USD  Coin = "USD"
 	ETH  Coin = "ETH"
-	USDT Coin = "USDT"
+
 	XRP  Coin = "XRP"
 	EOS  Coin = "EOS"
 	LTC  Coin = "LTC"
 	BCH  Coin = "BCH"
 	XLM  Coin = "XLM"
 	ZEC  Coin = "ZEC"
+
+	USDT Coin = "USDT"
+	USDC Coin = "USDC"
+	TUSD Coin = "TUSD"
+	PAX Coin = "PAX"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
@@ -40,7 +45,6 @@ const (
 	HT  Coin = "HT"
 	XMX Coin = "XMX"
 	NKN Coin = "NKN"
-	PAX Coin = "PAX"
 	KRW Coin = "KRW"
 
 	TRX  Coin = "TRX"
