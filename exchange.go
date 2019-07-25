@@ -31,6 +31,7 @@ type Exchange interface {
 	Name() string
 	// get the open orders for a currency pair, when the exchange query fails, return an empty order book and log a warning message.
 	GetOrderBook(pair Pair) OrderBook
+	GetTicker(pair Pair) (Ticker, error) // get best bid/ask, should be a lightweight query compared to GetOrderBook
 	GetTransactionHistory(pair Pair) Transactions
 	// get coin blanaces on the exchange
 	GetPortfolio() Portfolio
