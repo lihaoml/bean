@@ -89,15 +89,21 @@ func FormatProfit(v float64, base Coin) string {
 	case ETH:
 		prec = 5
 		symb = "Ξ"
-		break
 	case USDT:
 		prec = 3
 		symb = "$"
-		break
+	case PAX:
+		prec = 3
+		symb = "$"
+	case USDC:
+		prec = 3
+		symb = "$"
+	case TUSD:
+		prec = 3
+		symb = "$"
 	case BTC:
 		prec = 6
 		symb = "฿"
-		break
 	}
 	return symb + " " + strconv.FormatFloat(v, 'f', prec, 64)
 }

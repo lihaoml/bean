@@ -103,19 +103,40 @@ func (pair Pair) FormatPrice(price float64) string {
 	switch pair {
 	case Pair{ETH, USDT}:
 		prec = 2
-		break
+	case Pair{ETH, USDC}:
+		prec = 2
+	case Pair{ETH, PAX}:
+		prec = 2
+
+	case Pair{EOS, USDT}:
+		prec = 3
+	case Pair{EOS, USDC}:
+		prec = 3
+	case Pair{EOS, PAX}:
+		prec = 3
+
+	case Pair{PAX, USDT}:
+		prec = 4
+	case Pair{USDC, USDT}:
+		prec = 4
+	case Pair{TUSD, USDT}:
+		prec = 4
+
 	case Pair{BTC, USDT}:
 		prec = 2
-		break
+	case Pair{BTC, USDC}:
+		prec = 2
+	case Pair{BTC, PAX}:
+		prec = 2
+	case Pair{BTC, TUSD}:
+		prec = 2
+
 	case Pair{ETH, BTC}:
 		prec = 6
-		break
 	case Pair{ONT, USDT}:
 		prec = 3
-		break
 	case Pair{ONT, ETH}:
 		prec = 6
-		break
 	case Pair{IOTX, ETH}:
 		return fmt.Sprintf("%.3e", price)
 	}
