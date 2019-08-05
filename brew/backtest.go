@@ -6,10 +6,10 @@ import (
 	"bean/rpc"
 	util "bean/utils"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
-	"beanex/db/mds"
 	"github.com/wcharczuk/go-chart"
 )
 
@@ -46,9 +46,8 @@ func (bt BackTest) Simulate(strat Strat, start, end time.Time, initPort Portfoli
 	}
 	fmt.Println("ex constructed")
 
-	tick := strat.GetTick()
 	// from start to end, call strat's Work
-	for t := start; t.Before(end); t = t.Add(tick) {
+	for t := start; t.Before(end); t = t.Add(strat.GetTick()) {
 		// update now in exSIm
 		for i, _ := range exNames {
 			exSims[i].SetTime(t)
@@ -97,9 +96,8 @@ func (bt BackTest) SimulateN(strats []Strat, start, end time.Time, initPort Port
 	// now we can simulate each strategy
 	result := make([]BackTestResult, len(strats))
 	for k, strat := range strats {
-		tick := strat.GetTick()
 		// from start to end, call strat's Work
-		for t := start; t.Before(end); t = t.Add(tick) {
+		for t := start; t.Before(end); t = t.Add(strat.GetTick()) {
 			// update now in exSIm
 			for i, _ := range exNames {
 				exSims[i].SetTime(t)
@@ -134,12 +132,20 @@ func (res BackTestResult) Show() TradestatPort {
 	var stat TradestatPort
 	if len(res.pairs) > 0 {
 		p := res.pairs[0]
-		txn, _ := mds.GetTransactions2(NameFcoin, p, res.start, res.end)
-		ratesbook[p] = RefRatesFromTxn(txn)
+//		txn, _ := mds.GetTransactions2(NameFcoin, p, res.start, res.end)
+		ratesbook[p] = RefRatesFromTxn(res.Txn)
 		//		snapts.Print()
 		//		perfts.Print()
 
 		stat = *Tradestat(p.Base, res.Txn, NewPortfolio(), ratesbook)
+		ssTS := GenerateSnapshotTS(res.Txn, NewPortfolio())
+		maxPos := 0.0
+		maxNeg := 0.0
+		for _, ss := range ssTS {
+			maxPos = math.Max(maxPos, ss.Port.Balance(p.Coin))
+			maxNeg = math.Min(maxNeg, ss.Port.Balance(p.Coin))
+		}
+		fmt.Println("max position", maxPos, maxNeg)
 		stat.Print()
 	}
 	return stat
