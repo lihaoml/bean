@@ -227,6 +227,11 @@ func (sim Simulator) GetTicker(pair Pair) (Ticker, error) {
 	return Ticker{}, nil
 }
 
+func (sim Simulator) GetLastPrice(pair Pair) (float64, error) {
+	panic("not implemented")
+	return math.NaN(), nil
+}
+
 func (sim Simulator) GetMyOrders(pair Pair) []OrderStatus {
 	var ostatus []OrderStatus
 	for _, o := range sim.myOrders[pair] {
