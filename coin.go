@@ -14,22 +14,22 @@ type Coins []Coin
 
 // token's names
 const (
-	BTC  Coin = "BTC"
-	XBT  Coin = "XBT"
-	USD  Coin = "USD"
-	ETH  Coin = "ETH"
+	BTC Coin = "BTC"
+	XBT Coin = "XBT"
+	USD Coin = "USD"
+	ETH Coin = "ETH"
 
-	XRP  Coin = "XRP"
-	EOS  Coin = "EOS"
-	LTC  Coin = "LTC"
-	BCH  Coin = "BCH"
-	XLM  Coin = "XLM"
-	ZEC  Coin = "ZEC"
+	XRP Coin = "XRP"
+	EOS Coin = "EOS"
+	LTC Coin = "LTC"
+	BCH Coin = "BCH"
+	XLM Coin = "XLM"
+	ZEC Coin = "ZEC"
 
 	USDT Coin = "USDT"
 	USDC Coin = "USDC"
 	TUSD Coin = "TUSD"
-	PAX Coin = "PAX"
+	PAX  Coin = "PAX"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
