@@ -66,7 +66,7 @@ func (t Transactions) TradeRatio() (float64, float64, int, int) {
 	var wsumsell, wsumbuy float64
 	var sell, buy int = 0, 0
 	for _, v := range t {
-		if v.Maker = Buyer {
+		if v.Maker == Buyer {
 			sumbuy += v.Amount
 			wsumbuy += v.Price * v.Amount
 			buy ++
