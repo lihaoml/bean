@@ -23,6 +23,9 @@ const (
 	NamePiexgo  = "PIEXGO"
 	NameCodex   = "CODEX"
 	NameElitex  = "ELITEX"
+	NameBitMax  = "BITMAX"
+	NameHotBit  = "HOTBIT"
+	NameBilaxy  = "BILAXY"
 )
 
 // Exchange is the interface for all exchanges
