@@ -222,6 +222,16 @@ func (sim Simulator) GetKline(pair Pair, interval string, limit int) (OHLCVBSTS,
 	return nil, nil
 }
 
+func (sim Simulator) GetTicker(pair Pair) (Ticker, error) {
+	panic("not implemented")
+	return Ticker{}, nil
+}
+
+func (sim Simulator) GetLastPrice(pair Pair) (float64, error) {
+	panic("not implemented")
+	return math.NaN(), nil
+}
+
 func (sim Simulator) GetMyOrders(pair Pair) []OrderStatus {
 	var ostatus []OrderStatus
 	for _, o := range sim.myOrders[pair] {

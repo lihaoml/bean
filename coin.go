@@ -14,17 +14,22 @@ type Coins []Coin
 
 // token's names
 const (
-	BTC  Coin = "BTC"
-	XBT  Coin = "XBT"
-	USD  Coin = "USD"
-	ETH  Coin = "ETH"
+	BTC Coin = "BTC"
+	XBT Coin = "XBT"
+	USD Coin = "USD"
+	ETH Coin = "ETH"
+
+	XRP Coin = "XRP"
+	EOS Coin = "EOS"
+	LTC Coin = "LTC"
+	BCH Coin = "BCH"
+	XLM Coin = "XLM"
+	ZEC Coin = "ZEC"
+
 	USDT Coin = "USDT"
-	XRP  Coin = "XRP"
-	EOS  Coin = "EOS"
-	LTC  Coin = "LTC"
-	BCH  Coin = "BCH"
-	XLM  Coin = "XLM"
-	ZEC  Coin = "ZEC"
+	USDC Coin = "USDC"
+	TUSD Coin = "TUSD"
+	PAX  Coin = "PAX"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
@@ -40,7 +45,6 @@ const (
 	HT  Coin = "HT"
 	XMX Coin = "XMX"
 	NKN Coin = "NKN"
-	PAX Coin = "PAX"
 	KRW Coin = "KRW"
 
 	TRX  Coin = "TRX"
@@ -85,15 +89,21 @@ func FormatProfit(v float64, base Coin) string {
 	case ETH:
 		prec = 5
 		symb = "Ξ"
-		break
 	case USDT:
 		prec = 3
 		symb = "$"
-		break
+	case PAX:
+		prec = 3
+		symb = "$"
+	case USDC:
+		prec = 3
+		symb = "$"
+	case TUSD:
+		prec = 3
+		symb = "$"
 	case BTC:
 		prec = 6
 		symb = "฿"
-		break
 	}
 	return symb + " " + strconv.FormatFloat(v, 'f', prec, 64)
 }
@@ -126,7 +136,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	case ETC:
 		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case EOS:
-		return math.Floor(amtAbs*1e6) / 1e6 * sgn
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case NEO:
 		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case ADA:
