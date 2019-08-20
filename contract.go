@@ -145,6 +145,10 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.expiry, _ = time.Parse("2Jan06 15:04", "26Jul19 08:00")
 			c.delivery = c.expiry
 			continue
+		case "AUG":
+			c.expiry, _ = time.Parse("2Jan06 15:04", "30Aug19 08:00")
+			c.delivery = c.expiry
+			continue
 		case "SEP":
 			c.expiry, _ = time.Parse("2Jan06 15:04", "27Sep19 08:00")
 			c.delivery = c.expiry
