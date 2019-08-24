@@ -141,20 +141,18 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.expiry = time.Now()
 			c.isOption = false
 			continue
-		case "JUL":
-			c.expiry, _ = time.Parse("2Jan06 15:04", "26Jul19 08:00")
-			c.delivery = c.expiry
-			continue
-		case "AUG":
-			c.expiry, _ = time.Parse("2Jan06 15:04", "30Aug19 08:00")
-			c.delivery = c.expiry
-			continue
-		case "SEP":
-			c.expiry, _ = time.Parse("2Jan06 15:04", "27Sep19 08:00")
-			c.delivery = c.expiry
-			continue
-		case "DEC":
-			c.expiry, _ = time.Parse("2Jan06 15:04", "27Dec19 08:00")
+		case "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC":
+			// Find the last friday of the relevant month
+			tod := time.Now()
+			mth, _ := time.Parse("Jan", strings.ToUpper(s))
+			followingMonth := mth.Month()%12 + 1 // January is 1
+			year := tod.Year()
+			if tod.Month() >= followingMonth {
+				year++ // Months before today - select next year
+			}
+			dt := time.Date(year, followingMonth, 1, 8.0, 0, 0, 0, time.UTC) // first day of the following month
+			daysToAdd := -1 - (dt.Weekday()+1)%7                             // go back to the strictly previous friday
+			c.expiry = dt.Add(time.Duration(daysToAdd) * time.Hour * 24)
 			c.delivery = c.expiry
 			continue
 		case "FRI": // The next friday date. Today if a friday
