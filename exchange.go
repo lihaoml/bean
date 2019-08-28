@@ -15,6 +15,7 @@ const (
 	NameBCoin   = "BCOIN"
 	NameBittrex = "BITTREX"
 	NameDeribit = "DERIBIT"
+	NameBitMex  = "BITMEX"
 	NameAllbit  = "ALLBIT"
 	NameUpBit   = "UPBIT"
 	NameFcoinC  = "FCOINC"
@@ -26,6 +27,8 @@ const (
 	NameBitMax  = "BITMAX"
 	NameHotBit  = "HOTBIT"
 	NameBilaxy  = "BILAXY"
+	NameLBank   = "LBANK"
+	NameBitfinex   = "BITFINEX"
 )
 
 // Exchange is the interface for all exchanges
