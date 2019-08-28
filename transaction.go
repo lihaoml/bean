@@ -60,6 +60,25 @@ func (t Transactions) Volume(pair Pair) (float64, float64) {
 	return volCoin, volBase
 }
 
+//buyamount/sellamount, weighted buyamt/sellamt, # of sell orders, # of buy orders
+func (t Transactions) TradeRatio() (float64, float64, int, int) {
+	var sumsell, sumbuy float64
+	var wsumsell, wsumbuy float64
+	var sell, buy int = 0, 0
+	for _, v := range t {
+		if v.Maker == Buyer {
+			sumbuy += v.Amount
+			wsumbuy += v.Price * v.Amount
+			buy ++
+		} else {
+			sumsell = v.Amount
+			wsumsell += v.Price * v.Amount
+			sell ++
+		}
+	}
+	return sumbuy / sumsell, wsumbuy / wsumsell, buy, sell
+}
+
 // assuming transactions is sorted
 func (t Transactions) OHLCVBS() (OHLCVBS, error) {
 	var res OHLCVBS
