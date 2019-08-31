@@ -69,11 +69,11 @@ func (t Transactions) TradeRatio() (float64, float64, int, int) {
 		if v.Maker == Buyer {
 			sumbuy += v.Amount
 			wsumbuy += v.Price * v.Amount
-			buy ++
+			buy++
 		} else {
 			sumsell = v.Amount
 			wsumsell += v.Price * v.Amount
-			sell ++
+			sell++
 		}
 	}
 	return sumbuy / sumsell, wsumbuy / wsumsell, buy, sell

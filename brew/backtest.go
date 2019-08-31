@@ -132,7 +132,7 @@ func (res BackTestResult) Show() TradestatPort {
 	var stat TradestatPort
 	if len(res.pairs) > 0 {
 		p := res.pairs[0]
-//		txn, _ := mds.GetTransactions2(NameFcoin, p, res.start, res.end)
+		//		txn, _ := mds.GetTransactions2(NameFcoin, p, res.start, res.end)
 		ratesbook[p] = RefRatesFromTxn(res.Txn)
 		//		snapts.Print()
 		//		perfts.Print()

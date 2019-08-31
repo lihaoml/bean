@@ -1,34 +1,39 @@
 package bean
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"math"
+	"time"
+)
 
 // the supported exchanges
 // NOTE: the names should all be uppercase
 const (
-	NameBinance = "BINANCE"
-	NameHuobi   = "HUOBI"
-	NameHadax   = "HADAX"
-	NameGate    = "GATE"
-	NameKucoin  = "KUCOIN"
-	NameFcoin   = "FCOIN"
-	NameBgogo   = "BGOGO"
-	NameBCoin   = "BCOIN"
-	NameBittrex = "BITTREX"
-	NameDeribit = "DERIBIT"
-	NameBitMex  = "BITMEX"
-	NameAllbit  = "ALLBIT"
-	NameUpBit   = "UPBIT"
-	NameFcoinC  = "FCOINC"
-	NameFcoinM  = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
-	NameGopax   = "GOPAX"
-	NamePiexgo  = "PIEXGO"
-	NameCodex   = "CODEX"
-	NameElitex  = "ELITEX"
-	NameBitMax  = "BITMAX"
-	NameHotBit  = "HOTBIT"
-	NameBilaxy  = "BILAXY"
-	NameLBank   = "LBANK"
-	NameBitfinex   = "BITFINEX"
+	NameBinance  = "BINANCE"
+	NameHuobi    = "HUOBI"
+	NameHadax    = "HADAX"
+	NameGate     = "GATE"
+	NameKucoin   = "KUCOIN"
+	NameFcoin    = "FCOIN"
+	NameBgogo    = "BGOGO"
+	NameBCoin    = "BCOIN"
+	NameBittrex  = "BITTREX"
+	NameDeribit  = "DERIBIT"
+	NameBitMex   = "BITMEX"
+	NameAllbit   = "ALLBIT"
+	NameUpBit    = "UPBIT"
+	NameFcoinC   = "FCOINC"
+	NameFcoinM   = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
+	NameGopax    = "GOPAX"
+	NamePiexgo   = "PIEXGO"
+	NameCodex    = "CODEX"
+	NameElitex   = "ELITEX"
+	NameBitMax   = "BITMAX"
+	NameHotBit   = "HOTBIT"
+	NameBilaxy   = "BILAXY"
+	NameLBank    = "LBANK"
+	NameBitfinex = "BITFINEX"
 )
 
 // Exchange is the interface for all exchanges
@@ -65,4 +70,83 @@ type Exchange interface {
 	MinimumTick(pair models.Pair) float64
 	GetPairs(base models.Coin) []models.Pair  // get all pairs of the exchange with the given base
 	*/
+}
+
+// exchange is a struct for holding common member variables and base functions
+type BaseExchange struct {
+	name string
+	oids map[Pair]([]string)
+}
+
+func NewBaseExchange(name string) BaseExchange {
+	return BaseExchange{
+		name: name,
+	}
+}
+
+func (ex BaseExchange) OrderIDS() map[Pair]([]string) {
+	return ex.oids
+}
+
+func (ex BaseExchange) Name() string {
+	return ex.name
+}
+
+func (ex *BaseExchange) TrackOrderID(pair Pair, oid string) {
+	if ex.oids == nil {
+		ex.oids = make(map[Pair]([]string))
+	}
+	ex.oids[pair] = append(ex.oids[pair], oid)
+}
+
+// interface function of base class
+func (ex BaseExchange) GetMyOrders(pair Pair) []OrderStatus {
+	panic(ex.name + "GetMyOrders(pair Pair)" + " not implemented")
+}
+
+func (ex BaseExchange) GetAccountOrders(pair Pair) []OrderStatus {
+	panic(ex.name + "GetAccountOrders(pair Pair)" + " not implemented")
+}
+
+func (ex BaseExchange) GetMyTrades(pair Pair, start, end time.Time) TradeLogS {
+	fmt.Println(ex.name + ".GetMyTrades(pair Pair, start, end time.Time)" + " not implemented")
+	return TradeLogS{}
+}
+
+func (ex BaseExchange) CancelAllOrders(pair Pair) {
+	panic(ex.name + " CancelAllOrders(pair Pair) not implemented")
+}
+
+func (ex BaseExchange) GetTransactionHistory(pair Pair) Transactions {
+	panic(ex.name + " GetTransactionHistory(pair Pair) not implemented")
+}
+
+func (ex BaseExchange) GetOrderStatus(orderID string, pair Pair) (OrderStatus, error) {
+	var ostatus OrderStatus
+	panic(ex.name + " GetOrderStatus(orderID, pair) not implemented")
+	return ostatus, nil
+}
+
+func (ex BaseExchange) GetMakerFee(pair Pair) float64 {
+	panic(ex.name + " GetMakerFee(pair) not implemented")
+	return math.NaN()
+}
+
+func (ex BaseExchange) GetTakerFee(pair Pair) float64 {
+	panic(ex.name + " GetTakerFee(pair) not implemented")
+	return math.NaN()
+}
+func (ex BaseExchange) GetKline(pair Pair, interval string, limit int) (OHLCVBSTS, error) {
+	panic(ex.name + "GetKline() not implemented")
+	return nil, nil
+}
+
+func (ex BaseExchange) GetTicker(pair Pair) (Ticker, error) {
+	err := errors.New(ex.Name() + ".GetTicker() not implemented")
+	return Ticker{math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN()}, err
+}
+
+func (ex BaseExchange) GetLastPrice(pair Pair) (float64, error) {
+	err := errors.New(ex.Name() + ".GetTicker() not implemented")
+	return math.NaN(), err
 }
