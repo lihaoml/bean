@@ -10,21 +10,13 @@
 [[projects]]
   branch = "master"
   name = "github.com/golang/freetype"
-  packages = [
-    "raster",
-    "truetype"
-  ]
+  packages = ["raster","truetype"]
   revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
 
 [[projects]]
   branch = "master"
   name = "github.com/gonum/blas"
-  packages = [
-    ".",
-    "blas64",
-    "native",
-    "native/internal/math32"
-  ]
+  packages = [".","blas64","native","native/internal/math32"]
   revision = "e7c5890b24cf6f3bb173f76e1bd71e80e887e3f9"
 
 [[projects]]
@@ -36,29 +28,19 @@
 [[projects]]
   branch = "master"
   name = "github.com/gonum/internal"
-  packages = [
-    "asm/f32",
-    "asm/f64"
-  ]
+  packages = ["asm/f32","asm/f64"]
   revision = "fda53f8d25717c07e2dac25758075a182bd74235"
 
 [[projects]]
   branch = "master"
   name = "github.com/gonum/lapack"
-  packages = [
-    ".",
-    "lapack64",
-    "native"
-  ]
+  packages = [".","lapack64","native"]
   revision = "f0b8b25edeceafb3a2752941c7bf0cda962df112"
 
 [[projects]]
   branch = "master"
   name = "github.com/gonum/matrix"
-  packages = [
-    ".",
-    "mat64"
-  ]
+  packages = [".","mat64"]
   revision = "a41cc49d4c29f7451775f4379a5cc6ec6239dfab"
 
 [[projects]]
@@ -74,6 +56,18 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/rs/zerolog"
+  packages = [".","internal/cbor","internal/json"]
+  revision = "b806a5ecbe5347ad9ef05121fea8f4acc65fa5fc"
+  version = "v1.15.0"
+
+[[projects]]
+  name = "github.com/shopspring/decimal"
+  packages = ["."]
+  revision = "cd690d0c9e2447b1ef2a129a6b7b49077da89b8e"
+  version = "1.1.0"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
@@ -81,40 +75,25 @@
 
 [[projects]]
   name = "github.com/wcharczuk/go-chart"
-  packages = [
-    ".",
-    "drawing",
-    "matrix",
-    "roboto",
-    "seq",
-    "util"
-  ]
+  packages = [".","drawing","matrix","roboto","seq","util"]
   revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
   version = "v2.0.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/image"
-  packages = [
-    "draw",
-    "font",
-    "math/f64",
-    "math/fixed"
-  ]
+  packages = ["draw","font","math/f64","math/fixed"]
   revision = "991ec62608f3c0da01d400756917825d1e2fd528"
 
 [[projects]]
   branch = "master"
   name = "gonum.org/v1/gonum"
-  packages = [
-    "floats",
-    "internal/asm/f64"
-  ]
+  packages = ["floats","internal/asm/f64"]
   revision = "f0982070f509ee139841ca385c44dc22a77c8da8"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1b971e1560158436357f7807ebc88373412799f2b5c33d2bda5ccf82c15f0b74"
+  inputs-digest = "aa4d436743d4142973a848ad4aae88872786677757459ebd96def2520430f7a3"
   solver-name = "gps-cdcl"
   solver-version = 1

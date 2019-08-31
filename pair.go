@@ -335,3 +335,9 @@ func PossiblePairs(coins []Coin) (pairs []Pair) {
 	}
 	return
 }
+
+// split p by "_", then construct the pair
+func ParsePair(p string) Pair {
+	s := strings.Split(p, "_")
+	return Pair{Coin(strings.ToUpper(s[0])), Coin(strings.ToUpper(s[1]))}
+}
