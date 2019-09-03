@@ -289,10 +289,10 @@ func AllCoins(pairs []Pair) (res Coins) {
 }
 
 func RightPair(coin1, coin2 Coin) (Pair, bool) {
-	if coin1 == USDT {
+	if coin1 == USDT || coin1 == USD {
 		return Pair{coin2, coin1}, true
 	}
-	if coin2 == USDT {
+	if coin2 == USDT || coin2 == USD {
 		return Pair{coin1, coin2}, true
 	}
 	if coin1 == BTC {
