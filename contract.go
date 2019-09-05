@@ -65,7 +65,7 @@ func ContractFromName(name string) (*Contract, error) {
 
 	switch st[0] {
 	case "BTC":
-		underlying = Pair{BTC, USDT}
+		underlying = Pair{BTC, USD}
 	default:
 		err = errors.New("do not recognise coin")
 		return nil, err
@@ -128,7 +128,7 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 	defaultExpiry, _ := time.Parse("02Jan06", "28Jun19")
 	c := Contract{
 		isOption:   false,
-		underlying: Pair{BTC, USDT},
+		underlying: Pair{BTC, USD},
 		expiry:     defaultExpiry,
 		delivery:   defaultExpiry,
 		callPut:    Call,
@@ -170,10 +170,10 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.delivery = c.expiry
 			continue
 		case "BTC":
-			c.underlying = Pair{BTC, USDT}
+			c.underlying = Pair{BTC, USD}
 			continue
 		case "ETH":
-			c.underlying = Pair{ETH, USDT}
+			c.underlying = Pair{ETH, USD}
 			continue
 		case "C":
 			c.callPut = Call
@@ -365,7 +365,7 @@ func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 }
 
 // Calculate the price of a contract given market parameters. Price is in RHS coin value spot
-// Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USDT rates float and are generally negative.
+// Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USD rates float and are generally negative.
 func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if p.Con.IsOption() {
 		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty
