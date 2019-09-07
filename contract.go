@@ -357,7 +357,11 @@ func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) flo
 // Return the 'simple' delta computed analytically
 func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	expiryDays := dayDiff(asof, c.expiry)
-	return cumNormDist((math.Log(futPrice/c.strike) + (vol*vol/2.0)*(float64(expiryDays)/365.0)) / (vol * float64(expiryDays) / 365.0))
+	if c.callPut == Call {
+		return cumNormDist((math.Log(futPrice/c.strike) + (vol*vol/2.0)*(float64(expiryDays)/365.0)) / (vol * math.Sqrt(float64(expiryDays)/365.0)))
+	} else { // put
+		return cumNormDist((math.Log(futPrice/c.strike)+(vol*vol/2.0)*(float64(expiryDays)/365.0))/(vol*math.Sqrt(float64(expiryDays)/365.0))) - 1.0
+	}
 }
 
 // Calculate the price of a contract given market parameters. Price is in RHS coin value spot
