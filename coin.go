@@ -55,6 +55,7 @@ const (
 	APOT Coin = "APOT"
 	GT   Coin = "GT"
 	FMEX Coin = "FMEX"
+	DUO  Coin = "DUO"
 )
 
 func (s Coins) Len() int {
@@ -116,6 +117,8 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	amtAbs := math.Abs(amount)
 	switch c {
 	case IOTX:
+		return math.Floor(amtAbs) * sgn
+	case DUO:
 		return math.Floor(amtAbs) * sgn
 	case ETH:
 		return math.Floor(amtAbs*1e3) / 1e3 * sgn
