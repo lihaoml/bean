@@ -201,8 +201,8 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 	return &c, nil
 }
 
-func PerpContract(p Pair) Contract {
-	return Contract{
+func PerpContract(p Pair) *Contract {
+	return &Contract{
 		isOption:   false,
 		perp:       true,
 		expiry:     time.Now(),
@@ -232,8 +232,8 @@ func NewPosition(c *Contract, qty, price float64) Position {
 	return Position{Con: c, Qty: qty, Price: price}
 }
 
-func OptContractFromDets(p Pair, d time.Time, strike float64, cp CallOrPut) Contract {
-	return Contract{
+func OptContract(p Pair, d time.Time, strike float64, cp CallOrPut) *Contract {
+	return &Contract{
 		isOption:   true,
 		underlying: p,
 		expiry:     d,
@@ -242,8 +242,8 @@ func OptContractFromDets(p Pair, d time.Time, strike float64, cp CallOrPut) Cont
 		callPut:    cp}
 }
 
-func FutContractFromDets(p Pair, d time.Time) Contract {
-	return Contract{
+func FutContract(p Pair, d time.Time) *Contract {
+	return &Contract{
 		isOption:   false,
 		underlying: p,
 		expiry:     d,
@@ -251,9 +251,9 @@ func FutContractFromDets(p Pair, d time.Time) Contract {
 		callPut:    NA}
 }
 
-func (c Contract) UnderFuture() Contract {
+func (c *Contract) UnderFuture() *Contract {
 	if c.IsOption() {
-		return Contract{
+		return &Contract{
 			isOption:   false,
 			underlying: c.underlying,
 			expiry:     c.expiry,
