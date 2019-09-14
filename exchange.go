@@ -136,10 +136,15 @@ func (ex BaseExchange) GetTakerFee(pair Pair) float64 {
 	panic(ex.name + " GetTakerFee(pair) not implemented")
 	return math.NaN()
 }
+
+//NOTE: 'interval' pattern: 1m, 1h, 1d, 1w, 1M
+
 func (ex BaseExchange) GetKline(pair Pair, interval string, limit int) (OHLCVBSTS, error) {
 	panic(ex.name + "GetKline() not implemented")
 	return nil, nil
 }
+
+
 
 func (ex BaseExchange) GetTicker(pair Pair) (Ticker, error) {
 	err := errors.New(ex.Name() + ".GetTicker() not implemented")
