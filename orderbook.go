@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -48,6 +49,30 @@ func (ob *OrderBook) Mid() float64 {
 	} else {
 		return math.NaN()
 	}
+}
+
+func (ob *OrderBook) BidAskMid() (bid, ask, mid float64, err error) {
+	if ob == nil {
+		bid, ask, mid = math.NaN(), math.NaN(), math.NaN()
+		err = errors.New("Don't recognise contract")
+		return
+	}
+	if len(ob.Bids) > 0 && len(ob.Asks) > 0 {
+		bid = ob.Bids[0].Price
+		ask = ob.Asks[0].Price
+		mid = (bid + ask) / 2.0
+	} else if len(ob.Asks) > 0 {
+		bid = math.NaN()
+		ask = ob.Asks[0].Price
+		mid = ask
+	} else if len(ob.Bids) > 0 {
+		bid = ob.Bids[0].Price
+		ask = math.NaN()
+		mid = bid
+	} else {
+		bid, ask, mid = math.NaN(), math.NaN(), math.NaN()
+	}
+	return
 }
 
 func (ob OrderBook) Spread() float64 {
