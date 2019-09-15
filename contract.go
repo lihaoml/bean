@@ -72,8 +72,7 @@ func ContractFromName(name string) (*Contract, error) {
 	}
 
 	if st[1] == "PERPETUAL" {
-		perp = true
-		expiry = time.Now()
+		return PerpContract(underlying), nil
 	} else {
 		perp = false
 		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
@@ -138,7 +137,9 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		switch strings.ToUpper(s) {
 		case "PERP":
 			c.perp = true
-			c.expiry = time.Now()
+			n := time.Now()
+			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
+			c.expiry = tod
 			c.isOption = false
 			continue
 		case "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC":
@@ -202,10 +203,12 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 }
 
 func PerpContract(p Pair) *Contract {
+	n := time.Now()
+	tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
 	return &Contract{
 		isOption:   false,
 		perp:       true,
-		expiry:     time.Now(),
+		expiry:     tod,
 		underlying: p}
 }
 
