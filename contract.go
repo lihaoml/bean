@@ -317,6 +317,21 @@ func (c Contract) IsOption() bool {
 	return c.isOption
 }
 
+func (c1 *Contract) Equal(c2 *Contract) bool {
+	if c1.isOption {
+		return c2.isOption &&
+			c1.callPut == c2.callPut &&
+			c1.expiry == c2.expiry &&
+			c1.delivery == c2.delivery &&
+			c1.strike == c2.strike &&
+			c1.underlying == c2.underlying
+	} else {
+		return !c2.isOption &&
+			c1.underlying == c2.underlying &&
+			(c1.perp == c2.perp || c1.expiry == c2.expiry)
+	}
+}
+
 // if a call, return the identical put and vice versa
 func (c Contract) CallPutMirror() (p Contract) {
 	p = c
