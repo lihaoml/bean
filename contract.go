@@ -72,8 +72,7 @@ func ContractFromName(name string) (*Contract, error) {
 	}
 
 	if st[1] == "PERPETUAL" {
-		perp = true
-		expiry = time.Now()
+		return PerpContract(underlying), nil
 	} else {
 		perp = false
 		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
@@ -138,7 +137,9 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		switch strings.ToUpper(s) {
 		case "PERP":
 			c.perp = true
-			c.expiry = time.Now()
+			n := time.Now()
+			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
+			c.expiry = tod
 			c.isOption = false
 			continue
 		case "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC":
@@ -201,11 +202,13 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 	return &c, nil
 }
 
-func PerpContract(p Pair) Contract {
-	return Contract{
+func PerpContract(p Pair) *Contract {
+	n := time.Now()
+	tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
+	return &Contract{
 		isOption:   false,
 		perp:       true,
-		expiry:     time.Now(),
+		expiry:     tod,
 		underlying: p}
 }
 
@@ -232,8 +235,8 @@ func NewPosition(c *Contract, qty, price float64) Position {
 	return Position{Con: c, Qty: qty, Price: price}
 }
 
-func OptContractFromDets(p Pair, d time.Time, strike float64, cp CallOrPut) Contract {
-	return Contract{
+func OptContract(p Pair, d time.Time, strike float64, cp CallOrPut) *Contract {
+	return &Contract{
 		isOption:   true,
 		underlying: p,
 		expiry:     d,
@@ -242,8 +245,8 @@ func OptContractFromDets(p Pair, d time.Time, strike float64, cp CallOrPut) Cont
 		callPut:    cp}
 }
 
-func FutContractFromDets(p Pair, d time.Time) Contract {
-	return Contract{
+func FutContract(p Pair, d time.Time) *Contract {
+	return &Contract{
 		isOption:   false,
 		underlying: p,
 		expiry:     d,
@@ -251,9 +254,9 @@ func FutContractFromDets(p Pair, d time.Time) Contract {
 		callPut:    NA}
 }
 
-func (c Contract) UnderFuture() Contract {
+func (c *Contract) UnderFuture() *Contract {
 	if c.IsOption() {
-		return Contract{
+		return &Contract{
 			isOption:   false,
 			underlying: c.underlying,
 			expiry:     c.expiry,
@@ -312,6 +315,21 @@ func (c Contract) Underlying() Pair {
 
 func (c Contract) IsOption() bool {
 	return c.isOption
+}
+
+func (c1 *Contract) Equal(c2 *Contract) bool {
+	if c1.isOption {
+		return c2.isOption &&
+			c1.callPut == c2.callPut &&
+			c1.expiry == c2.expiry &&
+			c1.delivery == c2.delivery &&
+			c1.strike == c2.strike &&
+			c1.underlying == c2.underlying
+	} else {
+		return !c2.isOption &&
+			c1.underlying == c2.underlying &&
+			(c1.perp == c2.perp || c1.expiry == c2.expiry)
+	}
 }
 
 // if a call, return the identical put and vice versa
