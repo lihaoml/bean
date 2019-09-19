@@ -113,6 +113,24 @@ func (t Transactions) OHLCVBS() (OHLCVBS, error) {
 	return res, err
 }
 
+func (t Transactions) VWAP() (float64, error) {
+	res := 0.0
+	totalVolume := 0.0
+	totalQuantity := 0.0
+	var err error
+	if len(t) > 0 {
+		for _, txn := range t {
+			totalVolume += math.Abs(txn.Amount) * txn.Price
+			totalQuantity += math.Abs(txn.Amount)
+		}
+		res = totalVolume / totalQuantity
+	} else {
+		res = math.NaN()
+		err = errors.New("VWAP: empty transactions")
+	}
+	return res, err
+}
+
 func (t Transactions) Sort() Transactions {
 	sort.Slice(t, func(i, j int) bool { return t[i].TimeStamp.Before(t[j].TimeStamp) })
 	return t
