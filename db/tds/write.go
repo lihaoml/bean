@@ -4,7 +4,6 @@ import (
 	. "bean"
 	"bean/brew"
 	"bean/logger"
-	"beanex/db/tds"
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"time"
@@ -216,7 +215,7 @@ func addOpenOrderPoints(acctName string, exchangeOrders map[string](map[Pair]([]
 				}
 				trd_fields["Amount"] = amt
 				trd_fields["OrderID"] = o.OrderID
-				pt, err := client.NewPoint(tds.MT_OPEN_ORDER, tags, trd_fields, tt)
+				pt, err := client.NewPoint(MT_OPEN_ORDER, tags, trd_fields, tt)
 				if err != nil {
 					logger.Warn().Msg(err.Error())
 				}

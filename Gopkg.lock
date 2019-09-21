@@ -68,6 +68,12 @@
   version = "v1.3.0"
 
 [[projects]]
+  name = "github.com/kylelemons/godebug"
+  packages = ["diff","pretty"]
+  revision = "9ff306d4fbead574800b66369df5b6144732d58e"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -118,6 +124,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fbae2cb25387a26667780cd18f21f8384e9f62e0ecd48e805425473b4c0a0bcb"
+  inputs-digest = "2675a62236d47c273cc8b250cf597023e4658299efc7135f2b717acdb39ace24"
   solver-name = "gps-cdcl"
   solver-version = 1
