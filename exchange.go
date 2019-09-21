@@ -144,8 +144,6 @@ func (ex BaseExchange) GetKline(pair Pair, interval string, limit int) (OHLCVBST
 	return nil, nil
 }
 
-
-
 func (ex BaseExchange) GetTicker(pair Pair) (Ticker, error) {
 	err := errors.New(ex.Name() + ".GetTicker() not implemented")
 	return Ticker{math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN()}, err

@@ -8,6 +8,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/go-telegram-bot-api/telegram-bot-api"
+  packages = ["."]
+  revision = "9860bdfd3a171ceafb6e1eafa163482a6ef92643"
+  version = "v4.6.4"
+
+[[projects]]
   branch = "master"
   name = "github.com/golang/freetype"
   packages = ["raster","truetype"]
@@ -50,6 +56,18 @@
   revision = "ec9c8a1062f4be6c6ad671f0f5dba12d4a76826d"
 
 [[projects]]
+  name = "github.com/influxdata/influxdb"
+  packages = ["client/v2","models","pkg/escape"]
+  revision = "ff383cdc0420217e3460dabe17db54f8557d95b6"
+  version = "v1.7.8"
+
+[[projects]]
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -74,6 +92,12 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "github.com/technoweenie/multipartstreamer"
+  packages = ["."]
+  revision = "a90a01d73ae432e2611d178c18367fbaa13e0154"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/wcharczuk/go-chart"
   packages = [".","drawing","matrix","roboto","seq","util"]
   revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
@@ -94,6 +118,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "aa4d436743d4142973a848ad4aae88872786677757459ebd96def2520430f7a3"
+  inputs-digest = "fbae2cb25387a26667780cd18f21f8384e9f62e0ecd48e805425473b4c0a0bcb"
   solver-name = "gps-cdcl"
   solver-version = 1
