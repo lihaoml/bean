@@ -13,6 +13,28 @@ const (
 	OB_LIMIT = 150
 )
 
+ func (m MDS) WriteTick(lhs, rhs string, source string, bid, ask float64, t time.Time) error {
+	// Create a new point batch
+	 bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		 Database:  MDS_DBNAME,
+		 Precision: "ms",
+	 })
+	 fields := make(map[string]interface{})
+	 fields["bid"] = bid
+	 fields["ask"] = ask
+	 tags := map[string]string{
+		 "LHS":      lhs,
+		 "RHS":      rhs,
+		 "source": source,
+		}
+	 pt, err := client.NewPoint(MT_TICK, tags, fields, t)
+	 if err != nil {
+		 log.Fatal(err) // TODO: deal with errors
+	 }
+	 bp.AddPoint(pt)
+	 return m.c.Write(bp)
+}
+
 func WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 	c, err := connect()
 	if err != nil {

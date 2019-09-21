@@ -2,7 +2,7 @@ package mds
 
 import (
 	. "bean"
-	"bean/influx"
+	"bean/db/influx"
 	"encoding/json"
 	"time"
 )

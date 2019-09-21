@@ -2,7 +2,7 @@ package mds
 
 import (
 	. "bean"
-	"bean/influx"
+	"bean/db/influx"
 	"bean/utils"
 	"errors"
 	"github.com/influxdata/influxdb/client/v2"

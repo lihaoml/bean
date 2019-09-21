@@ -6,10 +6,20 @@ import (
 	"bean/utils"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/joho/godotenv"
+	"log"
 	"math"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
+)
+
+// webhook address and port
+const (
+	WebHook_Addr = "WEBHOOK_ADDRESS"
+	WebHook_Port = "WEBHOOK_PORT"
 )
 
 /*
@@ -158,4 +168,184 @@ func SendMsgRaw(envKey string, uids []int64, text string) {
 			fmt.Print(err.Error())
 		}
 	}
+}
+
+// moved from notifictaion/telegram/tele.go
+
+func SendMsg(sender string, receiver string, msg string) {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+	bot, err := tgbotapi.NewBotAPI(os.Getenv(sender))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	uids_env := os.Getenv(receiver)
+	// parse it
+	uids_ := strings.Split(uids_env, ",")
+	var uids []int64
+	for _, v := range uids_ {
+		uids = append(uids, util.ParseIntSafe64(v))
+	}
+	for _, u := range uids {
+		msg := tgbotapi.NewMessage(u, msg)
+		msg.ParseMode = tgbotapi.ModeMarkdown
+		bot.Send(msg)
+	}
+}
+
+func SendFigs(sender string, receiver string, figpath string) {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	bot, err := tgbotapi.NewBotAPI(os.Getenv(sender))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	uids_env := os.Getenv(receiver)
+	// parse it
+	uids_ := strings.Split(uids_env, ",")
+	var uids []int64
+	for _, v := range uids_ {
+		uids = append(uids, util.ParseIntSafe64(v))
+	}
+	for _, u := range uids {
+		msg := tgbotapi.NewPhotoUpload(u, figpath)
+		bot.Send(msg)
+	}
+}
+
+func SendFile(sender string, receiver string, filepath string) {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	bot, err := tgbotapi.NewBotAPI(os.Getenv(sender))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	uids_env := os.Getenv(receiver)
+	// parse it
+	uids_ := strings.Split(uids_env, ",")
+	var uids []int64
+	for _, v := range uids_ {
+		uids = append(uids, util.ParseIntSafe64(v))
+	}
+	for _, u := range uids {
+		msg := tgbotapi.NewDocumentShare(u, filepath)
+		bot.Send(msg)
+	}
+}
+
+//this part will need kep.pem and pub.pem to setup a webhook for receiving message.
+// Here we will use self-signed certificate to set webhook. See more: https://core.telegram.org/bots/self-signed
+func TGWebhook(servant string) tgbotapi.UpdatesChannel {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	bot, err := tgbotapi.NewBotAPI(os.Getenv(servant))
+	if err != nil {
+		log.Fatal(err)
+	}
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+	link := os.Getenv(WebHook_Addr) + os.Getenv(WebHook_Port) + `/`
+	_, err = bot.SetWebhook(tgbotapi.NewWebhookWithCert(link+bot.Token, "cert.pem"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	info, err := bot.GetWebhookInfo()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if info.LastErrorDate != 0 {
+		log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
+	}
+	updates := bot.ListenForWebhook("/" + bot.Token)
+	addr := "0.0.0.0" + `:` + os.Getenv(WebHook_Port)
+	go http.ListenAndServeTLS(addr, "cert.pem", "key.pem", nil)
+	//for update := range updates {
+	//	log.Printf("%+v\n", update)
+	//}
+	return updates
+}
+
+const maxMsgPerMin = 20
+
+// SendChannel opens a buffered string channel and listens for messages on that channel which it relays
+// to the telegram bot. Stop the bot with a true on the unbuffered stop channel
+func NotifyChannel(sender string, receiver string) (teleChan chan string, stop chan bool, err error) {
+	var bot *tgbotapi.BotAPI
+	bot, err = tgbotapi.NewBotAPI(os.Getenv(sender))
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	notifyID, err := strconv.ParseInt(os.Getenv(receiver), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		log.Panic(err)
+	}
+
+	teleChan = make(chan string, 100)
+	stop = make(chan bool)
+
+	go func() {
+		var msgCount int64
+		var msgMin int
+		for {
+			select {
+			case msgText := <-teleChan:
+				log.Print(msgText)
+				if msgMin == time.Now().Minute() {
+					msgCount++
+				} else {
+					msgCount = 0
+					msgMin = time.Now().Minute()
+				}
+				// Limit the maximum number of messages in a minute
+				if msgCount < maxMsgPerMin {
+					bot.Send(tgbotapi.NewMessage(notifyID, msgText))
+				} else if msgCount == maxMsgPerMin {
+					bot.Send(tgbotapi.NewMessage(notifyID, "..."))
+				}
+			case <-stop:
+				// empty message channel first
+				log.Print("Teleprinter instructed to stop")
+				for len(teleChan) > 0 {
+					msgText := <-teleChan
+					log.Print(msgText)
+					bot.Send(tgbotapi.NewMessage(notifyID, msgText))
+				}
+				log.Print("Teleprinter stopping")
+				return
+			}
+		}
+	}()
+
+	return
 }

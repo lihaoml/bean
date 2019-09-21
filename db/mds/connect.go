@@ -13,6 +13,16 @@ const MT_ORDERBOOK string = "ORDERBOOK"
 const MT_TRANSACTION string = "TRANSACTION"
 const MT_TICK string = "TICK"
 
+type MDS struct {
+	c client.Client
+}
+
+func ConnectService() (MDS, error) {
+	c, err := connect()
+	defer c.Close()
+	return MDS{c}, err
+}
+
 func connect() (client.Client, error) {
 	err := godotenv.Load()
 	if err != nil {
