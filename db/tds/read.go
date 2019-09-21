@@ -100,7 +100,7 @@ func getTodayPL(client client.Client, acctName string) float64 {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0{
+	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0 {
 		return util.SafeFloat64(resp[0].Series[0].Values[0][1])
 	} else {
 		fmt.Println("failing to query pl")
@@ -117,7 +117,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 		log.Fatal(err)
 	}
 	lastBal := 0.0
-	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0{
+	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0 {
 		lastBal += util.SafeFloat64(resp[0].Series[0].Values[0][1])
 	}
 
@@ -133,7 +133,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0{
+	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0 {
 		lastBal += util.SafeFloat64(resp[0].Series[0].Values[0][1])
 	}
 	// now LHS
@@ -146,7 +146,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0{
+	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0 {
 		lastBal += util.SafeFloat64(resp[0].Series[0].Values[0][1])
 	}
 	return lastBal
@@ -160,11 +160,11 @@ func getInitBalance(client client.Client, c Coin, acctName string) float64 {
 		log.Fatal(err)
 	}
 	if len(resp) == 0 || len(resp[0].Series) == 0 {
-		return 0.0;
+		return 0.0
 	}
 	row := resp[0].Series[0]
 	if len(row.Values) < 1 {
-		return 0.0;
+		return 0.0
 	}
 	return util.SafeFloat64(row.Values[0][1])
 }
@@ -241,21 +241,21 @@ func getDealers(c client.Client, dbName string, filter map[string]string, timeFr
 		dealer, _ := d[2].(string)
 		param, _ := d[3].(string)
 		remark, _ := d[4].(string)
-		dealerInfos[oid] = DealerInfo{ dealer, param, remark}
+		dealerInfos[oid] = DealerInfo{dealer, param, remark}
 	}
 	return dealerInfos
 }
 
-func getBalances(c client.Client, dbName string, acct, exName string, coins []Coin, timeAt string) (res Portfolio){
+func getBalances(c client.Client, dbName string, acct, exName string, coins []Coin, timeAt string) (res Portfolio) {
 	res = NewPortfolio()
 	if len(coins) == 0 {
 		return
 	}
-	cn := "LAST("+string(coins[0])+")"
+	cn := "LAST(" + string(coins[0]) + ")"
 	for i := 1; i < len(coins); i++ {
 		cn += ",LAST(" + string(coins[i]) + ")"
 	}
-	query := "select " + cn + " from " + MT_COIN_BALANCE + " where time <='" + timeAt +"' and exchange = '" + exName + "' and aggregated = 'NO' and account = '" + acct + "'"
+	query := "select " + cn + " from " + MT_COIN_BALANCE + " where time <='" + timeAt + "' and exchange = '" + exName + "' and aggregated = 'NO' and account = '" + acct + "'"
 	fmt.Println(query)
 	resp, err := queryDB(c, dbName, query)
 

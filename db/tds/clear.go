@@ -7,7 +7,7 @@ import (
 )
 
 // GetTransactionHistory : get transaction time series
-func ClearOpenOrders(accountName string, start, end time.Time, filter map[string]string, ) error {
+func ClearOpenOrders(accountName string, start, end time.Time, filter map[string]string) error {
 	c, err := connect()
 	defer c.Close()
 	if err != nil {

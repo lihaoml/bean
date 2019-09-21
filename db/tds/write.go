@@ -43,12 +43,12 @@ func addTRPoints(acctName, dealer, param, remark string, oids []brew.ExNameWithO
 		txn_fields["REMARK"] = remark
 		txn_fields["PARAM"] = param
 		tags := map[string]string{
-			"COUNT": fmt.Sprint(cnt),  // use count to prevent order placed at the same time from being overwritten
-			"account": acctName,
+			"COUNT":    fmt.Sprint(cnt), // use count to prevent order placed at the same time from being overwritten
+			"account":  acctName,
 			"exchange": o.ExName,
-			"dealer": dealer,
-			"LHS": string(o.Pair.Coin),
-			"RHS": string(o.Pair.Base),
+			"dealer":   dealer,
+			"LHS":      string(o.Pair.Coin),
+			"RHS":      string(o.Pair.Base),
 		}
 		pt, err := client.NewPoint(MT_PLACED_ORDER, tags, txn_fields, o.TimeStamp)
 		if err != nil {
@@ -153,11 +153,11 @@ func addTradePoints(acctName string, trades TradeLogS, exName string, dealerInfo
 			tagCount[tt] = 1
 		}
 		tags := map[string]string{
-			"COUNT": fmt.Sprint(cnt),
-			"account": acctName,
+			"COUNT":    fmt.Sprint(cnt),
+			"account":  acctName,
 			"exchange": exName,
-			"LHS": string(t.Pair.Coin),
-			"RHS": string(t.Pair.Base),
+			"LHS":      string(t.Pair.Coin),
+			"RHS":      string(t.Pair.Base),
 		}
 		pt, err := client.NewPoint(MT_TRADE, tags, txn_fields, t.Time)
 		if err != nil {
@@ -167,7 +167,6 @@ func addTradePoints(acctName string, trades TradeLogS, exName string, dealerInfo
 	}
 	return
 }
-
 
 ////////////////////////////////////////////////////////////////////
 // exchangeOrders: exName -> Pair -> order list

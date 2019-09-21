@@ -7,6 +7,7 @@ import (
 )
 
 const TDS_PORT string = "8086"
+
 // TDS DB names and measurements
 const MT_PLACED_ORDER = "PLACED_ORDER"
 const MT_OPEN_ORDER = "OPEN_ORDER"
@@ -19,7 +20,6 @@ const MT_PNL_BALANCE = "PNL_BALANCE"
 
 const TDS_DBNAME = "TDS"
 const BALANCE_DBNAME = "BALANCE"
-
 
 func connect() (client.Client, error) {
 	// TODO: add https and password support for tds
