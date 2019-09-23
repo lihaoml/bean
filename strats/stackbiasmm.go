@@ -107,13 +107,13 @@ func (s *StackBiasMM) Grind(exs map[string]Exchange) []TradeAction {
 	}
 
 	// find 2way price from the stack for both trading size and large size. large size will determine a bias on the trading price
-	largeBid, largeBidAmount := priceInAmount(s.largeAmount, ob.Bids)
-	largeAsk, largeAskAmount := priceInAmount(s.largeAmount, ob.Asks)
+	largeBid, largeBidAmount := ob.BidIn(s.largeAmount)
+	largeAsk, largeAskAmount := ob.AskIn(s.largeAmount)
 	if s.dumpFile != nil {
 		fmt.Fprintf(s.dumpFile, "%7.2f,%7.2f,%.0f,%.0f,", largeBid, largeAsk, largeBidAmount, largeAskAmount)
 	}
-	tradingBid, tradingBidAmount := priceInAmount(s.tradingAmount, ob.Bids)
-	tradingAsk, tradingAskAmount := priceInAmount(s.tradingAmount, ob.Asks)
+	tradingBid, tradingBidAmount := ob.BidIn(s.tradingAmount)
+	tradingAsk, tradingAskAmount := ob.AskIn(s.tradingAmount)
 	if s.dumpFile != nil {
 		fmt.Fprintf(s.dumpFile, "%7.2f,%7.2f,%.0f,%.0f,", tradingBid, tradingAsk, tradingBidAmount, tradingAskAmount)
 	}

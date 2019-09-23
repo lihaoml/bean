@@ -79,7 +79,7 @@ func (sim Simulator) Name() string {
 }
 
 func (sim Simulator) GetOrderBook(pair Pair) OrderBook {
-	ob := sim.obts[pair].GetOrderBook(sim.now)
+	ob := sim.obts[pair].GetOrderBook(sim.now).OrderBook
 	return ob
 }
 

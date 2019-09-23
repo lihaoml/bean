@@ -1,174 +1,273 @@
 package bean
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 	"time"
 )
 
-// OrderBook: an orderbook from exchange
+// OrderBook extends the OrderBookCore functions (insert, cancel, edit, retrieve)
+// with additional functions (spread, equality, depth) independent of the core implementation
 type OrderBook struct {
-	Bids []Order
-	Asks []Order
+	OrderBookCore
 }
 
-// timed order book
+// OrderBookT extends the orderbook with a timestamp of the last update
 type OrderBookT struct {
+	OrderBook
 	Time time.Time
-	OB   OrderBook
 }
 
+// OrderBookTS is a timeseries of orderbooks each with their own timestamp
 type OrderBookTS []OrderBookT
 
+// Order represents a single resting order on an exchange
 type Order struct {
 	Price  float64
 	Amount float64
 }
 
-func (ob *OrderBook) BestBid() Order {
-	if ob != nil && len(ob.Bids) > 0 {
-		return ob.Bids[0]
+// OrderBookCore defines the core functions needed in the OrderBook object
+// These are implemented in the OrderBook1 array implementation (OrderBook2 map implementation pending)
+type OrderBookCore interface {
+	Bids() []Order
+	Asks() []Order
+	InsertBid(Order) bool
+	InsertAsk(Order) bool
+	CancelBid(Order) bool
+	CancelAsk(Order) bool
+	EditBid(Order) bool
+	EditAsk(Order) bool
+	BestBid() Order
+	BestAsk() Order
+}
+
+// OrderBook1 is an implementation of the OrderBookCore interface. Bids and asks are stored as lists of orders
+type OrderBook1 struct {
+	bids []Order
+	asks []Order
+	m    sync.Mutex
+}
+
+// Bids retrieves a list of bid orders from the orderbook
+func (ob *OrderBook1) Bids() []Order {
+	return ob.bids
+}
+
+// Asks retrieves a list of asks from the orderbook
+func (ob *OrderBook1) Asks() []Order {
+	return ob.asks
+}
+
+// EmptyOrderBook returns an empty orderbook
+func EmptyOrderBook() OrderBook {
+	return OrderBook{new(OrderBook1)}
+}
+
+// NewOrderBook returns a new order book populated by bids and offers
+func NewOrderBook(bids, asks []Order) OrderBook {
+	ob := OrderBook1{bids: bids, asks: asks}.Sort()
+	return OrderBook{&ob}
+}
+
+// InsertBid adds a new order into the orderbook. Returns true if the top of book price has changed
+func (ob *OrderBook1) InsertBid(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	ob.bids = append(ob.bids, order)
+	ob.Sort()
+	return order.Price == ob.bids[0].Price
+}
+
+// InsertAsk adds a new order into the orderbook. Returns true if the top of book price has changed
+func (ob *OrderBook1) InsertAsk(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	ob.asks = append(ob.asks, order)
+	ob.Sort()
+	return order.Price == ob.asks[0].Price
+}
+
+// CancelBid deletes an order from the orderbook. Returns true if the top of book price has changed
+func (ob *OrderBook1) CancelBid(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	for i := range ob.bids {
+		if ob.bids[i].Price == order.Price {
+			ob.bids = append(ob.bids[:i], ob.bids[i+1:]...)
+			if i == 0 {
+				tob = true
+			}
+			break
+		}
+	}
+	return
+}
+
+// CancelAsk deletes an order from the orderbook. Returns true if the top of book price has changed
+func (ob *OrderBook1) CancelAsk(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	for i := range ob.asks {
+		if ob.asks[i].Price == order.Price {
+			ob.asks = append(ob.asks[:i], ob.asks[i+1:]...)
+			if i == 0 {
+				tob = true
+			}
+			break
+		}
+	}
+	return
+}
+
+// EditBid replaces an order at a particular level with another. Returns true if the top of book has changed
+func (ob *OrderBook1) EditBid(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	for i := range ob.bids {
+		if ob.bids[i].Price == order.Price {
+			ob.bids[i].Amount = order.Amount
+			break
+		}
+	}
+	return
+}
+
+// EditAsk replaces an order at a particular level with another. Returns true if the top of book has changed
+func (ob *OrderBook1) EditAsk(order Order) (tob bool) {
+	ob.m.Lock()
+	defer ob.m.Unlock()
+	for i := range ob.asks {
+		if ob.asks[i].Price == order.Price {
+			ob.asks[i].Amount = order.Amount
+			break
+		}
+	}
+	return
+}
+
+func (ob *OrderBook1) BestBid() Order {
+	if /*ob != nil && */ len(ob.bids) > 0 {
+		return ob.bids[0]
 	} else {
 		return Order{Price: 0.0, Amount: 99.0} // There's always a zero bid in any amount
 	}
 }
 
-func (ob *OrderBook) BestAsk() Order {
-	if ob != nil && len(ob.Asks) > 0 {
-		return ob.Asks[0]
+func (ob *OrderBook1) BestAsk() Order {
+	if /*ob != nil && */ len(ob.asks) > 0 {
+		return ob.asks[0]
 	} else {
 		return Order{Price: math.NaN(), Amount: 0.0}
 	}
 }
-
-func (ob *OrderBook) Mid() float64 {
-	if ob != nil && len(ob.Bids) > 0 && len(ob.Asks) > 0 {
-		return (ob.Bids[0].Price + ob.Asks[0].Price) / 2.0
-	} else {
-		return math.NaN()
-	}
+func (ob OrderBook1) Sort() OrderBook1 {
+	// asks in ascending order
+	sort.Slice(ob.asks, func(i, j int) bool { return ob.asks[i].Price < ob.asks[j].Price })
+	// bids in descending order
+	sort.Slice(ob.bids, func(i, j int) bool { return ob.bids[i].Price > ob.bids[j].Price })
+	return ob
 }
 
-func (ob *OrderBook) BidAskMid() (bid, ask, mid float64, err error) {
+func (ob *OrderBook) BidAskMid() (bid, ask, mid float64) {
 	if ob == nil {
 		bid, ask, mid = math.NaN(), math.NaN(), math.NaN()
-		err = errors.New("Don't recognise contract")
 		return
 	}
-	if len(ob.Bids) > 0 && len(ob.Asks) > 0 {
-		bid = ob.Bids[0].Price
-		ask = ob.Asks[0].Price
-		mid = (bid + ask) / 2.0
-	} else if len(ob.Asks) > 0 {
-		bid = math.NaN()
-		ask = ob.Asks[0].Price
-		mid = ask
-	} else if len(ob.Bids) > 0 {
-		bid = ob.Bids[0].Price
-		ask = math.NaN()
+	bid = ob.BestBid().Price
+	ask = ob.BestAsk().Price
+	if math.IsNaN(ask) {
 		mid = bid
+	} else if math.IsNaN(bid) {
+		mid = ask
 	} else {
-		bid, ask, mid = math.NaN(), math.NaN(), math.NaN()
+		mid = (bid + ask) / 2.0
 	}
 	return
 }
 
-func (ob OrderBook) Spread() float64 {
-	if ob.Valid() {
-		return ob.Asks[0].Price - ob.Bids[0].Price
-	} else {
-		return math.NaN()
-	}
+func (ob *OrderBook) Spread() float64 {
+	return ob.BestAsk().Price - ob.BestBid().Price
 }
 
-func (ob OrderBook) Valid() bool {
-	return len(ob.Bids) > 0 && len(ob.Asks) > 0
+func (ob *OrderBook) Valid() bool {
+	return !math.IsNaN(ob.BestBid().Price) && !math.IsNaN(ob.BestAsk().Price)
 }
 
-func (ob OrderBook) Copy() OrderBook {
-	ob2 := OrderBook{
-		Bids: make([]Order, len(ob.Bids)),
-		Asks: make([]Order, len(ob.Asks)),
+func (ob *OrderBook) Copy() OrderBook {
+	bids := ob.Bids()
+	asks := ob.Asks()
+	ob2 := OrderBook1{
+		bids: make([]Order, len(bids)),
+		asks: make([]Order, len(asks)),
 	}
-	for i := range ob.Bids {
-		ob2.Bids[i] = ob.Bids[i]
+	for i := range bids {
+		ob2.bids[i] = bids[i]
 	}
-	for i := range ob.Asks {
-		ob2.Asks[i] = ob.Asks[i]
+	for i := range asks {
+		ob2.asks[i] = asks[i]
 	}
-	return ob2
+	return OrderBook{&ob2}
+}
+func (ob *OrderBook) Mid() float64 {
+	return (ob.BestBid().Price - ob.BestAsk().Price) / 2.0
 }
 
-func (obt OrderBookT) Copy() OrderBookT {
-	return OrderBookT{
-		Time: obt.Time,
-		OB:   obt.OB.Copy(),
+func (obt *OrderBookT) Copy() *OrderBookT {
+	return &OrderBookT{
+		OrderBook: obt.OrderBook.Copy(),
+		Time:      obt.Time,
 	}
 }
 
 // Compare two orderbooks. Equal if the best bid and best offer hasn't changed
 func (ob1 *OrderBook) Equal(ob2 *OrderBook) bool {
-	if len(ob1.Bids) > 0 && len(ob2.Bids) > 0 && ob1.Bids[0].Price == ob2.Bids[0].Price &&
-		len(ob1.Asks) > 0 && len(ob2.Asks) > 0 && ob1.Asks[0].Price == ob2.Asks[0].Price {
-		return true
-	} else {
-		return false
-	}
+	return ob1.BestBid() == ob2.BestBid() && ob1.BestAsk() == ob2.BestAsk()
 }
 
 // filter out orders with amount less than the Coin minimum trading amount
 // assuming ob is sorted
-func Denoise(pair Pair, ob OrderBook) OrderBook {
+func (ob *OrderBook) Denoise(pair Pair) *OrderBook {
 	var bids []Order
 	var asks []Order
 	minimumAmount := pair.MinimumTradingAmount()
-	for i, b := range ob.Bids {
-		if b.Amount < minimumAmount {
-			if i+1 < len(ob.Bids) {
-				ob.Bids[i+1].Amount += b.Amount
-			}
+	carryAmount := 0.0
+	for _, b := range ob.Bids() {
+		if b.Amount+carryAmount < minimumAmount {
+			carryAmount += b.Amount
 		} else {
+			b.Amount += carryAmount
 			bids = append(bids, b)
 		}
 	}
-	for i, a := range ob.Asks {
-		if a.Amount < minimumAmount {
-			if i+1 < len(ob.Asks) {
-				ob.Asks[i+1].Amount += a.Amount
-			}
+
+	for _, b := range ob.Asks() {
+		if b.Amount+carryAmount < minimumAmount {
+			carryAmount += b.Amount
 		} else {
-			asks = append(asks, a)
+			b.Amount += carryAmount
+			asks = append(asks, b)
 		}
 	}
-	return OrderBook{Bids: bids, Asks: asks}
-}
-
-func (ob OrderBook) Sort() OrderBook {
-	// asks in ascending order
-	sort.Slice(ob.Asks, func(i, j int) bool { return ob.Asks[i].Price < ob.Asks[j].Price })
-	// bids in descending order
-	sort.Slice(ob.Bids, func(i, j int) bool { return ob.Bids[i].Price > ob.Bids[j].Price })
-	return ob
+	ob2 := NewOrderBook(bids, asks)
+	return &ob2
 }
 
 // OrderBook display
 func (ob OrderBook) ShowBrief() {
 	if ob.Valid() {
-		fmt.Println("depth:", len(ob.Asks), "bestBid:", ob.Bids[0].Price, "bestAsk:", ob.Asks[0].Price)
+		fmt.Println("depth:", len(ob.Asks()), "bestBid:", ob.BestBid().Price, "bestAsk:", ob.BestAsk().Price)
 	} else {
 		fmt.Println("empty orderbook")
 	}
 }
 
-// OrderBookT display
+// ShowBrief prints a summary of the orderbook.
 func (ob OrderBookT) ShowBrief() {
-	if ob.OB.Valid() {
-		fmt.Println(ob.Time.Local().Format("Jan _2 15:04:05"), "depth:", len(ob.OB.Asks), "bestBid:", ob.OB.Bids[0].Price, "bestAsk:", ob.OB.Asks[0].Price)
-	} else {
-		fmt.Println(ob.Time.Local(), len(ob.OB.Asks))
-	}
+	ob.OrderBook.ShowBrief()
+	fmt.Println("Timestamp: " + ob.Time.Local().Format(time.ANSIC))
 }
 
 // OrderBookTS display
@@ -178,17 +277,18 @@ func (obts OrderBookTS) ShowBrief() {
 	}
 }
 
+// Sort sorts a timesliced orderbook
 func (obts OrderBookTS) Sort() OrderBookTS {
 	sort.Slice(obts, func(i, j int) bool { return obts[i].Time.Before(obts[j].Time) })
 	return obts
 }
 
 // return the orderbook of time t (the closest in sample), assuming the obts is sorted
-func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
-	ob := obts[0].OB
-	for _, obt := range obts {
-		if t.After(obt.Time) {
-			ob = obt.OB
+func (obts OrderBookTS) GetOrderBook(t time.Time) *OrderBookT {
+	ob := &obts[0]
+	for i := range obts {
+		if t.After(obts[i].Time) {
+			ob = &obts[i]
 		} else {
 			break
 		}
@@ -196,7 +296,7 @@ func (obts OrderBookTS) GetOrderBook(t time.Time) OrderBook {
 	return ob
 }
 
-// Returns the worst bid and worst ask that need to be hit in the orderbook in order to execute a requested size
+// PriceIn returns the worst bid and worst ask that need to be hit in the orderbook in order to execute a requested size
 // Also returns the total size available at that price (may be more than requested size)
 // If orderstack does not have sufficient liquidity, then it returns the size available
 func (ob OrderBook) PriceIn(size float64) (bid, ask, bidSize, askSize float64) {
@@ -205,13 +305,17 @@ func (ob OrderBook) PriceIn(size float64) (bid, ask, bidSize, askSize float64) {
 	return
 }
 
+// BidIn returns the worst bid that needs to be hit in order to fill a target size. If insufficient liquidity in the stack
+// then available is the maximum in the stack
 func (ob OrderBook) BidIn(size float64) (price, available float64) {
-	price, available = priceInAmount(size, ob.Bids)
+	price, available = priceInAmount(size, ob.Bids())
 	return
 }
 
+// AskIn returns the worst bid that needs to be hit in order to fill a target size. If insufficient liquidity in the stack
+// then available is the maximum in the stack
 func (ob OrderBook) AskIn(size float64) (price, available float64) {
-	price, available = priceInAmount(size, ob.Asks)
+	price, available = priceInAmount(size, ob.Asks())
 	return
 }
 
@@ -234,22 +338,22 @@ func priceInAmount(requiredAmount float64, stack []Order) (price, available floa
 	return
 }
 
-// sell / buy ratio, alpha in (0, 1]
+// SBRatio ... sell / buy ratio, alpha in (0, 1]
 func (ob OrderBook) SBRatio(alpha float64) float64 {
 	var sell float64
 	var buy float64
 	if ob.Valid() {
 		// FIXME: generalize spread, work for IOTX at the moment
-		sprd := (ob.Asks[0].Price - ob.Bids[0].Price) * 1e8
+		sprd := (ob.BestAsk().Price - ob.BestBid().Price) * 1e8
 
-		for i, v := range ob.Asks {
+		for i, v := range ob.Asks() {
 			if i == 10 {
 				break
 			} else {
 				sell += math.Pow(alpha, float64(i)) * v.Price * v.Amount
 			}
 		}
-		for i, v := range ob.Bids {
+		for i, v := range ob.Bids() {
 			if i == 10 {
 				break
 			} else {
@@ -267,7 +371,7 @@ func (ob OrderBook) Match(placedOrder Order) Order {
 	fillCounterAmount := 0.0
 	fillAmount := 0.0
 	if placedOrder.Amount > 0.0 {
-		for _, o := range ob.Asks {
+		for _, o := range ob.Asks() {
 			if o.Price <= placedOrder.Price {
 				fillCounterAmount += math.Min(placedOrder.Amount-fillAmount, o.Amount) * o.Price
 				fillAmount += math.Min(placedOrder.Amount-fillAmount, o.Amount)
@@ -279,7 +383,7 @@ func (ob OrderBook) Match(placedOrder Order) Order {
 			return Order{Price: 0.0, Amount: 0.0}
 		}
 	} else {
-		for _, o := range ob.Bids {
+		for _, o := range ob.Bids() {
 			if o.Price >= placedOrder.Price {
 				fillCounterAmount += math.Min(-placedOrder.Amount-fillAmount, o.Amount) * o.Price
 				fillAmount += math.Min(-placedOrder.Amount-fillAmount, o.Amount)
@@ -314,18 +418,4 @@ func AmountToSide(amt float64) Side {
 	} else {
 		return BUY
 	}
-}
-
-// Status of the placed order,
-type OrderStatus struct {
-	OrderID         string
-	PlacedTime      time.Time
-	Side            Side
-	FilledAmount    float64
-	LeftAmount      float64
-	PlacedPrice     float64 // initial price
-	Price           float64 // filled price, if not applicable then placed price
-	State           OrderState
-	Commission      float64
-	CommissionAsset Coin
 }
