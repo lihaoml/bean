@@ -43,8 +43,8 @@ func (s SimpleMM) Grind(exs map[string]Exchange) []TradeAction {
 	var actions []TradeAction
 	if ob.Valid() {
 		// TODO: need to denoise
-		bestBid := ob.Bids[0].Price
-		bestAsk := ob.Asks[0].Price
+		bestBid := ob.BestBid().Price
+		bestAsk := ob.BestAsk().Price
 		mid := (bestAsk + bestBid) / 2.0
 		buyPrice := mid * (1 - s.spread)
 		sellPrice := mid * (1 + s.spread)

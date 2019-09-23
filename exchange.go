@@ -72,6 +72,20 @@ type Exchange interface {
 	*/
 }
 
+// Status of the placed order,
+type OrderStatus struct {
+	OrderID         string
+	PlacedTime      time.Time
+	Side            Side
+	FilledAmount    float64
+	LeftAmount      float64
+	PlacedPrice     float64 // initial price
+	Price           float64 // filled price, if not applicable then placed price
+	State           OrderState
+	Commission      float64
+	CommissionAsset Coin
+}
+
 // exchange is a struct for holding common member variables and base functions
 type BaseExchange struct {
 	name string
