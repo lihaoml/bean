@@ -62,15 +62,15 @@ func GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookT
 			tmp[t] = OrderBook{}
 		}
 		if side == "BID" {
-			tmp[t] = OrderBook{append(tmp[t].Bids, Order{prc, amt}), tmp[t].Asks}
+			tmp[t] = NewOrderBook(append(tmp[t].Bids(), Order{prc, amt}), tmp[t].Asks())
 		} else if side == "ASK" {
-			tmp[t] = OrderBook{tmp[t].Bids, append(tmp[t].Asks, Order{prc, amt})}
+			tmp[t] = NewOrderBook(tmp[t].Bids(), append(tmp[t].Asks(), Order{prc, amt}))
 		} else {
 			panic("unknown side: " + side)
 		}
 	}
 	for t, ob := range tmp {
-		obts = append(obts, OrderBookT{t, ob.Sort()})
+		obts = append(obts, OrderBookT{ob.Copy(), t})
 	}
 	return obts.Sort(), nil
 }
