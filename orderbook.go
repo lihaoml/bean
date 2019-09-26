@@ -32,16 +32,16 @@ type Order struct {
 // OrderBookCore defines the core functions needed in the OrderBook object
 // These are implemented in the OrderBook1 array implementation (OrderBook2 map implementation pending)
 type OrderBookCore interface {
-	Bids() []Order
-	Asks() []Order
-	InsertBid(Order) bool
-	InsertAsk(Order) bool
-	CancelBid(Order) bool
-	CancelAsk(Order) bool
-	EditBid(Order) bool
-	EditAsk(Order) bool
-	BestBid() Order
-	BestAsk() Order
+	Bids() []Order        // Bids returns a list of live orders
+	Asks() []Order        // Asks returns a list of live orders
+	InsertBid(Order) bool // InsertBid inserts a new order into the orderbook
+	InsertAsk(Order) bool // InsertAsk insterts a new order into the orderbook
+	CancelBid(Order) bool // CancelBid removes an order from the orderbook
+	CancelAsk(Order) bool // CancelAsk removes an order from the orderbook
+	EditBid(Order) bool   // Edit replaces an order with another one at the same level
+	EditAsk(Order) bool   // Edit replaces an order with another one at the same level
+	BestBid() Order       // Bestbid returns the top of the orderbook
+	BestAsk() Order       // Bestask returns the top of the orderbook
 }
 
 // OrderBook1 is an implementation of the OrderBookCore interface. Bids and asks are stored as lists of orders
@@ -149,15 +149,15 @@ func (ob *OrderBook1) EditAsk(order Order) (tob bool) {
 }
 
 func (ob *OrderBook1) BestBid() Order {
-	if /*ob != nil && */ len(ob.bids) > 0 {
+	if ob != nil && len(ob.bids) > 0 {
 		return ob.bids[0]
 	} else {
-		return Order{Price: 0.0, Amount: 99.0} // There's always a zero bid in any amount
+		return Order{Price: math.NaN(), Amount: 0.0}
 	}
 }
 
 func (ob *OrderBook1) BestAsk() Order {
-	if /*ob != nil && */ len(ob.asks) > 0 {
+	if ob != nil && len(ob.asks) > 0 {
 		return ob.asks[0]
 	} else {
 		return Order{Price: math.NaN(), Amount: 0.0}
@@ -192,6 +192,10 @@ func (ob *OrderBook) Spread() float64 {
 	return ob.BestAsk().Price - ob.BestBid().Price
 }
 
+func (ob *OrderBook) Empty() bool {
+	return ob.BestBid().Amount == 0.0 && ob.BestAsk().Amount == 0.0
+}
+
 func (ob *OrderBook) Valid() bool {
 	return !math.IsNaN(ob.BestBid().Price) && !math.IsNaN(ob.BestAsk().Price)
 }
@@ -224,7 +228,8 @@ func (obt *OrderBookT) Copy() *OrderBookT {
 
 // Compare two orderbooks. Equal if the best bid and best offer hasn't changed
 func (ob1 *OrderBook) Equal(ob2 *OrderBook) bool {
-	return ob1.BestBid() == ob2.BestBid() && ob1.BestAsk() == ob2.BestAsk()
+	return (!ob1.Valid() && !ob2.Valid()) ||
+		(ob1.BestBid() == ob2.BestBid() && ob1.BestAsk() == ob2.BestAsk())
 }
 
 // filter out orders with amount less than the Coin minimum trading amount
