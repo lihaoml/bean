@@ -212,7 +212,7 @@ func (ob *OrderBook) Copy() OrderBook {
 	return OrderBook{&ob2}
 }
 func (ob *OrderBook) Mid() float64 {
-	return (ob.BestBid().Price - ob.BestAsk().Price) / 2.0
+	return (ob.BestBid().Price + ob.BestAsk().Price) / 2.0
 }
 
 func (obt *OrderBookT) Copy() *OrderBookT {
