@@ -49,7 +49,7 @@ func GetContractOrderBookTS(contractName string, start, end time.Time, depth int
 	for k, v := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
 		ob := NewOrderBook(bidMap[k], v)
-		obts = append(obts, OrderBookT{ ob, tm})
+		obts = append(obts, OrderBookT{ob, tm})
 	}
 
 	for k, v := range bidMap {
