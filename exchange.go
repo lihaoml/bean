@@ -34,6 +34,8 @@ const (
 	NameBilaxy   = "BILAXY"
 	NameLBank    = "LBANK"
 	NameBitfinex = "BITFINEX"
+
+	BEANEX = "BEANEX"
 )
 
 // Exchange is the interface for all exchanges
