@@ -40,7 +40,6 @@ const (
 	ADA  Coin = "ADA"
 	DASH Coin = "DASH"
 
-	BGG Coin = "BGG"
 	FT  Coin = "FT"
 	HT  Coin = "HT"
 	XMX Coin = "XMX"
@@ -146,6 +145,8 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amtAbs) * sgn
 	case DASH:
 		return math.Floor(amtAbs*1e5) / 1e5 * sgn
+	case BNB:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()

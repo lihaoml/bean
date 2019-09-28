@@ -94,7 +94,6 @@ func (pair Pair) MinimumTradingAmount() float64 {
 		//logger.Warn().Interface("pair", pair).Msg("minimum trading amount not implemented use 1.0 by default")
 		return 1.0
 	}
-	return math.NaN()
 }
 
 // Format price for reporting purpose (not for trading)
@@ -173,6 +172,8 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{ETC, ETH}:
 		prec = 6
 	case Pair{ONT, BTC}:
+		prec = 7
+	case Pair{BNB, BTC}:
 		prec = 7
 	case Pair{IOTX, ETH}:
 		prec = 7
