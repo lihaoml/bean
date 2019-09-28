@@ -48,15 +48,15 @@ func GetContractOrderBookTS(contractName string, start, end time.Time, depth int
 
 	for k, v := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
-		ob := OrderBook{Bids: bidMap[k], Asks: v}.Sort()
-		obts = append(obts, OrderBookT{Time: tm, OB: ob})
+		ob := NewOrderBook(bidMap[k], v)
+		obts = append(obts, OrderBookT{ ob, tm})
 	}
 
 	for k, v := range bidMap {
 		tm, _ := time.Parse(time.RFC3339, k)
 		if len(askMap[k]) == 0 {
-			ob := OrderBook{Bids: v, Asks: askMap[k]}.Sort()
-			obts = append(obts, OrderBookT{Time: tm, OB: ob})
+			ob := NewOrderBook(v, askMap[k])
+			obts = append(obts, OrderBookT{ob, tm})
 		}
 	}
 	return obts.Sort(), nil

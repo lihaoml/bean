@@ -48,7 +48,7 @@ func WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 		Precision: "ms",
 	})
 
-	for index, bid := range ob.OB.Bids {
+	for index, bid := range ob.OrderBook.Bids() {
 		if index >= OB_LIMIT {
 			break
 		}
@@ -68,7 +68,7 @@ func WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 		}
 		bp.AddPoint(pt)
 	}
-	for index, ask := range ob.OB.Asks {
+	for index, ask := range ob.OrderBook.Asks() {
 		if index >= OB_LIMIT {
 			break
 		}
