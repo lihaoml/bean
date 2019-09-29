@@ -39,8 +39,12 @@ const (
 	BEANEX = "BEANEX"
 )
 
+// TODO: find a better place for these two functions
 func BeanexAccountPath() string {
 	return os.Getenv(BEANEX) + "/acct/"
+}
+func BeanexConfigPath() string {
+	return os.Getenv(BEANEX) + "/config/"
 }
 
 // Exchange is the interface for all exchanges
