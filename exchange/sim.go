@@ -2,7 +2,7 @@ package exchange
 
 import (
 	. "bean"
-	"beanex/db/mds"
+	"bean/db/mds"
 	"fmt"
 	"math"
 	"strconv"

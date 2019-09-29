@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 )
 
@@ -37,6 +38,10 @@ const (
 
 	BEANEX = "BEANEX"
 )
+
+func BeanexAccountPath() string {
+	return os.Getenv(BEANEX) + "/acct/"
+}
 
 // Exchange is the interface for all exchanges
 // Any exchange struct should implement all these interfaces
