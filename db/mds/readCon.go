@@ -5,10 +5,11 @@ import (
 	"bean/db/influx"
 	"bean/utils"
 	"errors"
-	"github.com/influxdata/influxdb/client/v2"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 // Read2 implements functions for reading the market contract information using the ALTERNATIVE db schema
@@ -49,14 +50,14 @@ func GetContractOrderBookTS(contractName string, start, end time.Time, depth int
 	for k, v := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
 		ob := NewOrderBook(bidMap[k], v)
-		obts = append(obts, OrderBookT{ob, tm})
+		obts = append(obts, OrderBookT{OrderBook: ob, Time: tm})
 	}
 
 	for k, v := range bidMap {
 		tm, _ := time.Parse(time.RFC3339, k)
 		if len(askMap[k]) == 0 {
 			ob := NewOrderBook(v, askMap[k])
-			obts = append(obts, OrderBookT{ob, tm})
+			obts = append(obts, OrderBookT{OrderBook: ob, Time: tm})
 		}
 	}
 	return obts.Sort(), nil
