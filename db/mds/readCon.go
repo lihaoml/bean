@@ -4,6 +4,7 @@ import (
 	. "bean"
 	"bean/db/influx"
 	"bean/utils"
+	"encoding/json"
 	"errors"
 	"github.com/influxdata/influxdb/client/v2"
 	"log"
@@ -16,13 +17,7 @@ import (
 
 // GetContractOrderBookTS gets the history of a specific contract from period start to end
 // sample dictates the sample rate of the data. set to zero for the full dataset
-func GetContractOrderBookTS(contractName string, start, end time.Time, depth int, sample time.Duration) (OrderBookTS, error) {
-	c, err := connect()
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-
+func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth int, sample time.Duration) (OrderBookTS, error) {
 	var obts OrderBookTS
 	timeFrom := start.Format(time.RFC3339)
 	timeTo := end.Format(time.RFC3339)
@@ -43,34 +38,76 @@ func GetContractOrderBookTS(contractName string, start, end time.Time, depth int
 		return nil, errors.New("Unknown sample frequency")
 	}
 
-	askMap := getOrders2(c, contractName, "ASK", timeFrom, timeTo, depth, sampleStr)
-	bidMap := getOrders2(c, contractName, "BID", timeFrom, timeTo, depth, sampleStr)
+	askMap := mds.getOrders2(mds.c, con.Name(), "ASK", timeFrom, timeTo, depth, sampleStr)
+	bidMap := mds.getOrders2(mds.c, con.Name(), "BID", timeFrom, timeTo, depth, sampleStr)
 
-	for k, v := range askMap {
+	for k, askOrders := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
-		ob := NewOrderBook(bidMap[k], v)
+		bidOrders := bidMap[k]
+		ob := NewOrderBook(bidOrders, askOrders)
 		obts = append(obts, OrderBookT{ob, tm})
 	}
 
-	for k, v := range bidMap {
+	for k, bidOrders := range bidMap {
 		tm, _ := time.Parse(time.RFC3339, k)
-		if len(askMap[k]) == 0 {
-			ob := NewOrderBook(v, askMap[k])
+		if _, askexists := askMap[k]; !askexists {
+			ob := NewOrderBook(bidOrders, nil)
 			obts = append(obts, OrderBookT{ob, tm})
 		}
 	}
 	return obts.Sort(), nil
 }
 
+// GetMarket retrieves an entire market of contracts as per a specific time
+func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map[string]OrderBookT, error) {
+	cmd := "SELECT instrument,side,index,Amount,last(Price) as Price from " + MT_ORDERBOOK + // TODO: change MT_ORDERBOOK to MT_CONTRACT_ORDERBOOK when mds migration is done
+		" WHERE time <='" + snap.Format(time.RFC3339) + "'" +
+		" and time >='" + snap.Add(-12*time.Hour).Format(time.RFC3339) + "'" +
+		" and exchange = '" + exName + "'" +
+		" and index='0' " +
+		" GROUP BY instrument,side,index"
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.c, cmd)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp) <= 0 || len(resp[0].Series) <= 0 {
+		return nil, err
+	}
+
+	mkt := make(map[string]OrderBookT)
+	// group result by time
+	for _, row := range resp[0].Series {
+		for _, d := range row.Values {
+			// fmt.Println(d)
+			t, _ := time.Parse(time.RFC3339, d[0].(string))
+			instr := d[1].(string)
+			side := d[2].(string)
+			amt, _ := d[4].(json.Number).Float64()
+			prc, _ := d[5].(json.Number).Float64()
+			if _, exist := mkt[instr]; !exist {
+				mkt[instr] = OrderBookT{EmptyOrderBook(), t}
+			}
+			if side == "BID" {
+				mkt[instr].InsertBid(Order{Price: prc, Amount: amt})
+				// mkt[instr].Time = t
+			}
+			if side == "ASK" {
+				mkt[instr].InsertAsk(Order{Price: prc, Amount: amt})
+			}
+		}
+	}
+	return mkt, nil
+}
+
 // internal functions
-func getOrders2(c client.Client, instrument string, side string, timeFrom string, timeTo string, indexLimit int, sample string) map[string][]Order {
+func (mds MDS) getOrders2(c client.Client, instrument string, side string, timeFrom string, timeTo string, indexLimit int, sample string) map[string][]Order {
 	if indexLimit < 1 {
 		log.Fatal("index limit should be positive integer")
 	}
 
 	orders := make(map[string][]Order)
 	for i := 0; i < indexLimit; i++ {
-		order := getOrder2(c, instrument, side, timeFrom, timeTo, strconv.Itoa(i), sample)
+		order := mds.getOrder2(c, instrument, side, timeFrom, timeTo, strconv.Itoa(i), sample)
 		for key, val := range order {
 			orders[key] = append(orders[key], val)
 		}
@@ -79,7 +116,7 @@ func getOrders2(c client.Client, instrument string, side string, timeFrom string
 	return orders
 }
 
-func getOrder2(c client.Client, instrument string, side string, timeFrom string, timeTo string, index string, sample string) map[string]Order {
+func (mds MDS) getOrder2(c client.Client, instrument string, side string, timeFrom string, timeTo string, index string, sample string) map[string]Order {
 	var query string
 	if sample == "" {
 		query = "select Amount,Price,index from \"" + instrument +
@@ -96,6 +133,7 @@ func getOrder2(c client.Client, instrument string, side string, timeFrom string,
 	}
 
 	resp, err := influx.QueryDB(MDS_DBNAME, c, query)
+
 	if err != nil {
 		log.Fatal(err)
 	}

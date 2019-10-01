@@ -2,7 +2,9 @@ package tds
 
 import (
 	"bean/db/influx"
+	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
+	"github.com/joho/godotenv"
 	"os"
 )
 
@@ -22,8 +24,10 @@ const TDS_DBNAME = "TDS"
 const BALANCE_DBNAME = "BALANCE"
 
 func connect() (client.Client, error) {
+	godotenv.Load()
 	// TODO: add https and password support for tds
 	dbhost := "http://" + os.Getenv("TDS_DB_ADDRESS")
+	fmt.Println("TDS connecting to ", dbhost)
 	c, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr: dbhost + ":" + TDS_PORT,
 		// 		Username: username,
