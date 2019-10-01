@@ -17,7 +17,8 @@ type OrderBook struct {
 // OrderBookT extends the orderbook with a timestamp of the last update
 type OrderBookT struct {
 	OrderBook
-	Time time.Time
+	Time     time.Time
+	ChangeId int64
 }
 
 // OrderBookTS is a timeseries of orderbooks each with their own timestamp

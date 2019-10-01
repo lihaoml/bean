@@ -70,7 +70,7 @@ func GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookT
 		}
 	}
 	for t, ob := range tmp {
-		obts = append(obts, OrderBookT{ob.Copy(), t})
+		obts = append(obts, OrderBookT{OrderBook: ob.Copy(), Time: t})
 	}
 	return obts.Sort(), nil
 }

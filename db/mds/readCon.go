@@ -6,10 +6,11 @@ import (
 	"bean/utils"
 	"encoding/json"
 	"errors"
-	"github.com/influxdata/influxdb/client/v2"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 // Read2 implements functions for reading the market contract information using the ALTERNATIVE db schema
@@ -45,14 +46,14 @@ func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth
 		tm, _ := time.Parse(time.RFC3339, k)
 		bidOrders := bidMap[k]
 		ob := NewOrderBook(bidOrders, askOrders)
-		obts = append(obts, OrderBookT{ob, tm})
+		obts = append(obts, OrderBookT{OrderBook: ob, Time: tm})
 	}
 
 	for k, bidOrders := range bidMap {
 		tm, _ := time.Parse(time.RFC3339, k)
 		if _, askexists := askMap[k]; !askexists {
 			ob := NewOrderBook(bidOrders, nil)
-			obts = append(obts, OrderBookT{ob, tm})
+			obts = append(obts, OrderBookT{OrderBook: ob, Time: tm})
 		}
 	}
 	return obts.Sort(), nil
@@ -85,7 +86,7 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 			amt, _ := d[4].(json.Number).Float64()
 			prc, _ := d[5].(json.Number).Float64()
 			if _, exist := mkt[instr]; !exist {
-				mkt[instr] = OrderBookT{EmptyOrderBook(), t}
+				mkt[instr] = OrderBookT{EmptyOrderBook(), t, 0}  // TODO: review changeID
 			}
 			if side == "BID" {
 				mkt[instr].InsertBid(Order{Price: prc, Amount: amt})
@@ -100,14 +101,14 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 }
 
 // internal functions
-func (mds MDS) getOrders2(c client.Client, instrument string, side string, timeFrom string, timeTo string, indexLimit int, sample string) map[string][]Order {
+func getOrders2(c client.Client, instrument string, side string, timeFrom string, timeTo string, indexLimit int, sample string) map[string][]Order {
 	if indexLimit < 1 {
 		log.Fatal("index limit should be positive integer")
 	}
 
 	orders := make(map[string][]Order)
 	for i := 0; i < indexLimit; i++ {
-		order := mds.getOrder2(c, instrument, side, timeFrom, timeTo, strconv.Itoa(i), sample)
+		order := getOrder2(c, instrument, side, timeFrom, timeTo, strconv.Itoa(i), sample)
 		for key, val := range order {
 			orders[key] = append(orders[key], val)
 		}
@@ -116,7 +117,7 @@ func (mds MDS) getOrders2(c client.Client, instrument string, side string, timeF
 	return orders
 }
 
-func (mds MDS) getOrder2(c client.Client, instrument string, side string, timeFrom string, timeTo string, index string, sample string) map[string]Order {
+func getOrder2(c client.Client, instrument string, side string, timeFrom string, timeTo string, index string, sample string) map[string]Order {
 	var query string
 	if sample == "" {
 		query = "select Amount,Price,index from \"" + instrument +
