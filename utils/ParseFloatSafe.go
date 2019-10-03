@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
+	"math"
 	"reflect"
 	"strconv"
 )
@@ -31,7 +32,8 @@ func SafeFloat64(d interface{}) float64 {
 	case decimal.Decimal:
 		t1, _ = d.(decimal.Decimal).Float64()
 	default:
-		panic("do not know how to convert interfact to float64" + fmt.Sprint(reflect.TypeOf(d)))
+		logger.Warn().Msg("SafeFloat64 conversion: do not know how to convert interfact to float64" + fmt.Sprint(reflect.TypeOf(d)))
+		t1 = math.NaN() //
 	}
 	return t1
 }

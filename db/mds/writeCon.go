@@ -2,6 +2,7 @@ package mds
 
 import (
 	. "bean"
+	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"math"
 	"strconv"
@@ -13,6 +14,7 @@ func WriteContractOrderBook(exName string, instr string, obt OrderBookT) {
 	if err != nil {
 		panic(err.Error())
 	}
+	defer c.Close()
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
 		Precision: "ms",
@@ -27,13 +29,16 @@ func WriteContractTransactions(exName string, pts []ConTxnPoint) {
 	if err != nil {
 		panic(err.Error())
 	}
+	defer c.Close()
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
 		Precision: "ms",
 	})
 	for _, pt := range pts {
+		fmt.Println(pt)
 		writeTxnBatchPoints(bp, exName, pt.Instrument, pt.Side, pt.Price, pt.Amount, pt.IndexPrice, pt.Vol, pt.TimeStamp)
 	}
+	fmt.Println("start writing")
 	c.Write(bp)
 }
 

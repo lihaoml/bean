@@ -39,8 +39,8 @@ func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth
 		return nil, errors.New("Unknown sample frequency")
 	}
 
-	askMap := mds.getOrders2(mds.c, con.Name(), "ASK", timeFrom, timeTo, depth, sampleStr)
-	bidMap := mds.getOrders2(mds.c, con.Name(), "BID", timeFrom, timeTo, depth, sampleStr)
+	askMap := getOrders2(mds.c, con.Name(), "ASK", timeFrom, timeTo, depth, sampleStr)
+	bidMap := getOrders2(mds.c, con.Name(), "BID", timeFrom, timeTo, depth, sampleStr)
 
 	for k, askOrders := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
@@ -86,7 +86,7 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 			amt, _ := d[4].(json.Number).Float64()
 			prc, _ := d[5].(json.Number).Float64()
 			if _, exist := mkt[instr]; !exist {
-				mkt[instr] = OrderBookT{EmptyOrderBook(), t, 0}  // TODO: review changeID
+				mkt[instr] = OrderBookT{EmptyOrderBook(), t, 0} // TODO: review changeID
 			}
 			if side == "BID" {
 				mkt[instr].InsertBid(Order{Price: prc, Amount: amt})

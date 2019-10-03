@@ -31,6 +31,7 @@ func ConnectService() (MDS, error) {
 	return MDS{c}, err
 }
 
+// remember to defer c.Close() for every call of connect(), otherwise influx will open up too many files and stops working
 func connect() (client.Client, error) {
 	err := godotenv.Load()
 	if err != nil || os.Getenv("MDS_DB_ADDRESS") == "" {
