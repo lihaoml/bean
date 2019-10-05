@@ -52,8 +52,17 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, side Side, 
 		}
 		bp.AddPoint(pt)
 	}
+	con, err := ContractFromName(instr)
+	if err != nil {
+		return err
+	}
+	limit := OB_LIMIT
+	if con.IsOption() {
+		limit = OB_OPT_LIMIT
+	}
+
 	for index, o := range orders {
-		if index >= OB_LIMIT {
+		if index >= limit {
 			break
 		}
 		fields := make(map[string]interface{})

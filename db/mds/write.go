@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	OB_LIMIT = 150
+	OB_LIMIT     = 150
+	OB_OPT_LIMIT = 15 // for options we save only 20 ticks in the orderbook, otherwise the DB series is too much
 )
 
 func (m MDS) WriteTick(lhs, rhs string, source string, bid, ask float64, t time.Time) error {
