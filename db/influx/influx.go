@@ -35,3 +35,6 @@ func getDatabases(c client.Client) []string {
 	}
 	return dbNames
 }
+
+// check total number of series in a database - useful for monitoring db
+// select * from _internal.."database" where "database"='MDS' order by time desc limit 1
