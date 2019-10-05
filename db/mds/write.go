@@ -94,30 +94,35 @@ func (mds MDS) WriteTXNPoints(trans Transactions, exName string) error {
 	})
 
 	for _, t := range trans {
-		txn_fields := make(map[string]interface{})
-		txn_fields["Price"] = t.Price
-		txn_fields["Amount"] = t.Amount
-
-		tags := map[string]string{
-			"LHS":      string(t.Pair.Coin),
-			"RHS":      string(t.Pair.Base),
-			"exchange": exName,
-		}
-		if t.Maker == Buyer {
-			tags["side"] = "SELL"
-		} else {
-			tags["side"] = "BUY"
-		}
-		// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond
-		ts := t.TimeStamp
-		if len(t.TxnID) > 0 {
-			ts = t.TimeStamp.Add(time.Duration(util.SafeFloat64(t.TxnID[len(t.TxnID)-1:])))
-		}
-		pt, err := client.NewPoint(MT_TRANSACTION, tags, txn_fields, ts)
-		if err != nil {
-			log.Fatal(err) // TODO: deal with errors
-		}
-		bp.AddPoint(pt)
+		writeSpotTxnBatchPoints(bp, exName, t)
 	}
 	return mds.WriteBatchPoints(bp)
+}
+
+func writeSpotTxnBatchPoints(bp client.BatchPoints, exName string, txn Transaction) error {
+	fields := map[string]interface{}{
+		"Price":  txn.Price,
+		"Amount": txn.Amount,
+	}
+	side := BUY
+	if txn.Maker == Buyer {
+		side = SELL
+	}
+	tags := map[string]string{
+		"LHS":      string(txn.Pair.Coin),
+		"RHS":      string(txn.Pair.Base),
+		"exchange": exName,
+		"side":     string(side),
+	}
+	// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond
+	ts := txn.TimeStamp
+	if len(txn.TxnID) > 0 {
+		ts = txn.TimeStamp.Add(time.Duration(util.SafeFloat64(txn.TxnID[len(txn.TxnID)-1:])))
+	}
+	newpt, err := client.NewPoint(MT_TRANSACTION, tags, fields, ts)
+	if err != nil {
+		return err
+	}
+	bp.AddPoint(newpt)
+	return nil
 }

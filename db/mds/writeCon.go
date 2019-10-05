@@ -2,6 +2,7 @@ package mds
 
 import (
 	. "bean"
+	util "bean/utils"
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"math"
@@ -19,14 +20,14 @@ func (mds MDS) WriteContractOrderBook(exName string, instr string, obt OrderBook
 	return mds.WriteBatchPoints(bp)
 }
 
-func (mds MDS) WriteContractTransactions(exName string, pts []ConTxnPoint) error {
+func (mds MDS) WriteContractTransactions(pts []ConTxnPoint) error {
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
-		Precision: "ms",
+		Precision: "us",
 	})
 	for _, pt := range pts {
 		fmt.Println(pt)
-		writeTxnBatchPoints(bp, exName, pt.Instrument, pt.Side, pt.Price, pt.Amount, pt.IndexPrice, pt.Vol, pt.TimeStamp)
+		writeConTxnBatchPoints(bp, pt)
 	}
 	fmt.Println("start writing")
 	return mds.WriteBatchPoints(bp)
@@ -85,22 +86,30 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, side Side, 
 	return nil
 }
 
-func writeTxnBatchPoints(bp client.BatchPoints, exName, instr string, side Side, price, amount, indexPrice, vol float64, timeStamp time.Time) error {
+func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 	fields := map[string]interface{}{
-		"Price":      price,
-		"Amount":     amount,
-		"IndexPrice": indexPrice,
-		"Vol":        vol}
+		"Price":      pt.Price,
+		"Amount":     pt.Amount,
+		"IndexPrice": pt.IndexPrice,
+		"Vol":        pt.Vol}
 
+	// FIXME: could miss transactions if two different transactions on the same instrument have identical time stamp, side, and exchange
 	tags := map[string]string{
-		"instr":    instr,
-		"exchange": exName,
-		"side":     string(side),
+		"instr":    pt.Instrument,
+		"exchange": pt.ExName,
+		"side":     string(pt.Side),
 	}
-	pt, err := client.NewPoint(MT_CONTRACT_TRANSACTION, tags, fields, timeStamp)
+
+	// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond
+	ts := pt.TimeStamp
+	if len(pt.TxnID) > 0 {
+		ts = pt.TimeStamp.Add(time.Duration(util.SafeFloat64(pt.TxnID[len(pt.TxnID)-1:])))
+	}
+
+	newpt, err := client.NewPoint(MT_CONTRACT_TRANSACTION, tags, fields, ts)
 	if err != nil {
 		return err
 	}
-	bp.AddPoint(pt)
+	bp.AddPoint(newpt)
 	return nil
 }

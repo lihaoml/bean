@@ -12,7 +12,7 @@ import (
 
 // stream contains functions that allow the streaming of data to be written to mds through channels
 
-const bufferSize = 5000
+const bufferSize = 10000
 
 // ConOBPoint allows sending of the orderbook for writing to the MDS ORDERBOOK table
 type ConOBPoint struct {
@@ -33,6 +33,12 @@ type ConTxnPoint struct {
 	Amount     float64
 	IndexPrice float64
 	Vol        float64
+	TxnID      string
+}
+
+type SpotTxnPoint struct {
+	ExName string
+	Txn    Transaction
 }
 
 type MessagePoint struct {
@@ -71,7 +77,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
-		Precision: "ms",
+		Precision: "us",
 	})
 	writeDbTicker := time.NewTicker(2 * time.Second)
 
@@ -80,7 +86,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			if bp == nil {
 				bp, err = client.NewBatchPoints(client.BatchPointsConfig{
 					Database:  MDS_DBNAME,
-					Precision: "ms",
+					Precision: "us",
 				})
 			}
 			select {
@@ -129,7 +135,9 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					bp.AddPoint(pt)
 
 				case ConTxnPoint:
-					writeTxnBatchPoints(bp, p.ExName, p.Instrument, p.Side, p.Price, p.Amount, p.IndexPrice, p.Vol, p.TimeStamp)
+					writeConTxnBatchPoints(bp, p)
+				case SpotTxnPoint:
+					writeSpotTxnBatchPoints(bp, p.ExName, p.Txn)
 
 				case ArbPoint:
 					tags := make(map[string]string)
