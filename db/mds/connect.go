@@ -73,6 +73,7 @@ func connectTo(dbhost, port string) (cs []client.Client, err error) {
 	if len(usrs) <= 1 {
 		usrs = util.ReplicateString(os.Getenv("MDS_USER"), len(hosts))
 	}
+
 	pwds := strings.Split(os.Getenv("MDS_PASSWORD"), ",")
 	if len(pwds) <= 1 {
 		pwds = util.ReplicateString(os.Getenv("MDS_PASSWORD"), len(hosts))
@@ -81,14 +82,14 @@ func connectTo(dbhost, port string) (cs []client.Client, err error) {
 		return nil, errors.New("number of MDS hosts do not match with number of users & pwds")
 	}
 	errMsg := []string{}
-	for _, host := range hosts {
+	for i, host := range hosts {
 		if !strings.HasPrefix(host, "http") {
 			host = "http://" + host
 		}
 		c, err := client.NewHTTPClient(client.HTTPConfig{
 			Addr:     host + ":" + MDS_PORT,
-			Username: os.Getenv("MDS_USER"),
-			Password: os.Getenv("MDS_PASSWORD"),
+			Username: usrs[i],
+			Password: pwds[i],
 		})
 		if err != nil {
 			errMsg = append(errMsg, host+": "+err.Error())
@@ -96,7 +97,7 @@ func connectTo(dbhost, port string) (cs []client.Client, err error) {
 			cs = append(cs, c)
 		}
 	}
-	if errMsg != nil {
+	if len(errMsg) > 0 {
 		err = errors.New(fmt.Sprint(errMsg))
 	}
 	return cs, err
