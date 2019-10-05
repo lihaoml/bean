@@ -3,6 +3,7 @@ package mds
 import (
 	. "bean"
 	"beanex/risk"
+	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ const bufferSize = 5000
 // ConOBPoint allows sending of the orderbook for writing to the MDS ORDERBOOK table
 type ConOBPoint struct {
 	TimeStamp  time.Time
+	ExName     string
 	Instrument string
 	OB         OrderBook
 	Lag        time.Duration
@@ -23,6 +25,7 @@ type ConOBPoint struct {
 // ConTxnPoint allows sending of a reported trade for writing to the MDS TRANSACTIONS table
 type ConTxnPoint struct {
 	TimeStamp  time.Time
+	ExName     string
 	Instrument string
 	Side       Side
 	Price      float64
@@ -81,8 +84,10 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			}
 			select {
 			case <-writeDbTicker.C:
+				fmt.Println("writing db points")
 				err = mds.c.Write(bp)
 				if err != nil {
+					fmt.Println("err writing db points " + err.Error())
 					errCh <- err
 					stopCh <- true
 					return
@@ -95,8 +100,9 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			case dataPt := <-dataPtCh:
 				switch p := dataPt.(type) {
 				case ConOBPoint:
-					writeOBBatchPoints(bp, NameDeribit, p.Instrument, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
-					writeOBBatchPoints(bp, NameDeribit, p.Instrument, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
+					writeOBBatchPoints(bp, p.ExName, p.Instrument, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
+					writeOBBatchPoints(bp, p.ExName, p.Instrument, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
+					fmt.Println("len(bp) = ", len(bp.Points()))
 
 				case MessagePoint:
 					tags := map[string]string{
@@ -113,7 +119,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					bp.AddPoint(pt)
 
 				case ConTxnPoint:
-					writeTxnBatchPoints(bp, NameDeribit, p.Instrument, p.Side, p.Price, p.Amount, p.IndexPrice, p.Vol, p.TimeStamp)
+					writeTxnBatchPoints(bp, p.ExName, p.Instrument, p.Side, p.Price, p.Amount, p.IndexPrice, p.Vol, p.TimeStamp)
 
 				case ArbPoint:
 					tags := make(map[string]string)
