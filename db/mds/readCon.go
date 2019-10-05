@@ -39,8 +39,11 @@ func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth
 		return nil, errors.New("Unknown sample frequency")
 	}
 
-	askMap := getOrders2(mds.c, con.Name(), "ASK", timeFrom, timeTo, depth, sampleStr)
-	bidMap := getOrders2(mds.c, con.Name(), "BID", timeFrom, timeTo, depth, sampleStr)
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	askMap := getOrders2(mds.cs[0], con.Name(), "ASK", timeFrom, timeTo, depth, sampleStr)
+	bidMap := getOrders2(mds.cs[0], con.Name(), "BID", timeFrom, timeTo, depth, sampleStr)
 
 	for k, askOrders := range askMap {
 		tm, _ := time.Parse(time.RFC3339, k)
@@ -67,7 +70,10 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 		" and exchange = '" + exName + "'" +
 		" and index='0' " +
 		" GROUP BY instrument,side,index"
-	resp, err := influx.QueryDB(MDS_DBNAME, mds.c, cmd)
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
 	if err != nil {
 		return nil, err
 	}

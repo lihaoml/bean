@@ -4,6 +4,7 @@ import (
 	. "bean"
 	"bean/db/influx"
 	"encoding/json"
+	"errors"
 	"time"
 )
 
@@ -24,14 +25,8 @@ type TransactPoint struct {
 }
 
 // GetOrderBookTS : get orderbook time series (sorted)
-func GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookTS, error) {
+func (mds MDS) GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookTS, error) {
 	var obts OrderBookTS
-	c, err := connect()
-	if err != nil {
-		return obts, err
-	}
-	defer c.Close()
-
 	timeFrom := start.Format(time.RFC3339)
 	timeTo := end.Format(time.RFC3339)
 
@@ -41,7 +36,10 @@ func GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookT
 		"' and LHS = '" + string(pair.Coin) +
 		"' and RHS = '" + string(pair.Base) + "'"
 
-	resp, err := influx.QueryDB(MDS_DBNAME, c, cmd)
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
 	if err != nil {
 		return obts, err
 	}
@@ -75,14 +73,8 @@ func GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (OrderBookT
 	return obts.Sort(), nil
 }
 
-func GetTransactions2(exName string, pair Pair, start, end time.Time) (Transactions, error) {
+func (mds MDS) GetTransactions2(exName string, pair Pair, start, end time.Time) (Transactions, error) {
 	var txns Transactions
-	c, err := connect()
-	if err != nil {
-		return txns, err
-	}
-	defer c.Close()
-
 	timeFrom := start.Format(time.RFC3339)
 	timeTo := end.Format(time.RFC3339)
 
@@ -91,8 +83,10 @@ func GetTransactions2(exName string, pair Pair, start, end time.Time) (Transacti
 		"' and exchange = '" + exName +
 		"' and LHS = '" + string(pair.Coin) +
 		"' and RHS = '" + string(pair.Base) + "'"
-
-	resp, err := influx.QueryDB(MDS_DBNAME, c, cmd)
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
 	if err != nil {
 		panic(err.Error())
 	}

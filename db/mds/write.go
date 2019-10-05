@@ -32,16 +32,10 @@ func (m MDS) WriteTick(lhs, rhs string, source string, bid, ask float64, t time.
 		log.Fatal(err) // TODO: deal with errors
 	}
 	bp.AddPoint(pt)
-	return m.c.Write(bp)
+	return m.WriteBatchPoints(bp)
 }
 
-func WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
-	c, err := connect()
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
+func (mds MDS) WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 	// Create a new point batch
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
@@ -88,16 +82,10 @@ func WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 		}
 		bp.AddPoint(pt)
 	}
-	return c.Write(bp)
+	return mds.WriteBatchPoints(bp)
 }
 
-func WriteTXNPoints(trans Transactions, exName string) error {
-	c, err := connect()
-	if err != nil {
-		return err
-	}
-	defer c.Close()
-
+func (mds MDS) WriteTXNPoints(trans Transactions, exName string) error {
 	// Create a new point batch
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
@@ -130,5 +118,5 @@ func WriteTXNPoints(trans Transactions, exName string) error {
 		}
 		bp.AddPoint(pt)
 	}
-	return c.Write(bp)
+	return mds.WriteBatchPoints(bp)
 }

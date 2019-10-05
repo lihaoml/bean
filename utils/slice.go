@@ -2,6 +2,14 @@ package util
 
 import "reflect"
 
+func ReplicateString(e string, n int) []string {
+	res := make([]string, n)
+	for i := 0; i < n; i++ {
+		res[i] = e
+	}
+	return res
+}
+
 func Contains(a interface{}, e interface{}) bool {
 	v := reflect.ValueOf(a)
 	for i := 0; i < v.Len(); i++ {

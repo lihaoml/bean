@@ -36,6 +36,10 @@ func NewSimulator(exName string, pairs []Pair, dbhost, dbport string, start, end
 	// get historical data
 	obts := make(map[Pair]OrderBookTS, len(pairs))
 	fmt.Println(exName)
+	mds, err := mds.ConnectService()
+	if err != nil {
+		panic("failed connecting to MDS" + err.Error())
+	}
 	for _, p := range pairs {
 		// obts[p], _ = mds.GetOrderBookTS(p, start, end, 20) // TODO: hard code 20 depth for now
 		obts[p], _ = mds.GetOrderBookTS2(exName, p, start, end) // TODO: hard code 20 depth for now

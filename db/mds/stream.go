@@ -3,6 +3,7 @@ package mds
 import (
 	. "bean"
 	"beanex/risk"
+	"errors"
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"strings"
@@ -85,17 +86,26 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			select {
 			case <-writeDbTicker.C:
 				fmt.Println("writing db points")
-				err = mds.c.Write(bp)
-				if err != nil {
-					fmt.Println("err writing db points " + err.Error())
-					errCh <- err
+				// allow failing writes as long as there are succeeding ones
+				errMsgs := []string{}
+				for _, c := range mds.cs {
+					err = c.Write(bp)
+					if err != nil {
+						errMsgs = append(errMsgs, "err writing db points "+err.Error())
+					}
+				}
+				if len(errMsgs) == len(mds.cs) {
+					// all writing failed, stop the process
+					errCh <- errors.New(fmt.Sprint(errMsgs))
 					stopCh <- true
 					return
 				}
 				bp = nil
 			case <-stopCh:
-				mds.c.Write(bp)
-				mds.c.Close()
+				for _, c := range mds.cs {
+					c.Write(bp)
+					c.Close()
+				}
 				return
 			case dataPt := <-dataPtCh:
 				switch p := dataPt.(type) {

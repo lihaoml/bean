@@ -9,27 +9,17 @@ import (
 	"time"
 )
 
-func WriteContractOrderBook(exName string, instr string, obt OrderBookT) {
-	c, err := connect()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer c.Close()
+func (mds MDS) WriteContractOrderBook(exName string, instr string, obt OrderBookT) error {
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
 		Precision: "ms",
 	})
 	writeOBBatchPoints(bp, exName, instr, "BID", obt.Bids(), obt.Time, 0)
 	writeOBBatchPoints(bp, exName, instr, "ASK", obt.Asks(), obt.Time, 0)
-	c.Write(bp)
+	return mds.WriteBatchPoints(bp)
 }
 
-func WriteContractTransactions(exName string, pts []ConTxnPoint) {
-	c, err := connect()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer c.Close()
+func (mds MDS) WriteContractTransactions(exName string, pts []ConTxnPoint) error {
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
 		Precision: "ms",
@@ -39,7 +29,7 @@ func WriteContractTransactions(exName string, pts []ConTxnPoint) {
 		writeTxnBatchPoints(bp, exName, pt.Instrument, pt.Side, pt.Price, pt.Amount, pt.IndexPrice, pt.Vol, pt.TimeStamp)
 	}
 	fmt.Println("start writing")
-	c.Write(bp)
+	return mds.WriteBatchPoints(bp)
 }
 
 func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, side Side, orders []Order, timeStamp time.Time, lag time.Duration) error {
