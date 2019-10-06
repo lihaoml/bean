@@ -1,6 +1,7 @@
 package bean
 
 import (
+	util "bean/utils"
 	"errors"
 	"fmt"
 	"math"
@@ -38,6 +39,11 @@ const (
 
 	BEANEX = "BEANEX"
 )
+
+func IsContractExchange(exName string) bool {
+	conEx := []string{NameDeribit, NameBitMex}
+	return util.Contains(conEx, exName)
+}
 
 // TODO: find a better place for these two functions
 func BeanexAccountPath() string {
