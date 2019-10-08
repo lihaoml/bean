@@ -381,8 +381,30 @@ type CumPctOB struct {
 func (ob OrderBook) CumPctOB() CumPctOB {
 	cbids := []Order{}
 	casks := []Order{}
-	// TODO: calculate cumulative bids and asks
-
+	vbidamt := 0.0
+	vaskamt := 0.0
+	for i, b := range ob.Bids() {
+		if i == 0 {
+			cbids[i].Amount = b.Amount
+			cbids[i].Price = b.Price
+			vbidamt += b.Amount * b.Price
+		} else {
+			cbids[i].Amount = cbids[i-1].Amount + b.Amount
+			vbidamt +=  b.Amount * b.Price
+			cbids[i].Price = vbidamt / cbids[i].Amount
+		}
+	}
+	for i, a := range ob.Asks() {
+		if i == 0 {
+			casks[i].Amount = a.Amount
+			casks[i].Price = a.Price
+			vaskamt += vaskamt + a.Price * a.Amount
+		} else {
+			casks[i].Amount = casks[i-1].Amount + a.Amount
+			vaskamt += a.Amount * a.Price
+			casks[i].Price = vaskamt / casks[i].Amount
+		}
+	}
 	return CumPctOB{
 		CumPctBids: cbids,
 		CumPctAsks: casks,
