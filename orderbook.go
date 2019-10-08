@@ -378,31 +378,59 @@ type CumPctOB struct {
 	CumPctAsks []Order
 }
 
-func (ob OrderBook) CumPctOB() CumPctOB {
-	cbids := []Order{}
-	casks := []Order{}
-	vbidamt := 0.0
-	vaskamt := 0.0
-	for i, b := range ob.Bids() {
-		if i == 0 {
-			cbids[i].Amount = b.Amount
-			cbids[i].Price = b.Price
-			vbidamt += b.Amount * b.Price
-		} else {
-			cbids[i].Amount = cbids[i-1].Amount + b.Amount
-			vbidamt +=  b.Amount * b.Price
-			cbids[i].Price = vbidamt / cbids[i].Amount
-		}
+func getcum(or []Order) Order {
+	var ord Order
+	camt := 0.0
+	vcamt := 0.0
+	for _, b := range or {
+		camt += b.Amount
+		vcamt += b.Amount * b.Price
 	}
-	for i, a := range ob.Asks() {
-		if i == 0 {
-			casks[i].Amount = a.Amount
-			casks[i].Price = a.Price
-			vaskamt += vaskamt + a.Price * a.Amount
-		} else {
-			casks[i].Amount = casks[i-1].Amount + a.Amount
-			vaskamt += a.Amount * a.Price
-			casks[i].Price = vaskamt / casks[i].Amount
+	ord.Price = vcamt / camt
+	ord.Amount = camt
+	return ord
+}
+
+func (ob OrderBook) CumPctOB() CumPctOB {
+	casks := []Order{}
+	cbids := []Order{}
+	if ob.Valid() {
+		//1. get x% price
+		var askx [100]float64
+		var bidx [100]float64
+		for i :=0; i < 100; i++ {
+			askx[i] = ob.Asks()[0].Price * (1 + float64((i+1)/100))
+		}
+		for i:=0; i < 100; i++ {
+			bidx[i] = ob.Bids()[0].Price * (1 - float64((i+1)/100))
+		}
+
+		//2. get the orderbook index of x% price
+		var askind []int
+		var bidind []int
+		for _, p := range askx {
+			for i, a := range ob.Asks() {
+				if p < a.Price {
+					askind = append(askind, i)
+					break
+				}
+			}
+		}
+		for _, p := range bidx {
+			for i, b := range ob.Bids() {
+				if p > b.Price {
+					bidind = append(bidind, i)
+					break
+				}
+			}
+		}
+
+		//3. get the CumPctOB
+		for in, ask := range askind {
+			casks[in] = getcum(ob.Asks()[:ask])
+		}
+		for in, bid := range bidind {
+			cbids[in] = getcum(ob.Asks()[:bid])
 		}
 	}
 	return CumPctOB{

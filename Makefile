@@ -29,6 +29,7 @@ example:
 	$(GOBUILD) -o ./bin/test_mds -v ./example/mds/main.go
 	$(GOBUILD) -o ./bin/test_exchange -v ./example/exchange/main.go
 	# $(GOBUILD) -o ./bin/simplemm -v ./example/simplemm/main.go
+	# $(GOBUILD) -o ./bin/cum -v ./example/obtest/main.go
 
 .PHONY: clean
 clean:
