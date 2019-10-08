@@ -396,14 +396,16 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 	cbids := []Order{}
 	if ob.Valid() {
 		//1. get x% price
-		var askx [100]float64
-		var bidx [100]float64
+		var askx []float64
+		var bidx []float64
 		for i :=0; i < 100; i++ {
-			askx[i] = ob.Asks()[0].Price * (1 + float64((i+1)/100))
+			askx = append(askx, ob.Asks()[0].Price * (1 + float64((i+1)/100)))
 		}
 		for i:=0; i < 100; i++ {
-			bidx[i] = ob.Bids()[0].Price * (1 - float64((i+1)/100))
+			bidx = append(bidx, ob.Bids()[0].Price * (1 - float64((i+1)/100)))
 		}
+
+		fmt.Println("ob.Asks()[0].Price:", ob.Asks()[0].Price)
 		fmt.Println("askx:", askx)
 		fmt.Println("bidx:", bidx)
 
