@@ -3,6 +3,7 @@ package mds
 import (
 	. "bean"
 	"bean/utils"
+	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"log"
 	"strconv"
@@ -123,6 +124,51 @@ func writeSpotOBBatchPoints(bp client.BatchPoints, exName string, pair Pair, ob 
 			"side":     "ASK",
 		}
 		pt, err := client.NewPoint(MT_ORDERBOOK, tags, fields, timeStamp)
+		if err != nil {
+			return err
+		}
+		bp.AddPoint(pt)
+	}
+
+	// extracting orderbook stats and record them
+	if ob.Valid() {
+		cumpctOB := ob.CumPctOB()
+		tags := map[string]string{
+			"LHS":      string(pair.Coin),
+			"RHS":      string(pair.Base),
+			"exchange": exName,
+		}
+		fields := map[string]interface{}{}
+		pcts := []int{0, 1, 5, 10}
+		for _, p := range pcts {
+			if len(cumpctOB.CumPctBids) > p {
+				fields["bid_vwap_"+fmt.Sprint(p)] = cumpctOB.CumPctBids[p].Price
+				fields["bid_camt_"+fmt.Sprint(p)] = cumpctOB.CumPctBids[p].Amount
+			}
+			if len(cumpctOB.CumPctAsks) > p {
+				fields["ask_vwap_"+fmt.Sprint(p)] = cumpctOB.CumPctAsks[p].Price
+				fields["ask_camt_"+fmt.Sprint(p)] = cumpctOB.CumPctAsks[p].Amount
+			}
+		}
+		mid := (cumpctOB.CumPctAsks[0].Price + cumpctOB.CumPctBids[0].Price) / 2
+		fields["mid"] = mid
+		fields["spread"] = (cumpctOB.CumPctAsks[0].Price - cumpctOB.CumPctBids[0].Price) / mid
+		// price in amounts
+
+		piaBaseAmt := []float64{1, 5, 10}
+		sizeScaler := map[Coin]float64{
+			BTC: 0.1 / mid, ETH: 5 / mid,
+			USD: 1000 / mid, USDT: 1000 / mid, USDC: 1000 / mid, PAX: 1000 / mid, TUSD: 1000 / mid,
+		}
+		for _, p := range piaBaseAmt {
+			size := sizeScaler[pair.Base] * p
+			bid, ask, bidSize, askSize := ob.PriceIn(size)
+			fields["bid_pia_price_"+fmt.Sprint(p)] = bid
+			fields["bid_pia_amount_"+fmt.Sprint(p)] = bidSize
+			fields["ask_pia_price_"+fmt.Sprint(p)] = ask
+			fields["ask_pia_amount_"+fmt.Sprint(p)] = askSize
+		}
+		pt, err := client.NewPoint(MT_ORDERBOOK_STATS, tags, fields, timeStamp)
 		if err != nil {
 			return err
 		}
