@@ -41,6 +41,13 @@ type SpotTxnPoint struct {
 	Txn    Transaction
 }
 
+type SpotOBPoint struct {
+	TimeStamp time.Time
+	ExName    string
+	Pair      Pair
+	OB        OrderBook
+}
+
 type MessagePoint struct {
 	TimeStamp  time.Time
 	Instrument string
@@ -138,6 +145,8 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					writeConTxnBatchPoints(bp, p)
 				case SpotTxnPoint:
 					writeSpotTxnBatchPoints(bp, p.ExName, p.Txn)
+				case SpotOBPoint:
+					writeSpotOBBatchPoints(bp, p.ExName, p.Pair, p.OB, p.TimeStamp)
 
 				case ArbPoint:
 					tags := make(map[string]string)

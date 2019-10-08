@@ -42,47 +42,7 @@ func (mds MDS) WriteOBPoints(ob OrderBookT, exName string, pair Pair) error {
 		Database:  MDS_DBNAME,
 		Precision: "ms",
 	})
-
-	for index, bid := range ob.OrderBook.Bids() {
-		if index >= OB_LIMIT {
-			break
-		}
-		fields := make(map[string]interface{})
-		fields["Price"] = bid.Price
-		fields["Amount"] = bid.Amount
-		tags := map[string]string{
-			"index":    strconv.Itoa(index),
-			"LHS":      string(pair.Coin),
-			"RHS":      string(pair.Base),
-			"exchange": exName,
-			"side":     "BID",
-		}
-		pt, err := client.NewPoint(MT_ORDERBOOK, tags, fields, ob.Time)
-		if err != nil {
-			log.Fatal(err) // TODO: deal with errors
-		}
-		bp.AddPoint(pt)
-	}
-	for index, ask := range ob.OrderBook.Asks() {
-		if index >= OB_LIMIT {
-			break
-		}
-		fields := make(map[string]interface{})
-		fields["Price"] = ask.Price
-		fields["Amount"] = ask.Amount
-		tags := map[string]string{
-			"index":    strconv.Itoa(index),
-			"LHS":      string(pair.Coin),
-			"RHS":      string(pair.Base),
-			"exchange": exName,
-			"side":     "ASK",
-		}
-		pt, err := client.NewPoint(MT_ORDERBOOK, tags, fields, ob.Time)
-		if err != nil {
-			log.Fatal(err) // TODO: deal with errors
-		}
-		bp.AddPoint(pt)
-	}
+	writeSpotOBBatchPoints(bp, exName, pair, ob.OrderBook, ob.Time)
 	return mds.WriteBatchPoints(bp)
 }
 
@@ -124,5 +84,49 @@ func writeSpotTxnBatchPoints(bp client.BatchPoints, exName string, txn Transacti
 		return err
 	}
 	bp.AddPoint(newpt)
+	return nil
+}
+
+func writeSpotOBBatchPoints(bp client.BatchPoints, exName string, pair Pair, ob OrderBook, timeStamp time.Time) error {
+	for index, bid := range ob.Bids() {
+		if index >= OB_LIMIT {
+			break
+		}
+		fields := make(map[string]interface{})
+		fields["Price"] = bid.Price
+		fields["Amount"] = bid.Amount
+		tags := map[string]string{
+			"index":    strconv.Itoa(index),
+			"LHS":      string(pair.Coin),
+			"RHS":      string(pair.Base),
+			"exchange": exName,
+			"side":     "BID",
+		}
+		pt, err := client.NewPoint(MT_ORDERBOOK, tags, fields, timeStamp)
+		if err != nil {
+			return err
+		}
+		bp.AddPoint(pt)
+	}
+	for index, ask := range ob.Asks() {
+		if index >= OB_LIMIT {
+			break
+		}
+		fields := make(map[string]interface{})
+		fields["Price"] = ask.Price
+		fields["Amount"] = ask.Amount
+		tags := map[string]string{
+			"index":    strconv.Itoa(index),
+			"LHS":      string(pair.Coin),
+			"RHS":      string(pair.Base),
+			"exchange": exName,
+			"side":     "ASK",
+		}
+		pt, err := client.NewPoint(MT_ORDERBOOK, tags, fields, timeStamp)
+		if err != nil {
+			return err
+		}
+		bp.AddPoint(pt)
+	}
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -42,7 +43,7 @@ const (
 
 func IsContractExchange(exName string) bool {
 	conEx := []string{NameDeribit, NameBitMex}
-	return util.Contains(conEx, exName)
+	return util.Contains(conEx, strings.ToUpper(exName))
 }
 
 // TODO: find a better place for these two functions

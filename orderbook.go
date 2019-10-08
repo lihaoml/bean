@@ -370,6 +370,25 @@ func (ob OrderBook) SBRatio(alpha float64) float64 {
 	return sell / buy
 }
 
+// cumulative order book by percentage
+// CBid[X]: ammount: cumulative bid amount at X% from best bid, price: vwap price until X% from best bid
+// CAsk[X]: ammount: cumulative bid amount at X% from best ask, price: vwap price until X% from best ask
+type CumPctOB struct {
+	CumPctBids []Order
+	CumPctAsks []Order
+}
+
+func (ob OrderBook) CumPctOB() CumPctOB {
+	cbids := []Order{}
+	casks := []Order{}
+	// TODO: calculate cumulative bids and asks
+
+	return CumPctOB{
+		CumPctBids: cbids,
+		CumPctAsks: casks,
+	}
+}
+
 // Match ... Takes a placed order and matches against the existing orderbook.
 // If it can be filled then the filled amount and rate are returned
 // Orders (aggressor) are filled at the orderbook (market maker) rate
