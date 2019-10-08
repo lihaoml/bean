@@ -426,11 +426,11 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 		}
 
 		//3. get the CumPctOB
-		for in, ask := range askind {
-			casks[in] = getcum(ob.Asks()[:ask])
+		for _, ask := range askind {
+			casks = append(casks, getcum(ob.Asks()[:ask]))
 		}
-		for in, bid := range bidind {
-			cbids[in] = getcum(ob.Asks()[:bid])
+		for _, bid := range bidind {
+			cbids = append(cbids, getcum(ob.Asks()[:bid]))
 		}
 	}
 	return CumPctOB{
