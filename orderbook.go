@@ -399,15 +399,11 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 		var askx []float64
 		var bidx []float64
 		for i :=0; i < 100; i++ {
-			askx = append(askx, ob.Asks()[0].Price * (1 + float64((i+1)/100)))
+			askx = append(askx, ob.Asks()[0].Price * (1 + (float64(i+1)/100)))
 		}
 		for i:=0; i < 100; i++ {
-			bidx = append(bidx, ob.Bids()[0].Price * (1 - float64((i+1)/100)))
+			bidx = append(bidx, ob.Bids()[0].Price * (1 - (float64(i+1)/100)))
 		}
-
-		fmt.Println("ob.Asks()[0].Price:", ob.Asks()[0].Price)
-		fmt.Println("askx:", askx)
-		fmt.Println("bidx:", bidx)
 
 		//2. get the orderbook index of x% price
 		var askind []int
@@ -428,8 +424,6 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 				}
 			}
 		}
-		fmt.Println("askind:", askind)
-		fmt.Println("bidind:", bidind)
 
 		//3. get the CumPctOB
 		for _, ask := range askind {
