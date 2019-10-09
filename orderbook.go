@@ -404,14 +404,10 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 		for i:=0; i < 100; i++ {
 			bidx = append(bidx, ob.Bids()[0].Price * (1 - (float64(i+1)/100)))
 		}
-
-		fmt.Println("ob.Asks()[0].Price:", ob.Asks()[0].Price)
-		fmt.Println("askx:", askx)
-		fmt.Println("bidx:", bidx)
-
 		//2. get the orderbook index of x% price
 		var askind []int
 		var bidind []int
+
 		for _, p := range askx {
 			for i, a := range ob.Asks() {
 				if p < a.Price {
@@ -428,15 +424,20 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 				}
 			}
 		}
-		fmt.Println("askind:", askind)
-		fmt.Println("bidind:", bidind)
-
 		//3. get the CumPctOB
-		for _, ask := range askind {
-			casks = append(casks, getcum(ob.Asks()[:ask]))
+		if askind == nil {
+			casks = append(casks, getcum(ob.Asks()))
+		} else {
+			for _, ask := range askind {
+				casks = append(casks, getcum(ob.Asks()[:ask]))
+			}
 		}
-		for _, bid := range bidind {
-			cbids = append(cbids, getcum(ob.Asks()[:bid]))
+		if bidind == nil {
+			cbids = append(cbids, getcum(ob.Bids()))
+		} else {
+			for _, bid := range bidind {
+				cbids = append(cbids, getcum(ob.Bids()[:bid]))
+			}
 		}
 	}
 	return CumPctOB{
