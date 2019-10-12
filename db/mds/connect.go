@@ -40,5 +40,5 @@ func (m MDS) WriteBatchPoints(bp client.BatchPoints) (err error) {
 
 // remember to defer c.Close() for every call of connect(), otherwise influx will open up too many files and stops working
 func connect() ([]client.Client, error) {
-	return influx.ConnectTo("MDS_DB_ADDRESS", MDS_PORT, "MDS_USER", "MDS_PASSWORD")
+	return influx.ConnectService("MDS_DB_ADDRESS", MDS_PORT, "MDS_USER", "MDS_PASSWORD")
 }

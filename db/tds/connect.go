@@ -26,7 +26,7 @@ type TDS struct {
 
 // remember to defer c.Close() for every call of connect(), otherwise influx will open up too many files and stops working
 func connect() ([]client.Client, error) {
-	return influx.ConnectTo("TDS_DB_ADDRESS", TDS_PORT, "TDS_USER", "TDS_PASSWORD")
+	return influx.ConnectService("TDS_DB_ADDRESS", TDS_PORT, "TDS_USER", "TDS_PASSWORD")
 }
 
 // FIXME: move it to a common module (used also in mds)

@@ -19,7 +19,7 @@ func ConnectService(dbkey, port, envUserKey, envPwdKey string) ([]client.Client,
 			panic(err.Error())
 		}
 	}
-	dbhost := os.Getenv("MDS_DB_ADDRESS")
+	dbhost := os.Getenv(dbkey)
 	return ConnectTo(dbhost, port, envUserKey, envPwdKey)
 }
 
