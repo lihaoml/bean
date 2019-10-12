@@ -1,6 +1,8 @@
 package influx
 
 import (
+	"errors"
+	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 )
 
@@ -18,6 +20,24 @@ func QueryDB(dbName string, clnt client.Client, cmd string) (res []client.Result
 		return res, err
 	}
 	return res, nil
+}
+
+func WriteBatchPoints(cs []client.Client, bp client.BatchPoints) (err error) {
+	errMsgs := []string{}
+	for _, c := range cs {
+		err = c.Write(bp)
+		if err != nil {
+			errMsgs = append(errMsgs, "err writing db points "+err.Error())
+		}
+	}
+	if len(errMsgs) == len(cs) {
+		if len(cs) == 0 {
+			err = errors.New("no influx connection established")
+		} else {
+			err = errors.New(fmt.Sprint(errMsgs))
+		}
+	}
+	return
 }
 
 // get databases of a influx instance

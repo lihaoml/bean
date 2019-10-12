@@ -2,10 +2,7 @@ package tds
 
 import (
 	"bean/db/influx"
-	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
-	"github.com/joho/godotenv"
-	"os"
 )
 
 const TDS_PORT string = "8086"
@@ -23,17 +20,13 @@ const MT_PNL_BALANCE = "PNL_BALANCE"
 const TDS_DBNAME = "TDS"
 const BALANCE_DBNAME = "BALANCE"
 
-func connect() (client.Client, error) {
-	godotenv.Load()
-	// TODO: add https and password support for tds
-	dbhost := "http://" + os.Getenv("TDS_DB_ADDRESS")
-	fmt.Println("TDS connecting to ", dbhost)
-	c, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr: dbhost + ":" + TDS_PORT,
-		// 		Username: username,
-		//		Password: password,
-	})
-	return c, err
+type TDS struct {
+	cs []client.Client // connecting to multiple TDS server (if provided), write - write to multiple servers, read - read from one that is available
+}
+
+// remember to defer c.Close() for every call of connect(), otherwise influx will open up too many files and stops working
+func connect() ([]client.Client, error) {
+	return influx.ConnectTo("TDS_DB_ADDRESS", TDS_PORT, "TDS_USER", "TDS_PASSWORD")
 }
 
 // FIXME: move it to a common module (used also in mds)
