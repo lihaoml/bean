@@ -55,6 +55,10 @@ const (
 	GT   Coin = "GT"
 	FMEX Coin = "FMEX"
 	DUO  Coin = "DUO"
+	AITFACE Coin = "AITFACE"
+
+	GNTO Coin = "GNTO" // GoldNugget
+	DGX  Coin = "DGX"
 )
 
 func (s Coins) Len() int {
