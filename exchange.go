@@ -38,7 +38,6 @@ const (
 	NameLBank    = "LBANK"
 	NameBitfinex = "BITFINEX"
 
-
 	BEANEX = "BEANEX"
 )
 
