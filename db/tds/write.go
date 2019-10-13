@@ -87,7 +87,7 @@ func RecordPortfolios(ports map[string]Portfolio, acctName string, timeStamp tim
 			}
 			pt, err := client.NewPoint(MT_COIN_BALANCE, tags, port_fields, timeStamp)
 			if err != nil {
-				return err
+				fmt.Println(err.Error())
 			}
 			bp.AddPoint(pt)
 		}

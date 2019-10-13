@@ -139,7 +139,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 		MT_MARGIN_ACCOUNT_INFO + "\" where exchange = '" + exName +
 		"' and account = '" + acctName +
 		"' and PAIR =~ /" + string(c) + "$/ and time > now() - 8m group by PAIR)"
-	fmt.Println(query)
+	// fmt.Println(query)
 	resp, err = queryDB(client, BALANCE_DBNAME, query)
 	if err != nil {
 		log.Fatal(err)
@@ -152,7 +152,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 		MT_MARGIN_ACCOUNT_INFO + "\" where exchange = '" + exName +
 		"' and account = '" + acctName +
 		"' and PAIR =~ /^" + string(c) + "/ and time > now() - 8m group by PAIR)"
-	fmt.Println(query)
+	// fmt.Println(query)
 	resp, err = queryDB(client, BALANCE_DBNAME, query)
 	if err != nil {
 		log.Fatal(err)

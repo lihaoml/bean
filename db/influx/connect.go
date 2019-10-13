@@ -20,6 +20,7 @@ func ConnectService(dbkey, port, envUserKey, envPwdKey string) ([]client.Client,
 		}
 	}
 	dbhost := os.Getenv(dbkey)
+	fmt.Println("connecting to dbhost: ", dbhost)
 	return ConnectTo(dbhost, port, envUserKey, envPwdKey)
 }
 
