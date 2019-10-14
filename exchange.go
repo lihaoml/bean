@@ -37,6 +37,7 @@ const (
 	NameBilaxy   = "BILAXY"
 	NameLBank    = "LBANK"
 	NameBitfinex = "BITFINEX"
+	NameZBTCex 	 = "ZBTCEX"
 
 	BEANEX = "BEANEX"
 )
