@@ -327,3 +327,38 @@ func addOpenOrderPoints(acctName string, exchangeOrders map[string](map[Pair]([]
 	}
 	return
 }
+
+// record a cash flow
+func AddCash(coin Coin, amt float64, acctName, exname, owner, remarks string) error {
+	cs, err := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	if err != nil {
+		logger.Warn().Msg(err.Error())
+		return err
+	}
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  BALANCE_DBNAME,
+		Precision: "s",
+	})
+	timeStamp := time.Now()
+	if math.Abs(amt) < 1e-6 {
+		return nil
+	}
+
+	port_fields := make(map[string]interface{})
+	port_fields[string(coin)] = amt
+	tags := make(map[string]string)
+	tags["account"] = acctName
+	tags["owner"] = owner
+	tags["remark"] = remarks
+	tags["exchange"] = exname
+
+	pt, err := client.NewPoint(MT_PRINCIPAL, tags, port_fields, timeStamp)
+	if err != nil {
+		return err
+	}
+	bp.AddPoint(pt)
+	return influx.WriteBatchPoints(cs, bp)
+}
