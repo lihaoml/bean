@@ -66,6 +66,8 @@ func ContractFromName(name string) (*Contract, error) {
 	switch st[0] {
 	case "BTC":
 		underlying = Pair{BTC, USD}
+	case "ETH":
+		underlying = Pair{ETH, USD}
 	default:
 		err = errors.New("do not recognise coin")
 		return nil, err

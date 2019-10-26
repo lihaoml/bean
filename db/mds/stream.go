@@ -5,9 +5,10 @@ import (
 	"beanex/risk"
 	"errors"
 	"fmt"
-	"github.com/influxdata/influxdb/client/v2"
 	"strings"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 // stream contains functions that allow the streaming of data to be written to mds through channels
@@ -98,7 +99,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			}
 			select {
 			case <-writeDbTicker.C:
-				fmt.Println("writing db points")
+				//				fmt.Println("writing db points")
 				// allow failing writes as long as there are succeeding ones
 				errMsgs := []string{}
 				for _, c := range mds.cs {
@@ -125,7 +126,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 				case ConOBPoint:
 					writeOBBatchPoints(bp, p.ExName, p.Instrument, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
 					writeOBBatchPoints(bp, p.ExName, p.Instrument, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
-					fmt.Println("len(bp) = ", len(bp.Points()))
+					//					fmt.Println("len(bp) = ", len(bp.Points()))
 
 				case MessagePoint:
 					tags := map[string]string{

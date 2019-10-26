@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"sync"
 	"time"
 )
 
@@ -45,132 +44,23 @@ type OrderBookCore interface {
 	BestAsk() Order       // Bestask returns the top of the orderbook
 }
 
-// OrderBook1 is an implementation of the OrderBookCore interface. Bids and asks are stored as lists of orders
-type OrderBook1 struct {
-	bids []Order
-	asks []Order
-	m    sync.Mutex
-}
+// OrderState defines the various states that orders can be in
+type OrderState string
 
-// Bids retrieves a list of bid orders from the orderbook
-func (ob *OrderBook1) Bids() []Order {
-	return ob.bids
-}
+const (
+	ALIVE     OrderState = "ALIVE"
+	FILLED    OrderState = "FILLED"
+	CANCELLED OrderState = "CANCELLED"
+	PARTIAL   OrderState = "PARTIAL"
+	REJECTED  OrderState = "REJECTED"
+)
 
-// Asks retrieves a list of asks from the orderbook
-func (ob *OrderBook1) Asks() []Order {
-	return ob.asks
-}
+type Side string
 
-// EmptyOrderBook returns an empty orderbook
-func EmptyOrderBook() OrderBook {
-	return OrderBook{new(OrderBook1)}
-}
-
-// NewOrderBook returns a new order book populated by bids and offers
-func NewOrderBook(bids, asks []Order) OrderBook {
-	ob := OrderBook1{bids: bids, asks: asks}.Sort()
-	return OrderBook{&ob}
-}
-
-// InsertBid adds a new order into the orderbook. Returns true if the top of book price has changed
-func (ob *OrderBook1) InsertBid(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	ob.bids = append(ob.bids, order)
-	ob.Sort()
-	return order.Price == ob.bids[0].Price
-}
-
-// InsertAsk adds a new order into the orderbook. Returns true if the top of book price has changed
-func (ob *OrderBook1) InsertAsk(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	ob.asks = append(ob.asks, order)
-	ob.Sort()
-	return order.Price == ob.asks[0].Price
-}
-
-// CancelBid deletes an order from the orderbook. Returns true if the top of book price has changed
-func (ob *OrderBook1) CancelBid(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	for i := range ob.bids {
-		if ob.bids[i].Price == order.Price {
-			ob.bids = append(ob.bids[:i], ob.bids[i+1:]...)
-			if i == 0 {
-				tob = true
-			}
-			break
-		}
-	}
-	return
-}
-
-// CancelAsk deletes an order from the orderbook. Returns true if the top of book price has changed
-func (ob *OrderBook1) CancelAsk(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	for i := range ob.asks {
-		if ob.asks[i].Price == order.Price {
-			ob.asks = append(ob.asks[:i], ob.asks[i+1:]...)
-			if i == 0 {
-				tob = true
-			}
-			break
-		}
-	}
-	return
-}
-
-// EditBid replaces an order at a particular level with another. Returns true if the top of book has changed
-func (ob *OrderBook1) EditBid(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	for i := range ob.bids {
-		if ob.bids[i].Price == order.Price {
-			ob.bids[i].Amount = order.Amount
-			break
-		}
-	}
-	return
-}
-
-// EditAsk replaces an order at a particular level with another. Returns true if the top of book has changed
-func (ob *OrderBook1) EditAsk(order Order) (tob bool) {
-	ob.m.Lock()
-	defer ob.m.Unlock()
-	for i := range ob.asks {
-		if ob.asks[i].Price == order.Price {
-			ob.asks[i].Amount = order.Amount
-			break
-		}
-	}
-	return
-}
-
-func (ob *OrderBook1) BestBid() Order {
-	if ob != nil && len(ob.bids) > 0 {
-		return ob.bids[0]
-	} else {
-		return Order{Price: math.NaN(), Amount: 0.0}
-	}
-}
-
-func (ob *OrderBook1) BestAsk() Order {
-	if ob != nil && len(ob.asks) > 0 {
-		return ob.asks[0]
-	} else {
-		return Order{Price: math.NaN(), Amount: 0.0}
-	}
-}
-func (ob OrderBook1) Sort() OrderBook1 {
-	// asks in ascending order
-	sort.Slice(ob.asks, func(i, j int) bool { return ob.asks[i].Price < ob.asks[j].Price })
-	// bids in descending order
-	sort.Slice(ob.bids, func(i, j int) bool { return ob.bids[i].Price > ob.bids[j].Price })
-	return ob
-}
+const (
+	BUY  Side = "BUY"
+	SELL Side = "SELL"
+)
 
 func (ob *OrderBook) BidAskMid() (bid, ask, mid float64) {
 	if ob == nil {
@@ -398,11 +288,11 @@ func (ob OrderBook) CumPctOB() CumPctOB {
 		//1. get x% price
 		var askx []float64
 		var bidx []float64
-		for i :=0; i < 100; i++ {
-			askx = append(askx, ob.Asks()[0].Price * (1 + (float64(i+1)/100)))
+		for i := 0; i < 100; i++ {
+			askx = append(askx, ob.Asks()[0].Price*(1+(float64(i+1)/100)))
 		}
-		for i:=0; i < 100; i++ {
-			bidx = append(bidx, ob.Bids()[0].Price * (1 - (float64(i+1)/100)))
+		for i := 0; i < 100; i++ {
+			bidx = append(bidx, ob.Bids()[0].Price*(1-(float64(i+1)/100)))
 		}
 		//2. get the orderbook index of x% price
 		var askind []int
@@ -478,21 +368,6 @@ func (ob OrderBook) Match(placedOrder Order) Order {
 		}
 	}
 }
-
-type OrderState string
-
-const (
-	ALIVE     OrderState = "ALIVE"
-	FILLED    OrderState = "FILLED"
-	CANCELLED OrderState = "CANCELLED"
-)
-
-type Side string
-
-const (
-	BUY  Side = "BUY"
-	SELL Side = "SELL"
-)
 
 func AmountToSide(amt float64) Side {
 	if amt < 0.0 {
