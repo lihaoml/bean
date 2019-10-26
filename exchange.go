@@ -39,6 +39,7 @@ const (
 	NameBitfinex = "BITFINEX"
 	NameZBTCex   = "ZBTCEX"
 	NameABEX     = "ABEX"
+	NameHitBTC	 = "HITBTC"
 
 	BEANEX = "BEANEX"
 )
