@@ -20,7 +20,7 @@ const (
 	NameKucoin   = "KUCOIN"
 	NameFcoin    = "FCOIN"
 	NameBgogo    = "BGOGO"
-	NameBCoin    = "BCOIN"
+	NameCezex    = "CEZEX"
 	NameBittrex  = "BITTREX"
 	NameDeribit  = "DERIBIT"
 	NameBitMex   = "BITMEX"
@@ -37,6 +37,8 @@ const (
 	NameBilaxy   = "BILAXY"
 	NameLBank    = "LBANK"
 	NameBitfinex = "BITFINEX"
+	NameZBTCex   = "ZBTCEX"
+	NameABEX     = "ABEX"
 
 	BEANEX = "BEANEX"
 )

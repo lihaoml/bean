@@ -46,15 +46,19 @@ const (
 	NKN Coin = "NKN"
 	KRW Coin = "KRW"
 
-	TRX  Coin = "TRX"
-	MFT  Coin = "MFT"
-	MITH Coin = "MITH"
-	MDT  Coin = "MDT"
-	BNB  Coin = "BNB"
-	APOT Coin = "APOT"
-	GT   Coin = "GT"
-	FMEX Coin = "FMEX"
-	DUO  Coin = "DUO"
+	TRX     Coin = "TRX"
+	MFT     Coin = "MFT"
+	MITH    Coin = "MITH"
+	MDT     Coin = "MDT"
+	BNB     Coin = "BNB"
+	APOT    Coin = "APOT"
+	GT      Coin = "GT"
+	FMEX    Coin = "FMEX"
+	DUO     Coin = "DUO"
+	AITFACE Coin = "AITFACE"
+
+	GNTO Coin = "GNTO" // GoldNugget
+	DGX  Coin = "DGX"
 )
 
 func (s Coins) Len() int {
@@ -146,6 +150,8 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	case DASH:
 		return math.Floor(amtAbs*1e5) / 1e5 * sgn
 	case BNB:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case PAX:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))

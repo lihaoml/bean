@@ -8,8 +8,7 @@ import (
 
 // GetTransactionHistory : get transaction time series
 func ClearOpenOrders(accountName string, start, end time.Time, filter map[string]string) error {
-	c, err := connect()
-	defer c.Close()
+	cs, err := connect()
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -21,9 +20,12 @@ func ClearOpenOrders(accountName string, start, end time.Time, filter map[string
 	for k, v := range filter {
 		cmd += " and " + k + "='" + v + "'"
 	}
-	_, err = influx.QueryDB(TDS_DBNAME, c, cmd)
-	if err != nil {
-		fmt.Println(err.Error())
+	for _, c := range cs {
+		c.Close()
+		_, err = influx.QueryDB(TDS_DBNAME, c, cmd)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 	return err
 }

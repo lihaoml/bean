@@ -20,49 +20,56 @@ type DealerInfo struct {
 // GetTransactionHistory : get transaction time series
 func GetTradeLogS(filter map[string]string, start, end time.Time) (TradeLogS, error) {
 	var trds TradeLogS
-	c, err := connect()
-	defer c.Close()
-	if err == nil {
+	cs, err := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	if err == nil && len(cs) > 0 {
 		timeFrom := start.Format(time.RFC3339)
 		timeTo := end.Format(time.RFC3339)
-		trds = getTrades(c, TDS_DBNAME, filter, timeFrom, timeTo)
+		trds = getTrades(cs[0], TDS_DBNAME, filter, timeFrom, timeTo)
 	}
 	return trds, err
 }
 
 // return a orderID -> DealerInfo
 func GetDealerInfo(filter map[string]string, start, end time.Time) map[string]DealerInfo {
-	c, err := connect()
+	cs, err := connect()
 	var res map[string]DealerInfo
-	defer c.Close()
-	if err == nil {
+	for _, c := range cs {
+		defer c.Close()
+	}
+	if err == nil && len(cs) > 0 {
 		timeFrom := start.Format(time.RFC3339)
 		timeTo := end.Format(time.RFC3339)
-		res = getDealers(c, TDS_DBNAME, filter, timeFrom, timeTo)
+		res = getDealers(cs[0], TDS_DBNAME, filter, timeFrom, timeTo)
 	}
 	return res
 }
 
 // get portfolio at time T for a particular account at a particular exchange
 func GetPortfolio(exNames []string, coins []Coin, acct string, t time.Time) Portfolio {
-	c, _ := connect()
-	defer c.Close()
+	cs, _ := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
 	timeAt := t.Format(time.RFC3339)
 	port := NewPortfolio()
-
 	for _, exName := range exNames {
-		port = port.Add(getBalances(c, BALANCE_DBNAME, acct, exName, coins, timeAt))
+		port = port.Add(getBalances(cs[0], BALANCE_DBNAME, acct, exName, coins, timeAt))
 	}
 	return port
 }
 
 func GetLatestTotalPortfolio(exs []Exchange, coins Coins, acctName string) Portfolio {
-	c, _ := connect()
-	defer c.Close()
+	cs, _ := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
 	port := NewPortfolio()
 	for _, ex := range exs {
 		for _, coin := range coins {
-			v := getLatestBalance(c, coin, ex.Name(), acctName)
+			v := getLatestBalance(cs[0], coin, ex.Name(), acctName)
 			port.AddBalance(coin, v)
 		}
 	}
@@ -70,20 +77,24 @@ func GetLatestTotalPortfolio(exs []Exchange, coins Coins, acctName string) Portf
 }
 
 func GetInitPortfolio(coins Coins, acctName string) Portfolio {
-	c, _ := connect()
-	defer c.Close()
+	cs, _ := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
 	port := NewPortfolio()
 	for _, coin := range coins {
-		v := getInitBalance(c, coin, acctName)
+		v := getInitBalance(cs[0], coin, acctName)
 		port.AddBalance(coin, v)
 	}
 	return port
 }
 
 func GetTodayPL(acctName string) float64 {
-	c, _ := connect()
-	defer c.Close()
-	return getTodayPL(c, acctName)
+	cs, _ := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	return getTodayPL(cs[0], acctName)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,7 +139,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 		MT_MARGIN_ACCOUNT_INFO + "\" where exchange = '" + exName +
 		"' and account = '" + acctName +
 		"' and PAIR =~ /" + string(c) + "$/ and time > now() - 8m group by PAIR)"
-	fmt.Println(query)
+	// fmt.Println(query)
 	resp, err = queryDB(client, BALANCE_DBNAME, query)
 	if err != nil {
 		log.Fatal(err)
@@ -141,7 +152,7 @@ func getLatestBalance(client client.Client, c Coin, exName string, acctName stri
 		MT_MARGIN_ACCOUNT_INFO + "\" where exchange = '" + exName +
 		"' and account = '" + acctName +
 		"' and PAIR =~ /^" + string(c) + "/ and time > now() - 8m group by PAIR)"
-	fmt.Println(query)
+	// fmt.Println(query)
 	resp, err = queryDB(client, BALANCE_DBNAME, query)
 	if err != nil {
 		log.Fatal(err)
