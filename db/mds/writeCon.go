@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-func (mds MDS) WriteContractOrderBook(exName string, instr string, obt OrderBookT) error {
+func (mds MDS) WriteContractOrderBook(exName string, instr string, symbol string, obt OrderBookT) error {
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
 		Precision: "ms",
 	})
-	writeOBBatchPoints(bp, exName, instr, "BID", obt.Bids(), obt.Time, 0)
-	writeOBBatchPoints(bp, exName, instr, "ASK", obt.Asks(), obt.Time, 0)
+	writeOBBatchPoints(bp, exName, instr, symbol, "BID", obt.Bids(), obt.Time, 0)
+	writeOBBatchPoints(bp, exName, instr, symbol, "ASK", obt.Asks(), obt.Time, 0)
 	return mds.WriteBatchPoints(bp)
 }
 
@@ -33,7 +33,7 @@ func (mds MDS) WriteContractTransactions(pts []ConTxnPoint) error {
 	return mds.WriteBatchPoints(bp)
 }
 
-func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, side Side, orders []Order, timeStamp time.Time, lag time.Duration) error {
+func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, symbol string, side Side, orders []Order, timeStamp time.Time, lag time.Duration) error {
 
 	if orders == nil {
 		tags := map[string]string{
@@ -41,6 +41,7 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, side Side, 
 			"instrument": instr,
 			"exchange":   exName,
 			"side":       string(side),
+			"symbol":     symbol,
 		}
 
 		fields := make(map[string]interface{})
@@ -98,6 +99,7 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 		"instr":    pt.Instrument,
 		"exchange": pt.ExName,
 		"side":     string(pt.Side),
+		"symbol":   pt.Symbol,
 	}
 
 	// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond

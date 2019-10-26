@@ -18,22 +18,24 @@ const bufferSize = 10000
 type ConOBPoint struct {
 	TimeStamp  time.Time
 	ExName     string
-	Instrument string
+	Instrument string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
 	OB         OrderBook
 	Lag        time.Duration
+	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
 }
 
 // ConTxnPoint allows sending of a reported trade for writing to the MDS TRANSACTIONS table
 type ConTxnPoint struct {
 	TimeStamp  time.Time
 	ExName     string
-	Instrument string
+	Instrument string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
 	Side       Side
 	Price      float64
 	Amount     float64
 	IndexPrice float64
 	Vol        float64
 	TxnID      string
+	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
 }
 
 type SpotTxnPoint struct {
@@ -123,8 +125,8 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			case dataPt := <-dataPtCh:
 				switch p := dataPt.(type) {
 				case ConOBPoint:
-					writeOBBatchPoints(bp, p.ExName, p.Instrument, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
-					writeOBBatchPoints(bp, p.ExName, p.Instrument, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
+					writeOBBatchPoints(bp, p.ExName, p.Instrument, p.Symbol, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
+					writeOBBatchPoints(bp, p.ExName, p.Instrument, p.Symbol, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
 					fmt.Println("len(bp) = ", len(bp.Points()))
 
 				case MessagePoint:
