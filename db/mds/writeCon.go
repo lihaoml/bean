@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
 	"math"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -104,8 +105,11 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 
 	// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond
 	ts := pt.TimeStamp
+	reg, err := regexp.Compile("[^0-9]+")
+	nTxnID := reg.ReplaceAllString(pt.TxnID, "")
+	fmt.Println("nTxnID = ", util.SafeFloat64(nTxnID[len(nTxnID)-2:]))
 	if len(pt.TxnID) > 0 {
-		ts = pt.TimeStamp.Add(time.Duration(util.SafeFloat64(pt.TxnID[len(pt.TxnID)-1:])))
+		ts = pt.TimeStamp.Add(time.Duration(util.SafeFloat64(nTxnID[len(nTxnID)-2:])))
 	}
 
 	newpt, err := client.NewPoint(MT_CONTRACT_TRANSACTION, tags, fields, ts)
