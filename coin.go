@@ -57,6 +57,8 @@ const (
 	DUO     Coin = "DUO"
 	AITFACE Coin = "AITFACE"
 
+	PROB Coin = "PROB"
+
 	GNTO Coin = "GNTO" // GoldNugget
 	DGX  Coin = "DGX"
 )
