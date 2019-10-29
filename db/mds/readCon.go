@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -104,6 +105,61 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 		}
 	}
 	return mkt, nil
+}
+
+func (mds MDS) GetContractTXNs(exName string, instr string, start, end time.Time) (ContractTXNs, error) {
+	var txns []ContractTXN
+	timeFrom := start.Format(time.RFC3339)
+	timeTo := end.Format(time.RFC3339)
+
+	cmd := "select Amount,Price,side from " + MT_CONTRACT_TRANSACTION +
+		" where time >='" + timeFrom + "' and time <='" + timeTo +
+		// "' and exchange = '" + exName +  // TODO: fix previous time series where exchange name is not recorded
+		"' and instr = '" + instr + "'"
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
+	if err != nil {
+		panic(err.Error())
+	}
+	if len(resp) <= 0 || len(resp[0].Series) <= 0 {
+		return txns, err
+	}
+
+	row := resp[0].Series[0]
+	var feed = make([]TransactPoint, len(row.Values))
+	for i, d := range row.Values {
+		// fmt.Println(d)
+		t1, _ := d[1].(json.Number).Float64()
+		t2, _ := d[2].(json.Number).Float64()
+		var side string
+		// this example works!
+		if m, ok := d[3].(string); ok {
+			side = m
+		} else if len(d) >= 5 {
+			if m, ok := d[4].(string); ok {
+				side = m
+			}
+		}
+		feed[i] = TransactPoint{time: d[0].(string), amount: t1, price: t2, traderType: side} // FIXME: traderType is not side
+	}
+
+	for _, v := range feed {
+		price := v.price
+		amount := v.amount
+		timestamp, _ := time.Parse(time.RFC3339, v.time)
+		var maker TraderType
+		if v.traderType == "BUY" {
+			maker = Seller
+		} else {
+			maker = Buyer
+		}
+		txns = append(txns, ContractTXN{Instrument: instr, Price: price, Amount: amount, TimeStamp: timestamp, Maker: maker})
+	}
+	// sort by TimeStamp
+	sort.Slice(txns, func(i, j int) bool { return txns[i].TimeStamp.Before(txns[j].TimeStamp) })
+	return txns, nil
 }
 
 // internal functions

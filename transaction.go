@@ -26,6 +26,15 @@ type Transaction struct {
 	TxnID     string
 }
 
+type ContractTXN struct {
+	Instrument string
+	Price      float64
+	Amount     float64
+	TimeStamp  time.Time
+	Maker      TraderType // buyer or seller
+	TxnID      string
+}
+
 type OHLCVBS struct {
 	Open       float64
 	High       float64
@@ -42,6 +51,7 @@ type OHLCVBSTS []OHLCVBS
 
 // To be completed
 type Transactions []Transaction
+type ContractTXNs []ContractTXN
 
 func (t Transactions) IsValid() bool {
 	return len(t) > 0
@@ -247,6 +257,38 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 		s := []string{
 			v.TimeStamp.Format(time.RFC3339),
 			v.Pair.String(),
+			fmt.Sprint(v.Price),
+			fmt.Sprint(v.Amount),
+			fmt.Sprint(v.Maker),
+		}
+		data = append(data, s)
+	}
+	csvWriter := csv.NewWriter(csvFile)
+	csvWriter.WriteAll(data)
+	csvWriter.Flush()
+}
+
+func (txn ContractTXNs) ToCSV(filename string) {
+	csvFile, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer csvFile.Close()
+	var data [][]string
+
+	head := []string{
+		"Time",
+		"Instr",
+		"Price",
+		"Quantity",
+		"Maker",
+	}
+	data = append(data, head)
+
+	for _, v := range txn {
+		s := []string{
+			v.TimeStamp.Format(time.RFC3339),
+			v.Instrument,
 			fmt.Sprint(v.Price),
 			fmt.Sprint(v.Amount),
 			fmt.Sprint(v.Maker),
