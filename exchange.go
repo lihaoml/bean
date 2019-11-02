@@ -135,6 +135,13 @@ func (ex *BaseExchange) TrackOrderID(pair Pair, oid string) {
 	ex.oids[pair] = append(ex.oids[pair], oid)
 }
 
+func (ex *BaseExchange) UpdateOrderIDs(pair Pair, oids []string) {
+	if ex.oids == nil {
+		ex.oids = make(map[Pair]([]string))
+	}
+	ex.oids[pair] = oids
+}
+
 // interface function of base class
 func (ex BaseExchange) GetMyOrders(pair Pair) []OrderStatus {
 	panic(ex.name + "GetMyOrders(pair Pair)" + " not implemented")
