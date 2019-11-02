@@ -189,7 +189,16 @@ func (ex BaseExchange) GetKline(pair Pair, interval string, limit int) (OHLCVBST
 
 func (ex BaseExchange) GetTicker(pair Pair) (Ticker, error) {
 	err := errors.New(ex.Name() + ".GetTicker() not implemented")
-	return Ticker{math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN(), math.NaN()}, err
+	return Ticker{
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+		math.NaN(),
+	}, err
 }
 
 func (ex BaseExchange) GetLastPrice(pair Pair) (float64, error) {
