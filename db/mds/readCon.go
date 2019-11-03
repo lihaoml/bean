@@ -6,6 +6,7 @@ import (
 	"bean/utils"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sort"
 	"strconv"
@@ -65,7 +66,7 @@ func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth
 
 // GetMarket retrieves an entire market of contracts as per a specific time
 func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map[string]OrderBookT, error) {
-	cmd := "SELECT instrument,side,index,Amount,last(Price) as Price from " + MT_ORDERBOOK + // TODO: change MT_ORDERBOOK to MT_CONTRACT_ORDERBOOK when mds migration is done
+	cmd := "SELECT instrument,side,index,Amount,last(Price) as Price from " + MT_CONTRACT_ORDERBOOK +
 		" WHERE time <='" + snap.Format(time.RFC3339) + "'" +
 		" and time >='" + snap.Add(-12*time.Hour).Format(time.RFC3339) + "'" +
 		" and exchange = '" + exName + "'" +
@@ -182,12 +183,13 @@ func getOrders2(c client.Client, instrument string, side string, timeFrom string
 func getOrder2(c client.Client, instrument string, side string, timeFrom string, timeTo string, index string, sample string) map[string]Order {
 	var query string
 	if sample == "" {
-		query = "select Amount,Price,index from \"" + instrument +
-			"\" where time >='" + timeFrom + "' and time <='" + timeTo +
-			"' and index = '" + index + "' " +
+		query = "select Amount,Price,index from " + MT_CONTRACT_ORDERBOOK +
+			" where instrument='" + instrument + "'" +
+			" and time >='" + timeFrom + "' and time <='" + timeTo + "'" +
+			" and index = '" + index + "'" +
 			" and side='" + side + "'"
 	} else {
-		query = "select last(Amount),Price,index from " + MT_ORDERBOOK +
+		query = "select last(Amount),Price,index from " + MT_CONTRACT_ORDERBOOK +
 			" where instrument='" + instrument + "'" +
 			" and time >='" + timeFrom + "' and time <='" + timeTo + "'" +
 			" and index = '" + index + "'" +
@@ -196,6 +198,7 @@ func getOrder2(c client.Client, instrument string, side string, timeFrom string,
 	}
 
 	resp, err := influx.QueryDB(MDS_DBNAME, c, query)
+	fmt.Println(query)
 
 	if err != nil {
 		log.Fatal(err)

@@ -4,11 +4,12 @@ import (
 	. "bean"
 	util "bean/utils"
 	"fmt"
-	"github.com/influxdata/influxdb/client/v2"
 	"math"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 func (mds MDS) WriteContractOrderBook(exName string, instr string, symbol string, obt OrderBookT) error {
@@ -30,7 +31,7 @@ func (mds MDS) WriteContractTransactions(pts []ConTxnPoint) error {
 		fmt.Println(pt)
 		writeConTxnBatchPoints(bp, pt)
 	}
-	fmt.Println("start writing")
+	//	fmt.Println("start writing")
 	return mds.WriteBatchPoints(bp)
 }
 
@@ -107,7 +108,7 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 	ts := pt.TimeStamp
 	reg, err := regexp.Compile("[^0-9]+")
 	nTxnID := reg.ReplaceAllString(pt.TxnID, "")
-	fmt.Println("nTxnID = ", util.SafeFloat64(nTxnID[len(nTxnID)-2:]))
+	//	fmt.Println("nTxnID = ", util.SafeFloat64(nTxnID[len(nTxnID)-2:]))
 	if len(pt.TxnID) > 0 {
 		ts = pt.TimeStamp.Add(time.Duration(util.SafeFloat64(nTxnID[len(nTxnID)-2:])))
 	}
