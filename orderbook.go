@@ -152,12 +152,15 @@ func (ob *OrderBook) Denoise(pair Pair) *OrderBook {
 }
 
 // OrderBook display
-func (ob OrderBook) ShowBrief() {
+func (ob OrderBook) ShowBrief() string {
+	msg := ""
 	if ob.Valid() {
-		fmt.Println("depth:", len(ob.Asks()), "bestBid:", ob.BestBid().Price, "bestAsk:", ob.BestAsk().Price)
+		msg = fmt.Sprint("depth:", len(ob.Asks()), "bestBid:", ob.BestBid().Price, "bestAsk:", ob.BestAsk().Price)
 	} else {
-		fmt.Println("empty orderbook")
+		msg = fmt.Sprint("empty orderbook")
 	}
+	fmt.Println(msg)
+	return msg
 }
 
 // ShowBrief prints a summary of the orderbook.
