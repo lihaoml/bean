@@ -155,7 +155,7 @@ func (ob *OrderBook) Denoise(pair Pair) *OrderBook {
 func (ob OrderBook) ShowBrief() string {
 	msg := ""
 	if ob.Valid() {
-		msg = fmt.Sprint("depth:", len(ob.Asks()), "bestBid:", ob.BestBid().Price, "bestAsk:", ob.BestAsk().Price)
+		msg = fmt.Sprint("depth:", len(ob.Asks()), " bestBid:", ob.BestBid().Price, " bestAsk:", ob.BestAsk().Price)
 	} else {
 		msg = fmt.Sprint("empty orderbook")
 	}

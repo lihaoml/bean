@@ -205,3 +205,36 @@ func (ex BaseExchange) GetLastPrice(pair Pair) (float64, error) {
 	err := errors.New(ex.Name() + ".GetTicker() not implemented")
 	return math.NaN(), err
 }
+
+func ExShortName(exName string) string {
+	switch exName {
+	case NameBinance:
+		return "BIN"
+	case NameBitMax:
+		return "BMA"
+	case NameBitMex:
+		return "BMX"
+	case NameBitfinex:
+		return "BFX"
+	case NameCezex:
+		return "CZX"
+	case NameBittrex:
+		return "BTX"
+	case NameDeribit:
+		return "DRB"
+	case NamePiexgo:
+		return "PXG"
+	case NameElitex:
+		return "ELX"
+	case NameLBank:
+		return "LBK"
+	case NameCodex:
+		return "CDX"
+	}
+	if len(exName) > 3 {
+		return exName[0:3]
+	} else {
+		return exName
+	}
+
+}
