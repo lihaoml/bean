@@ -272,7 +272,7 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{BTC, USD}:
 		prec = 2
 	case Pair{AITFACE, USDT}:
-		prec = 2
+		prec = 4
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
