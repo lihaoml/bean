@@ -61,6 +61,7 @@ const (
 
 	GNTO Coin = "GNTO" // GoldNugget
 	DGX  Coin = "DGX"
+	VND  Coin = "VND"
 )
 
 func (s Coins) Len() int {
@@ -155,6 +156,8 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case PAX:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case DGX:
+		return math.Floor(amtAbs*1e3) / 1e3 * sgn
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
