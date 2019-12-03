@@ -46,21 +46,18 @@ func ContractFromName(name string) (*Contract, error) {
 	var underlying Pair
 	var strike float64
 	var err error
-	var perp bool
 
 	conCacheLock.Lock()
 	defer conCacheLock.Unlock()
 
 	con, exists := contractCache[name]
-
 	if exists {
 		return con, nil
 	}
 
 	st := strings.Split(name, "-")
-	if len(st) != 4 && len(st) != 2 {
-		err = errors.New("not a good contract formation")
-		return nil, err
+	if len(st) < 2 {
+		return nil, errors.New("Bad contract formation")
 	}
 
 	switch st[0] {
@@ -73,56 +70,62 @@ func ContractFromName(name string) (*Contract, error) {
 		return nil, err
 	}
 
-	if st[1] == "PERPETUAL" {
-		return PerpContract(underlying), nil
-	} else {
-		perp = false
+	switch len(st) {
+	case 2:
+		if st[1] == "PERPETUAL" {
+			con = PerpContract(underlying)
+		} else {
+			dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+			if err != nil {
+				return nil, err
+			}
+			expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
+			con = &Contract{
+				underlying: underlying,
+				expiry:     expiry,
+				delivery:   expiry,
+				callPut:    NA}
+		}
+
+	case 4:
 		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
 		if err != nil {
 			return nil, err
 		}
 		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
-	}
 
-	if len(st) == 2 {
+		strike, err = strconv.ParseFloat(st[2], 64)
+		if err != nil {
+			return nil, err
+		}
+
+		switch st[3] {
+		case "C":
+			callPut = Call
+		case "P":
+			callPut = Put
+		default:
+			return nil, errors.New("Need C OR P")
+
+		}
 		con = &Contract{
-			isOption:   false,
+			isOption:   true,
 			underlying: underlying,
 			expiry:     expiry,
 			delivery:   expiry,
-			callPut:    NA,
-			strike:     0.0,
-			perp:       perp}
-		contractCache[name] = con
-		return con, nil
-	}
+			callPut:    callPut,
+			strike:     strike}
 
-	strike, err = strconv.ParseFloat(st[2], 64)
-	if err != nil {
-		return nil, err
-	}
-
-	switch st[3] {
-	case "C":
-		callPut = Call
-	case "P":
-		callPut = Put
 	default:
-		return nil, errors.New("Need C OR P")
-
+		return nil, errors.New("not a good contract formation")
 	}
-	con = &Contract{
-		isOption:   true,
-		underlying: underlying,
-		expiry:     expiry,
-		delivery:   expiry,
-		callPut:    callPut,
-		strike:     strike}
+
 	contractCache[name] = con
 	return con, nil
-
 }
 
+// ContractFromPartialName accepts contracts in the form
+// dec mar-10000 btc-jun-10000-c fri 2fr perp
 func ContractFromPartialName(partialName string) (*Contract, error) {
 	const example = "\nDon't understand contract\nExample JUN or 3500 or MAR-4000-C or BTC-3000-P"
 	sts := strings.Split(partialName, "-")
@@ -142,7 +145,6 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			n := time.Now()
 			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
 			c.expiry = tod
-			c.isOption = false
 			continue
 		case "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC":
 			// Find the last friday of the relevant month
@@ -208,7 +210,6 @@ func PerpContract(p Pair) *Contract {
 	n := time.Now()
 	tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
 	return &Contract{
-		isOption:   false,
 		perp:       true,
 		expiry:     tod,
 		underlying: p}
