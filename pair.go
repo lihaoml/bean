@@ -248,6 +248,12 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 6
 	case Pair{DGX, ETH}:
 		prec = 5
+	case Pair{DGX, VND}:
+		prec = 0
+	case Pair{USDT, VND}:
+		prec = 0
+	case Pair{ETH, VND}:
+		prec = 0
 	case Pair{BCH, USDT}:
 		prec = 2
 	case Pair{BCH, BTC}:
