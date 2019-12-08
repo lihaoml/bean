@@ -30,7 +30,7 @@ type Order struct {
 }
 
 // OrderBookCore defines the core functions needed in the OrderBook object
-// These are implemented in the OrderBook1 array implementation (OrderBook2 map implementation pending)
+// These are implemented in the OrderBook1 array implementation (OrderBookMap map implementation pending)
 type OrderBookCore interface {
 	Bids() []Order        // Bids returns a list of live orders
 	Asks() []Order        // Asks returns a list of live orders
@@ -91,30 +91,8 @@ func (ob *OrderBook) Valid() bool {
 	return !math.IsNaN(ob.BestBid().Price) && !math.IsNaN(ob.BestAsk().Price)
 }
 
-func (ob *OrderBook) Copy() OrderBook {
-	bids := ob.Bids()
-	asks := ob.Asks()
-	ob2 := OrderBook1{
-		bids: make([]Order, len(bids)),
-		asks: make([]Order, len(asks)),
-	}
-	for i := range bids {
-		ob2.bids[i] = bids[i]
-	}
-	for i := range asks {
-		ob2.asks[i] = asks[i]
-	}
-	return OrderBook{&ob2}
-}
 func (ob *OrderBook) Mid() float64 {
 	return (ob.BestBid().Price + ob.BestAsk().Price) / 2.0
-}
-
-func (obt *OrderBookT) Copy() *OrderBookT {
-	return &OrderBookT{
-		OrderBook: obt.OrderBook.Copy(),
-		Time:      obt.Time,
-	}
 }
 
 // Compare two orderbooks. Equal if the best bid and best offer hasn't changed
