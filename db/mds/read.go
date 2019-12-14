@@ -68,7 +68,7 @@ func (mds MDS) GetOrderBookTS2(exName string, pair Pair, start, end time.Time) (
 		}
 	}
 	for t, ob := range tmp {
-		obts = append(obts, OrderBookT{OrderBook: ob.Copy(), Time: t})
+		obts = append(obts, OrderBookT{OrderBook: ob, Time: t})
 	}
 	return obts.Sort(), nil
 }

@@ -391,9 +391,10 @@ func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 // Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USD rates float and are generally negative.
 func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if p.Con.IsOption() {
-		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty
+		/*		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty*/
+		return p.Con.OptPrice(asof, spotPrice, futPrice, vol)*p.Qty - p.Price*spotPrice*p.Qty
 	} else {
-		return (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty // Deribit quantity now in 1$.
+		return (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty * 10.0
 	}
 }
 
