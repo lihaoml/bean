@@ -100,34 +100,13 @@ func (pair Pair) MinimumTradingAmount() float64 {
 func (pair Pair) FormatPrice(price float64) string {
 	var prec int = 8
 	switch pair {
-	case Pair{ETH, USDT}:
+	case Pair{ETH, USDT}, Pair{ETH, USDC}, Pair{ETH, PAX}:
 		prec = 2
-	case Pair{ETH, USDC}:
-		prec = 2
-	case Pair{ETH, PAX}:
-		prec = 2
-
-	case Pair{EOS, USDT}:
+	case Pair{EOS, USDT}, Pair{EOS, USDC}, Pair{EOS, PAX}:
 		prec = 3
-	case Pair{EOS, USDC}:
-		prec = 3
-	case Pair{EOS, PAX}:
-		prec = 3
-
-	case Pair{PAX, USDT}:
+	case Pair{PAX, USDT}, Pair{USDC, USDT}, Pair{TUSD, USDT}:
 		prec = 4
-	case Pair{USDC, USDT}:
-		prec = 4
-	case Pair{TUSD, USDT}:
-		prec = 4
-
-	case Pair{BTC, USDT}:
-		prec = 2
-	case Pair{BTC, USDC}:
-		prec = 2
-	case Pair{BTC, PAX}:
-		prec = 2
-	case Pair{BTC, TUSD}:
+	case Pair{BTC, USDT}, Pair{BTC, USDC}, Pair{BTC, PAX}, Pair{BTC, TUSD}:
 		prec = 2
 
 	case Pair{ETH, BTC}:
@@ -149,9 +128,9 @@ func (pair Pair) FormatAvgPrice(price float64) string {
 
 func orderPricePrec(pair Pair) (prec int) {
 	switch pair {
-	case Pair{ETH, USDT}:
+	case Pair{ETH, USDT}, Pair{ETH, PAX}:
 		prec = 2
-	case Pair{BTC, USDT}:
+	case Pair{BTC, USDT}, Pair{BTC, PAX}:
 		prec = 2
 	case Pair{ONT, USDT}:
 		prec = 3
@@ -201,7 +180,7 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 8
 	case Pair{EOS, BTC}:
 		prec = 7
-	case Pair{EOS, USDT}:
+	case Pair{EOS, USDT}, Pair{EOS, PAX}:
 		prec = 4 // fcoin uses 3
 	case Pair{EOS, ETH}:
 		prec = 6
@@ -227,18 +206,10 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{IOTX, KRW}:
 		prec = 2
 
-	case Pair{LTC, USDT}:
-		prec = 2
-	case Pair{LTC, PAX}:
+	case Pair{LTC, USDT}, Pair{LTC, PAX}:
 		prec = 2
 	case Pair{LTC, BTC}:
 		prec = 6
-	case Pair{EOS, PAX}:
-		prec = 3
-	case Pair{ETH, PAX}:
-		prec = 2
-	case Pair{BTC, PAX}:
-		prec = 1
 
 	case Pair{PAX, USDT}:
 		prec = 4
@@ -279,6 +250,8 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 2
 	case Pair{AITFACE, USDT}:
 		prec = 4
+	case Pair{GNTO, USDT}:
+		prec = 3
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return

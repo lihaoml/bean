@@ -168,7 +168,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 
 func (coin Coin) RenderCoinAmount(amount float64) string {
 	switch coin {
-	case USDT:
+	case USDT, USDC, USD, TUSD, PAX:
 		if math.Abs(amount) < 0.01 {
 			return ""
 		} else {
@@ -189,7 +189,7 @@ func (coin Coin) RenderCoinAmount(amount float64) string {
 	case ETH:
 		return string("`Ξ `") + util.RenderFloat("###.###", amount)
 	case DGX:
-		return string("`DGX `") + util.RenderFloat("###.###", amount)
+		return string("`G `") + util.RenderFloat("###.###", amount)
 	case IOTX:
 		if amount == 0 {
 			return ""
