@@ -1,9 +1,12 @@
 package bean
 
 import (
+	util "bean/utils"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"math"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -161,6 +164,71 @@ func (ob OrderBook) ShowBrief() string {
 	}
 	fmt.Println(msg)
 	return msg
+}
+
+func (ob OrderBook) PrettyPrint() string {
+	// no limit on max level
+	return ob.PrettyPrintD(10000, EmptyOrderBook())
+}
+
+func (ob OrderBook) PrettyPrintD(maxLevel int, myob OrderBook) string {
+	var buffer strings.Builder
+	table := tablewriter.NewWriter(&buffer)
+	table.SetHeader([]string{"AMT", "BID", "ASK", "AMT"})
+	table.SetCenterSeparator("Ξ")
+	table.SetHeaderAlignment(tablewriter.ALIGN_RIGHT)
+	table.SetAlignment(tablewriter.ALIGN_RIGHT)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("\t") // pad with tabs
+	table.SetNoWhiteSpace(true)
+
+	nBids := len(ob.Bids())
+	nAsks := len(ob.Asks())
+	nRows := util.MinOf(util.MaxOf(nBids, nAsks), maxLevel)
+	for i := 0; i < nRows; i++ {
+		v := make([]string, 4)
+		if i < nBids {
+			// rounding amount to 3 dp to avoid ugly format for telegram
+			v[0] = fmt.Sprint(math.Round(ob.Bids()[i].Amount*1e3) / 1e3)
+			v[1] = fmt.Sprint(ob.Bids()[i].Price)
+			perc := 0.0
+			for _, mb := range myob.Bids() {
+				if math.Abs(mb.Price-ob.Bids()[i].Price) < 1e-10 {
+					perc += mb.Amount / ob.Bids()[i].Amount
+				}
+			}
+			if perc > 0.9 {
+				v[0] += "◂"
+			} else if perc > 0 {
+				v[0] += "◃"
+			}
+		}
+		if i < nAsks {
+			v[2] = fmt.Sprint(ob.Asks()[i].Price)
+			// rounding amount to 3 dp to avoid ugly format for telegram
+			v[3] = fmt.Sprint(math.Round(ob.Asks()[i].Amount*1e3) / 1e3)
+			perc := 0.0
+			for _, ma := range myob.Asks() {
+				if math.Abs(ma.Price-ob.Asks()[i].Price) < 1e-10 {
+					perc += ma.Amount / ob.Asks()[i].Amount
+				}
+			}
+			if perc > 0.9 {
+				v[3] += "◂"
+			} else if perc > 0 {
+				v[3] += "◃"
+			}
+		}
+		table.Append(v)
+	}
+	table.Render() // Send output
+	res := buffer.String()
+	fmt.Print(res)
+	return res
 }
 
 // ShowBrief prints a summary of the orderbook.

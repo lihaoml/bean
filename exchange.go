@@ -108,6 +108,20 @@ type OrderStatus struct {
 	CommissionAsset Coin
 }
 
+// sugar function, mainly for reporting and formatting purposes
+func OrderStatusToOrderBook(orders []OrderStatus) OrderBook {
+	bids := make([]Order, 0)
+	asks := make([]Order, 0)
+	for _, o := range orders {
+		if o.Side == BUY {
+			bids = append(bids, Order{o.Price, o.LeftAmount})
+		} else {
+			asks = append(asks, Order{o.Price, o.LeftAmount})
+		}
+	}
+	return NewOrderBook(bids, asks)
+}
+
 // exchange is a struct for holding common member variables and base functions
 type BaseExchange struct {
 	name string
