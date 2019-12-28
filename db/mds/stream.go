@@ -2,7 +2,6 @@ package mds
 
 import (
 	. "bean"
-	"beanex/risk"
 	"errors"
 	"fmt"
 	"strings"
@@ -69,10 +68,10 @@ type ArbPoint struct {
 
 // SmilePoint allows fitted smile parameters to be written to the MDS SMILE table
 type SmilePoint struct {
-	TimeStamp time.Time
-	Pair      Pair
-	Expiry    time.Time
-	VolSmile  *risk.FivePointSmile
+	TimeStamp                     time.Time
+	Pair                          Pair
+	Expiry                        time.Time
+	Atm, RR25, RR10, Fly25, Fly10 float64
 }
 
 // Writer creates a DataPtCh channel into which various structures can be sent.
@@ -170,11 +169,11 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 						"expiry": strings.ToUpper(p.Expiry.Format("2Jan06")),
 						"pair":   p.Pair.String()}
 					fields := map[string]interface{}{
-						"Atm":   p.VolSmile.Atm * 100.0,
-						"RR25":  p.VolSmile.RR25 * 100.0,
-						"RR10":  p.VolSmile.RR10 * 100.0,
-						"Fly25": p.VolSmile.Fly25 * 100.0,
-						"Fly10": p.VolSmile.Fly10 * 100.0}
+						"Atm":   p.Atm * 100.0,
+						"RR25":  p.RR25 * 100.0,
+						"RR10":  p.RR10 * 100.0,
+						"Fly25": p.Fly25 * 100.0,
+						"Fly10": p.Fly10 * 100.0}
 					pt, err := client.NewPoint("SMILE", tags, fields, p.TimeStamp)
 					if err != nil {
 						errCh <- err
