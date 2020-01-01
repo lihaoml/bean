@@ -61,15 +61,15 @@ func GetPortfolio(exNames []string, coins []Coin, acct string, t time.Time) Port
 	return port
 }
 
-func GetLatestTotalPortfolio(exs []Exchange, coins Coins, acctName string) Portfolio {
+func GetLatestTotalPortfolio(exNames []string, coins Coins, acctName string) Portfolio {
 	cs, _ := connect()
 	for _, c := range cs {
 		defer c.Close()
 	}
 	port := NewPortfolio()
-	for _, ex := range exs {
+	for _, exName := range exNames {
 		for _, coin := range coins {
-			v := getLatestBalance(cs[0], coin, ex.Name(), acctName)
+			v := getLatestBalance(cs[0], coin, exName, acctName)
 			port.AddBalance(coin, v)
 		}
 	}
