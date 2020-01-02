@@ -225,6 +225,8 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 0
 	case Pair{ETH, VND}:
 		prec = 0
+	case Pair{BTC, VND}:
+		prec = 0
 	case Pair{BCH, USDT}:
 		prec = 2
 	case Pair{BCH, BTC}:
@@ -283,10 +285,10 @@ func AllCoins(pairs []Pair) (res Coins) {
 }
 
 func RightPair(coin1, coin2 Coin) (Pair, bool) {
-	if coin1 == USDT || coin1 == USD {
+	if coin1 == USDT || coin1 == USD || coin1 == USDC || coin1 == PAX {
 		return Pair{coin2, coin1}, true
 	}
-	if coin2 == USDT || coin2 == USD {
+	if coin2 == USDT || coin2 == USD || coin2 == USDC || coin2 == PAX {
 		return Pair{coin1, coin2}, true
 	}
 	if coin1 == BTC {
