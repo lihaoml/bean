@@ -111,7 +111,6 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 				if len(errMsgs) == len(mds.cs) {
 					// all writing failed, stop the process
 					errCh <- errors.New(fmt.Sprint(errMsgs))
-					stopCh <- true
 					return
 				}
 				bp = nil
@@ -136,7 +135,6 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					pt, err := client.NewPoint("MSG", tags, fields, p.TimeStamp)
 					if err != nil {
 						errCh <- err
-						stopCh <- true
 						return
 					}
 					bp.AddPoint(pt)
@@ -159,7 +157,6 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					pt, err := client.NewPoint("ARB", tags, fields, p.TimeStamp)
 					if err != nil {
 						errCh <- err
-						stopCh <- true
 						return
 					}
 					bp.AddPoint(pt)
@@ -177,7 +174,6 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 					pt, err := client.NewPoint("SMILE", tags, fields, p.TimeStamp)
 					if err != nil {
 						errCh <- err
-						stopCh <- true
 						return
 					}
 					bp.AddPoint(pt)
