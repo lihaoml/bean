@@ -362,3 +362,26 @@ func AddCash(coin Coin, amt float64, acctName, exname, owner, remarks string) er
 	bp.AddPoint(pt)
 	return influx.WriteBatchPoints(cs, bp)
 }
+
+func WritePointsToBalanceDB(pts []influx.Point, measurement string) error {
+	cs, err := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	if err != nil {
+		logger.Warn().Msg(err.Error())
+		return err
+	}
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  BALANCE_DBNAME,
+		Precision: "s",
+	})
+	for _, p := range pts {
+		pt, err := client.NewPoint(measurement, p.Tags, p.Fields, p.TimeStamp)
+		if err != nil {
+			return err
+		}
+		bp.AddPoint(pt)
+	}
+	return influx.WriteBatchPoints(cs, bp)
+}
