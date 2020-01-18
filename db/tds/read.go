@@ -119,6 +119,25 @@ func getTodayPL(client client.Client, acctName string) float64 {
 	}
 }
 
+func GetLatestMTM(acctName string) float64 {
+	cs, _ := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	mt := MT_MTM
+	query := "select LAST(MTMUSD) from \"" + mt + "\" where account='" + acctName + "'"
+	resp, err := queryDB(cs[0], BALANCE_DBNAME, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(resp) > 0 && len(resp[0].Series) > 0 && len(resp[0].Series[0].Values) > 0 {
+		return util.SafeFloat64(resp[0].Series[0].Values[0][1])
+	} else {
+		fmt.Println("failing to query pl")
+		return math.NaN()
+	}
+}
+
 func getLatestBalance(client client.Client, c Coin, exName string, acctName string) float64 {
 	mt := MT_COIN_BALANCE
 	query := "select LAST(" + string(c) + ") from \"" + mt + "\" where exchange = '" + exName + "' and account = '" + acctName + "' and aggregated = 'NO'" + " limit 1"

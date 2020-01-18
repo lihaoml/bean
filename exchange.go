@@ -57,6 +57,9 @@ func BeanexAccountPath() string {
 func BeanexConfigPath() string {
 	return os.Getenv(BEANEX) + "/config/"
 }
+func BeanexDataPath() string {
+	return os.Getenv(BEANEX) + "/data/"
+}
 
 // Exchange is the interface for all exchanges
 // Any exchange struct should implement all these interfaces
