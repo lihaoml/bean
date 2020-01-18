@@ -2,6 +2,7 @@ package mds
 
 import (
 	. "bean"
+	"bean/db/influx"
 	"bean/utils"
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
@@ -56,6 +57,21 @@ func (mds MDS) WriteTXNPoints(trans Transactions, exName string) error {
 
 	for _, t := range trans {
 		writeSpotTxnBatchPoints(bp, exName, t)
+	}
+	return mds.WriteBatchPoints(bp)
+}
+
+func (mds MDS) WritePoints(pts []influx.Point, measurement string) error {
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  MDS_DBNAME,
+		Precision: "s",
+	})
+	for _, p := range pts {
+		pt, err := client.NewPoint(measurement, p.Tags, p.Fields, p.TimeStamp)
+		if err != nil {
+			return err
+		}
+		bp.AddPoint(pt)
 	}
 	return mds.WriteBatchPoints(bp)
 }

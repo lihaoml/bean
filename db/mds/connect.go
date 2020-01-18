@@ -13,6 +13,7 @@ const MT_TRANSACTION string = "TRANSACTION"
 const MT_CONTRACT_ORDERBOOK string = "CONTRACT_ORDERBOOK"
 const MT_CONTRACT_TRANSACTION string = "CONTRACT_TRANSACTION"
 const MT_TICK string = "TICK"
+const MT_FUNDING_RATE string = "FUNDING_RATE"
 
 type MDS struct {
 	cs []client.Client // connecting to multiple MDS server (if provided), write - write to multiple servers, read - read from one that is available

@@ -4,7 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/influxdata/influxdb/client/v2"
+	"time"
 )
+
+type Point struct {
+	Tags      map[string]string
+	Fields    map[string]interface{}
+	TimeStamp time.Time
+}
 
 func QueryDB(dbName string, clnt client.Client, cmd string) (res []client.Result, err error) {
 	q := client.Query{
