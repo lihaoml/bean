@@ -41,6 +41,7 @@ const (
 	NameABEX     = "ABEX"
 	NameHitBTC   = "HITBTC"
 	NamePROBIT   = "PROBIT"
+	NameCoinone  = "COINONE"
 
 	BEANEX = "BEANEX"
 )
