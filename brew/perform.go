@@ -37,6 +37,9 @@ func PerformActions(exs *(map[string]Exchange), actions []TradeAction, sep ...ti
 			)
 			cancelled = append(cancelled, ExNameWithOID{act.ExName, act.Pair, oid, time.Now()})
 			break
+		case Wait:
+			time.Sleep(time.Duration(act.Params["time"].(int)) * time.Second)
+			break
 		}
 	}
 	return

@@ -11,6 +11,7 @@ type Operation int
 const ( // iota is reset to 0
 	PlaceLimitOrder Operation = 0
 	CancelOpenOrder Operation = 1
+	Wait            Operation = 2
 )
 
 // exchange is a struct for holding common member variables and base functions
@@ -47,6 +48,8 @@ func (t TradeAction) Show() string {
 		}
 	case CancelOpenOrder:
 		return fmt.Sprint(t.ExName[0:2], " Cancel order ", t.Pair, t.Params["orderid"])
+	case Wait:
+		return fmt.Sprint("Wait for ", t.Params["time"], " seconds")
 	default:
 		return fmt.Sprint(t)
 	}
@@ -76,6 +79,15 @@ func PlaceLimitOrderAction(exName string, pair Pair, price, amount float64) Trad
 		ExName: exName,
 		Op:     PlaceLimitOrder,
 		Pair:   pair,
+		Params: params,
+	}
+}
+
+func WaitAction(nSec int) TradeAction {
+	params := make(map[string]interface{})
+	params["time"] = nSec
+	return TradeAction{
+		Op:     Wait,
 		Params: params,
 	}
 }
