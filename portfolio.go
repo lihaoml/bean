@@ -137,6 +137,8 @@ func (p portfolio) Add(p2 Portfolio) Portfolio {
 	port := p.Clone()
 	for c, v := range p2.Balances() {
 		port.AddBalance(c, v)
+		locked := port.Balance(c) - port.AvailableBalance(c) + v - p2.AvailableBalance(c)
+		port.SetLockedBalance(c, locked)
 	}
 	return port
 }
