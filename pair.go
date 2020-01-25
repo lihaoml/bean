@@ -1,6 +1,7 @@
 package bean
 
 import (
+	"bean/logger"
 	util "bean/utils"
 	"fmt"
 	"math"
@@ -291,6 +292,12 @@ func RightPair(coin1, coin2 Coin) (Pair, bool) {
 	if coin2 == USDT || coin2 == USD || coin2 == USDC || coin2 == PAX {
 		return Pair{coin1, coin2}, true
 	}
+	if coin2 == KRW {
+		return Pair{coin1, coin2}, true
+	}
+	if coin1 == KRW {
+		return Pair{coin2, coin1}, false
+	}
 	if coin1 == BTC {
 		return Pair{coin2, coin1}, true
 	}
@@ -315,6 +322,8 @@ func RightPair(coin1, coin2 Coin) (Pair, bool) {
 	if (coin1 == IOTX && coin2 == APOT) || (coin1 == APOT && coin2 == IOTX) {
 		return Pair{IOTX, APOT}, true
 	}
+
+	logger.Warn().Msg(("unknow pair convention " + string(coin1) + string(coin2)))
 	return Pair{}, false
 }
 
