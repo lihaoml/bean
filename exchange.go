@@ -30,7 +30,6 @@ const (
 	NameFcoinM   = "FCOINM" // FCoin margin account, require MARGIN_PAIR in env, only single margin pair is supported
 	NameGopax    = "GOPAX"
 	NamePiexgo   = "PIEXGO"
-	NameCodex    = "CODEX"
 	NameElitex   = "ELITEX"
 	NameBitMax   = "BITMAX"
 	NameHotBit   = "HOTBIT"
@@ -42,6 +41,7 @@ const (
 	NameHitBTC   = "HITBTC"
 	NamePROBIT   = "PROBIT"
 	NameCoinone  = "COINONE"
+	NameInfiBTC  = "INFIBTC"
 
 	BEANEX = "BEANEX"
 )
@@ -246,8 +246,6 @@ func ExShortName(exName string) string {
 		return "ELX"
 	case NameLBank:
 		return "LBK"
-	case NameCodex:
-		return "CDX"
 	}
 	if len(exName) > 3 {
 		return exName[0:3]
