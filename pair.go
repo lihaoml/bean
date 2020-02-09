@@ -255,6 +255,20 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 4
 	case Pair{GNTO, USDT}:
 		prec = 3
+	case Pair{DOGE, USDT}:
+		prec = 6
+	case Pair{HT, USDT}:
+		prec = 4
+	case Pair{BNB, USDT}:
+		prec = 4
+	case Pair{TRX, USDT}:
+		prec = 5
+	case Pair{MCO, USDT}:
+		prec = 2
+	case Pair{OMG, USDT}:
+		prec = 4
+	case Pair{ENJ, USDT}:
+		prec = 4
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return

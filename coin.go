@@ -56,6 +56,10 @@ const (
 	FMEX    Coin = "FMEX"
 	DUO     Coin = "DUO"
 	AITFACE Coin = "AITFACE"
+	DOGE    Coin = "DOGE"
+	MCO     Coin = "MCO"
+	OMG     Coin = "OMG"
+	ENJ     Coin = "ENJ"
 
 	PROB Coin = "PROB"
 
@@ -143,7 +147,7 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 	case BTC:
 		return math.Floor(amtAbs*1e6) / 1e6 * sgn
 	case ETC:
-		return math.Floor(amtAbs*1e6) / 1e6 * sgn
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case EOS:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case NEO:
@@ -154,12 +158,24 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amtAbs*1e5) / 1e5 * sgn
 	case BNB:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case HT:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case PAX:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case DGX:
 		return math.Floor(amtAbs*1e3) / 1e3 * sgn
 	case USDT:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case XRP:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case DOGE:
+		return math.Floor(amtAbs) * sgn
+	case MCO:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case OMG:
+		return math.Floor(amtAbs*1e2) / 1e2 * sgn
+	case ENJ:
+		return math.Floor(amtAbs) * sgn
 	default:
 		//		logger.Fatal().Msg("RoundCoinAmount not implemented for " + string(coin))
 		return math.NaN()
