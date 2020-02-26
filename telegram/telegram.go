@@ -5,8 +5,6 @@ import (
 	"bean/logger"
 	"bean/utils"
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/joho/godotenv"
 	"log"
 	"math"
 	"net/http"
@@ -14,6 +12,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/joho/godotenv"
 )
 
 // webhook address and port
@@ -347,5 +348,25 @@ func NotifyChannel(sender string, receiver string) (teleChan chan string, stop c
 		}
 	}()
 
+	return
+}
+
+func DummyNotifyChannel(sender, receiver string) (teleChan chan string, stop chan bool, err error) {
+	teleChan = make(chan string, 10)
+	stop = make(chan bool)
+	go func() {
+		for {
+			select {
+			case msg := <-teleChan:
+				fmt.Println(msg)
+			case <-stop:
+				for len(teleChan) > 0 {
+					msg := <-teleChan
+					fmt.Println(msg)
+				}
+				return
+			}
+		}
+	}()
 	return
 }

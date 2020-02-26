@@ -88,7 +88,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 		Database:  MDS_DBNAME,
 		Precision: "us",
 	})
-	writeDbTicker := time.NewTicker(2 * time.Second)
+	writeDbTicker := time.NewTicker(10 * time.Second)
 
 	go func() {
 		for {

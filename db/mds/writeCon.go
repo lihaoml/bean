@@ -56,6 +56,14 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, symbol stri
 		}
 		bp.AddPoint(pt)
 	}
+
+	limit := OB_LIMIT
+	if len(instr) >= 12 {
+		// It's an option
+		limit = OB_OPT_LIMIT
+	}
+
+	/* contractfromname is quite slow to replacing it with the dirty code above
 	con, err := ContractFromName(instr)
 	if err != nil {
 		return err
@@ -63,7 +71,7 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, symbol stri
 	limit := OB_LIMIT
 	if con.IsOption() {
 		limit = OB_OPT_LIMIT
-	}
+	}*/
 
 	for index, o := range orders {
 		if index >= limit {

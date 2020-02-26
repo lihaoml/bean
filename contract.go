@@ -280,7 +280,7 @@ func (c *Contract) Name() string {
 			} else {
 				cptext = "P"
 			}
-			c.name = fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
+			c.name = fmt.Sprintf("%s-%s-%.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
 		} else {
 			if c.perp {
 				c.name = fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
@@ -318,6 +318,10 @@ func (c Contract) Underlying() Pair {
 
 func (c Contract) IsOption() bool {
 	return c.isOption
+}
+
+func (c Contract) IsFuture() bool {
+	return !c.isOption
 }
 
 func (c1 *Contract) Equal(c2 *Contract) bool {
