@@ -352,10 +352,9 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 	if !c.IsOption() {
 		return math.NaN()
 	}
-	expiry := c.Expiry()
 	strike := c.Strike()
 	cp := c.CallPut()
-	expiryDays := dayDiff(asof, expiry)
+	expiryDays := c.ExpiryDays(asof)
 	deliveryDays := expiryDays // temp
 
 	return optionImpliedVol(expiryDays, deliveryDays, strike, spotPrice, futPrice, optionPrice*spotPrice, cp)
@@ -363,8 +362,7 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 
 func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if c.IsOption() {
-		expiry := c.Expiry()
-		expiryDays := dayDiff(asof, expiry)
+		expiryDays := c.ExpiryDays(asof)
 		strike := c.Strike()
 		cp := c.CallPut()
 		//		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
@@ -377,7 +375,7 @@ func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) flo
 
 // Return the 'simple' delta computed analytically
 func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	expiryDays := dayDiff(asof, c.expiry)
+	expiryDays := c.ExpiryDays(asof)
 	if c.callPut == Call {
 		return cumNormDist((math.Log(futPrice / c.strike)) / (vol * math.Sqrt(float64(expiryDays)/365.0)))
 		//		return cumNormDist((math.Log(futPrice/c.strike) + (vol*vol/2.0)*(float64(expiryDays)/365.0)) / (vol * math.Sqrt(float64(expiryDays)/365.0)))
@@ -435,15 +433,15 @@ func (p Position) Theta(asof time.Time, spotPrice, futPrice, vol float64) float6
 
 // maths stuff now
 
-// day difference rounded.
-func dayDiff(t1, t2 time.Time) int {
+// DayDiff returns numbers of days from t1 to t2 after rounding
+func DayDiff(t1, t2 time.Time) int {
 	t1 = time.Date(t1.Year(), t1.Month(), t1.Day(), 0, 0, 0, 0, time.UTC) // remove time information and force to utc
 	t2 = time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, time.UTC)
 	return int(math.Round(t2.Sub(t1).Truncate(time.Hour).Hours() / 24.0))
 }
 
 func (c Contract) ExpiryDays(now time.Time) int {
-	return dayDiff(now, c.Expiry())
+	return DayDiff(now, c.Expiry())
 }
 
 // premium expected in domestic - rhs coin value spot
