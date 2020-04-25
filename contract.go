@@ -336,15 +336,15 @@ func (c1 *Contract) Equal(c2 *Contract) bool {
 }
 
 // if a call, return the identical put and vice versa
-func (c Contract) CallPutMirror() (p Contract) {
-	p = c
+func (c *Contract) CallPutMirror() *Contract {
+	p := *c
 	if c.callPut == Call {
 		p.callPut = Put
 	} else {
 		p.callPut = Call
 	}
 	p.name = ""
-	return
+	return &p
 }
 
 // Calculate the implied vol of a contract given its price in LHS coin value spot
