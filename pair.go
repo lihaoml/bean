@@ -212,7 +212,7 @@ func orderPricePrec(pair Pair) (prec int) {
 	case Pair{LTC, BTC}:
 		prec = 6
 
-	case Pair{PAX, USDT}:
+	case Pair{PAX, USDT}, Pair{USDC, USDT}, Pair{BUSD, USDT}:
 		prec = 4
 	case Pair{DGX, USD}:
 		prec = 2

@@ -30,6 +30,7 @@ const (
 	USDC Coin = "USDC"
 	TUSD Coin = "TUSD"
 	PAX  Coin = "PAX"
+	BUSD Coin = "BUSD"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
@@ -160,12 +161,10 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case HT:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
-	case PAX:
+	case PAX, BUSD, USDC, USDT:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case DGX:
 		return math.Floor(amtAbs*1e3) / 1e3 * sgn
-	case USDT:
-		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case XRP:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case DOGE:
