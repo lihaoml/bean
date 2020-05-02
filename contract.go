@@ -29,6 +29,21 @@ type Contract struct {
 	perp       bool
 }
 
+func (c *Contract) Hash() (hash int) {
+	if c.perp {
+		hash = 0
+	} else if c.isOption {
+		hash = int(c.strike) + int(c.expiry.YearDay())
+		if c.callPut == Put {
+			hash++
+		} else {
+			hash = int(c.expiry.YearDay())
+		}
+	}
+
+	return
+}
+
 var conCacheLock sync.Mutex
 var contractCache = make(map[string]*Contract)
 
@@ -75,11 +90,12 @@ func ContractFromName(name string) (*Contract, error) {
 		if st[1] == "PERPETUAL" {
 			con = PerpContract(underlying)
 		} else {
-			dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+			//			dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+			expiry, err = strToExpiry(st[1])
 			if err != nil {
 				return nil, err
 			}
-			expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
+			//			expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
 			con = &Contract{
 				underlying: underlying,
 				expiry:     expiry,
@@ -88,16 +104,18 @@ func ContractFromName(name string) (*Contract, error) {
 		}
 
 	case 4:
-		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+		//		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+		expiry, err = strToExpiry(st[1])
 		if err != nil {
 			return nil, err
 		}
-		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
+		//		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
 
-		strike, err = strconv.ParseFloat(st[2], 64)
+		strikei, err := strconv.Atoi(st[2])
 		if err != nil {
 			return nil, err
 		}
+		strike = float64(strikei)
 
 		switch st[3] {
 		case "C":
@@ -122,6 +140,69 @@ func ContractFromName(name string) (*Contract, error) {
 
 	contractCache[name] = con
 	return con, nil
+}
+
+// strToTime converts dates in the strict format DMMMYY or DDMMMYY
+// hopefully faster than the more generic time.Parse
+func strToExpiry(s string) (t time.Time, err error) {
+	// date must be 2FEB20 or 22MAR21
+	var daystr, monthstr, yearstr string
+	switch len(s) {
+	case 6:
+		daystr = s[0:1]
+		monthstr = s[1:4]
+		yearstr = s[4:6]
+	case 7:
+		daystr = s[0:2]
+		monthstr = s[2:5]
+		yearstr = s[5:7]
+	default:
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+
+	day, err := strconv.Atoi(daystr)
+	if err != nil {
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+	year, err := strconv.Atoi(yearstr)
+	if err != nil {
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+	var month time.Month
+	switch monthstr {
+	case "JAN":
+		month = time.January
+	case "FEB":
+		month = time.February
+	case "MAR":
+		month = time.March
+	case "APR":
+		month = time.April
+	case "MAY":
+		month = time.May
+	case "JUN":
+		month = time.June
+	case "JUL":
+		month = time.July
+	case "AUG":
+		month = time.August
+	case "SEP":
+		month = time.September
+	case "OCT":
+		month = time.October
+	case "NOV":
+		month = time.November
+	case "DEC":
+		month = time.December
+	default:
+		err = errors.New("Contract date not recognised" + s)
+	}
+
+	t = time.Date(year+2000, month, day, 8, 0, 0, 0, time.UTC)
+	return
 }
 
 // ContractFromPartialName accepts contracts in the form
@@ -280,7 +361,7 @@ func (c *Contract) Name() string {
 			} else {
 				cptext = "P"
 			}
-			c.name = fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
+			c.name = fmt.Sprintf("%s-%s-%.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
 		} else {
 			if c.perp {
 				c.name = fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
