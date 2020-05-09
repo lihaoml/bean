@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -313,6 +314,29 @@ func PositionsFromNames(names []string, quantities []float64, prices []float64) 
 		posns = append(posns, p)
 	}
 	return
+}
+
+func (p Positions) Sort() Positions {
+	sort.Slice(p,
+		func(i, j int) bool {
+			// Sort by date
+			if p[i].Con.Delivery().Before(p[j].Con.Delivery()) {
+				return true
+			}
+			if p[i].Con.Delivery().After(p[j].Con.Delivery()) {
+				return false
+			}
+			// Futures first
+			if !p[i].Con.IsOption() {
+				return true
+			}
+			if !p[j].Con.IsOption() {
+				return false
+			}
+			// Then by strike
+			return p[i].Con.Strike() < p[j].Con.Strike()
+		})
+	return p
 }
 
 func NewPosition(c *Contract, qty, price float64) Position {
