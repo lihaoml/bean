@@ -1,6 +1,7 @@
 package mds
 
 import (
+	"bean"
 	"strings"
 	"sync"
 	"time"
@@ -76,11 +77,49 @@ func (mdss *MDSSink) SmilePoint(p SmilePoint) (err error) {
 	return
 }
 
-func (mdss *MDSSink) OrderBook(p ConOBPoint) {
+func (mdss *MDSSink) OrderBook(timeStamp time.Time, exName string, instr string, side bean.Side, bestOrder bean.Order, lag time.Duration) {
 	go func() {
 		mdss.lockbp.Lock()
-		writeOBBatchPoints(mdss.bp, p.ExName, p.Instrument, p.Symbol, "BID", p.OB.Bids(), p.TimeStamp, p.Lag)
-		writeOBBatchPoints(mdss.bp, p.ExName, p.Instrument, p.Symbol, "ASK", p.OB.Asks(), p.TimeStamp, p.Lag)
+		tags := map[string]string{
+			"index":      "0",
+			"instrument": instr,
+			"exchange":   exName,
+			"side":       string(side),
+			"symbol":     "",
+		}
+		fields := map[string]interface{}{
+			"Price":  bestOrder.Price,
+			"Amount": bestOrder.Amount,
+			"Lag":    lag.Seconds()}
+		pt1, _ := client.NewPoint(MT_CONTRACT_ORDERBOOK, tags, fields, timeStamp)
+		mdss.bp.AddPoint(pt1)
+
+		mdss.lockbp.Unlock()
+	}()
+}
+
+// TEMP - THIS SHOULD MOVE TO TDS
+func (mdss *MDSSink) Risk(timeStamp time.Time, exName string, instr string, pair bean.Pair, pos, spot, vol, pv, delta, gamma, vega, theta float64) {
+	go func() {
+		mdss.lockbp.Lock()
+		tags := map[string]string{
+			"instrument": instr,
+			"exchange":   exName,
+			"pair":       pair.String(),
+		}
+		fields := map[string]interface{}{
+			"Position": pos,
+			"Spot":     spot,
+			"Vol":      vol,
+			"Pv":       pv,
+			"Delta":    delta,
+			"Gamma":    gamma,
+			"Vega":     vega,
+			"Theta":    theta,
+		}
+		pt, _ := client.NewPoint(MT_CONTRACT_RISK, tags, fields, timeStamp)
+		mdss.bp.AddPoint(pt)
+
 		mdss.lockbp.Unlock()
 	}()
 }
