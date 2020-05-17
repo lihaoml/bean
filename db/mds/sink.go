@@ -99,13 +99,34 @@ func (mdss *MDSSink) OrderBook(timeStamp time.Time, exName string, instr string,
 }
 
 // TEMP - THIS SHOULD MOVE TO TDS
-func (mdss *MDSSink) Risk(timeStamp time.Time, exName string, instr string, pair bean.Pair, pos, spot, vol, pv, delta, gamma, vega, theta float64) {
+func (mdss *MDSSink) Risk(timeStamp time.Time, exName string, con *bean.Contract, pair bean.Pair, pos, spot, vol, pv, delta, gamma, vega, theta float64) {
 	go func() {
 		mdss.lockbp.Lock()
-		tags := map[string]string{
-			"instrument": instr,
-			"exchange":   exName,
-			"pair":       pair.String(),
+		var tags map[string]string
+		if con == nil {
+			tags = map[string]string{"instrument": "CASH",
+				"exchange": exName,
+				//				"pair":       pair.String(),
+				//				"expiryDays": "0",
+			}
+		} else if con.IsOption() {
+			tags = map[string]string{
+				"instrument": con.Name(),
+				"exchange":   exName,
+				//				"pair":       pair.String(),
+				//				"expiryDays": strconv.Itoa(con.ExpiryDays(timeStamp)),
+				//				"strike":     strconv.Itoa(int(con.Strike())),
+				//				"callPut":    string(con.CallPut()),
+			}
+		} else {
+			tags = map[string]string{
+				"instrument": con.Name(),
+				"exchange":   exName,
+				//				"pair":       pair.String(),
+				//				"expiryDays": strconv.Itoa(con.ExpiryDays(timeStamp)),
+				//				"strike":     "",
+				//				"callPut":    "",
+			}
 		}
 		fields := map[string]interface{}{
 			"Position": pos,

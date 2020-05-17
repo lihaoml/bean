@@ -190,8 +190,14 @@ func (p portfolio) Filter(coins Coins) Portfolio {
 }
 
 func (p portfolio) AddPosition(pos Position) {
-	*p.positions = append(*p.positions, pos) //contracts[c] += qty
-	//	p.contracts = append(p.contracts, c)
+	for i, p1 := range *p.positions {
+		if p1.Con.Equal(pos.Con) {
+			p1.Qty, p1.Price = p1.Qty+pos.Qty, (p1.Qty*p1.Price+pos.Qty*pos.Price)/(p1.Qty+pos.Qty)
+			(*p.positions)[i] = p1
+			return
+		}
+	}
+	*p.positions = append(*p.positions, pos)
 }
 
 func (p portfolio) Positions() Positions {
