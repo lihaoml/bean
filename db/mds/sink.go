@@ -57,7 +57,7 @@ func (mdss *MDSSink) Empty() (err error) {
 
 func (mdss *MDSSink) SmilePoint(p SmilePoint) (err error) {
 	tags := map[string]string{
-		"expiry": strings.ToUpper(p.Expiry.Format("2Jan06")),
+		"expiry": strings.ToUpper(p.Expiry.Format(bean.ContractDateFormat)),
 		"pair":   p.Pair.String()}
 	fields := map[string]interface{}{
 		"Atm":   p.Atm * 100.0,
