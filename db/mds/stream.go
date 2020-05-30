@@ -86,7 +86,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
-		Precision: "us",
+		Precision: "ns",
 	})
 	writeDbTicker := time.NewTicker(2 * time.Second)
 
@@ -95,7 +95,7 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 			if bp == nil {
 				bp, err = client.NewBatchPoints(client.BatchPointsConfig{
 					Database:  MDS_DBNAME,
-					Precision: "us",
+					Precision: "ns",
 				})
 			}
 			select {
