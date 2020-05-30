@@ -61,12 +61,19 @@ const (
 	MCO     Coin = "MCO"
 	OMG     Coin = "OMG"
 	ENJ     Coin = "ENJ"
-
-	PROB Coin = "PROB"
-
-	GNTO Coin = "GNTO" // GoldNugget
-	DGX  Coin = "DGX"
-	VND  Coin = "VND"
+	PROB    Coin = "PROB"
+	GNTO    Coin = "GNTO" // GoldNugget
+	DGX     Coin = "DGX"
+	VND     Coin = "VND"
+	IOST    Coin = "IOST"
+	THETA   Coin = "THETA"
+	MATIC   Coin = "MATIC"
+	ATOM    Coin = "ATOM"
+	BAT     Coin = "BAT"
+	VET     Coin = "VET"
+	QTUM    Coin = "QTUM"
+	LINK    Coin = "LINK"
+	XMR     Coin = "XMR"
 )
 
 func (s Coins) Len() int {
