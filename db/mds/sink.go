@@ -2,6 +2,7 @@ package mds
 
 import (
 	"bean"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -106,26 +107,26 @@ func (mdss *MDSSink) Risk(timeStamp time.Time, exName string, con *bean.Contract
 		if con == nil {
 			tags = map[string]string{"instrument": "CASH",
 				"exchange": exName,
-				//				"pair":       pair.String(),
-				//				"expiryDays": "0",
+				"pair":     pair.String(),
+				"expiry":   "CASH",
 			}
 		} else if con.IsOption() {
 			tags = map[string]string{
 				"instrument": con.Name(),
 				"exchange":   exName,
-				//				"pair":       pair.String(),
-				//				"expiryDays": strconv.Itoa(con.ExpiryDays(timeStamp)),
-				//				"strike":     strconv.Itoa(int(con.Strike())),
-				//				"callPut":    string(con.CallPut()),
+				"pair":       pair.String(),
+				"expiry":     con.ExpiryStr(),
+				"strike":     strconv.Itoa(int(con.Strike())),
+				"callPut":    string(con.CallPut()),
 			}
 		} else {
 			tags = map[string]string{
 				"instrument": con.Name(),
 				"exchange":   exName,
-				//				"pair":       pair.String(),
-				//				"expiryDays": strconv.Itoa(con.ExpiryDays(timeStamp)),
-				//				"strike":     "",
-				//				"callPut":    "",
+				"pair":       pair.String(),
+				"expiry":     con.ExpiryStr(),
+				"strike":     "",
+				"callPut":    "",
 			}
 		}
 		fields := map[string]interface{}{
