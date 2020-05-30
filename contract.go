@@ -18,6 +18,8 @@ const (
 	NA   CallOrPut = "N"
 )
 
+const ContractDateFormat = "2Jan06"
+
 type Contract struct {
 	name       string
 	isOption   bool
@@ -29,16 +31,23 @@ type Contract struct {
 	perp       bool
 }
 
-var conCacheLock sync.Mutex
-var contractCache = make(map[string]*Contract)
+func (c *Contract) Hash() (hash int) {
+	if c.perp {
+		hash = 0
+	} else if c.isOption {
+		hash = int(c.strike) + int(c.expiry.YearDay())
+		if c.callPut == Put {
+			hash++
+		} else {
+			hash = int(c.expiry.YearDay())
+		}
+	}
 
-type Position struct {
-	Con   *Contract
-	Qty   float64
-	Price float64
+	return
 }
 
-type Positions []Position
+var conCacheLock sync.Mutex
+var contractCache = make(map[string]*Contract)
 
 func ContractFromName(name string) (*Contract, error) {
 	var expiry time.Time
@@ -75,11 +84,12 @@ func ContractFromName(name string) (*Contract, error) {
 		if st[1] == "PERPETUAL" {
 			con = PerpContract(underlying)
 		} else {
-			dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+			//			dt, err := time.Parse(ContractDateFormat, strings.ToTitle(st[1]))
+			expiry, err = strToExpiry(st[1])
 			if err != nil {
 				return nil, err
 			}
-			expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
+			//			expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
 			con = &Contract{
 				underlying: underlying,
 				expiry:     expiry,
@@ -88,16 +98,18 @@ func ContractFromName(name string) (*Contract, error) {
 		}
 
 	case 4:
-		dt, err := time.Parse("2Jan06", strings.ToTitle(st[1]))
+		//		dt, err := time.Parse(ContractDateFormat, strings.ToTitle(st[1]))
+		expiry, err = strToExpiry(st[1])
 		if err != nil {
 			return nil, err
 		}
-		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
+		//		expiry = time.Date(dt.Year(), dt.Month(), dt.Day(), 8, 0, 0, 0, time.UTC) // 8am london expiry
 
-		strike, err = strconv.ParseFloat(st[2], 64)
+		strikei, err := strconv.Atoi(st[2])
 		if err != nil {
 			return nil, err
 		}
+		strike = float64(strikei)
 
 		switch st[3] {
 		case "C":
@@ -122,6 +134,69 @@ func ContractFromName(name string) (*Contract, error) {
 
 	contractCache[name] = con
 	return con, nil
+}
+
+// strToTime converts dates in the strict format DMMMYY or DDMMMYY
+// hopefully faster than the more generic time.Parse
+func strToExpiry(s string) (t time.Time, err error) {
+	// date must be 2FEB20 or 22MAR21
+	var daystr, monthstr, yearstr string
+	switch len(s) {
+	case 6:
+		daystr = s[0:1]
+		monthstr = s[1:4]
+		yearstr = s[4:6]
+	case 7:
+		daystr = s[0:2]
+		monthstr = s[2:5]
+		yearstr = s[5:7]
+	default:
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+
+	day, err := strconv.Atoi(daystr)
+	if err != nil {
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+	year, err := strconv.Atoi(yearstr)
+	if err != nil {
+		err = errors.New("Date not recognised:" + s)
+		return
+	}
+	var month time.Month
+	switch monthstr {
+	case "JAN":
+		month = time.January
+	case "FEB":
+		month = time.February
+	case "MAR":
+		month = time.March
+	case "APR":
+		month = time.April
+	case "MAY":
+		month = time.May
+	case "JUN":
+		month = time.June
+	case "JUL":
+		month = time.July
+	case "AUG":
+		month = time.August
+	case "SEP":
+		month = time.September
+	case "OCT":
+		month = time.October
+	case "NOV":
+		month = time.November
+	case "DEC":
+		month = time.December
+	default:
+		err = errors.New("Contract date not recognised" + s)
+	}
+
+	t = time.Date(year+2000, month, day, 8, 0, 0, 0, time.UTC)
+	return
 }
 
 // ContractFromPartialName accepts contracts in the form
@@ -191,7 +266,7 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		case "":
 			continue
 		}
-		if d, err := time.Parse("2Jan06", strings.ToTitle(s)); err == nil {
+		if d, err := time.Parse(ContractDateFormat, strings.ToTitle(s)); err == nil {
 			c.expiry = d
 			c.delivery = d
 			continue
@@ -212,30 +287,8 @@ func PerpContract(p Pair) *Contract {
 	return &Contract{
 		perp:       true,
 		expiry:     tod,
+		delivery:   tod,
 		underlying: p}
-}
-
-func PositionsFromNames(names []string, quantities []float64, prices []float64) (posns Positions, err error) {
-	var c *Contract
-	posns = make(Positions, 0)
-	for i := range names {
-		c, err = ContractFromName(names[i])
-		if err != nil {
-			return
-		}
-		var p Position
-		if prices == nil || quantities == nil {
-			p = NewPosition(c, 0.0, 0.0)
-		} else {
-			p = NewPosition(c, quantities[i], prices[i])
-		}
-		posns = append(posns, p)
-	}
-	return
-}
-
-func NewPosition(c *Contract, qty, price float64) Position {
-	return Position{Con: c, Qty: qty, Price: price}
 }
 
 func OptContract(p Pair, d time.Time, strike float64, cp CallOrPut) *Contract {
@@ -280,12 +333,12 @@ func (c *Contract) Name() string {
 			} else {
 				cptext = "P"
 			}
-			c.name = fmt.Sprintf("%s-%s-%4.0f-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")), c.strike, cptext)
+			c.name = fmt.Sprintf("%s-%s-%.0f-%s", c.underlying.Coin, c.ExpiryStr(), c.strike, cptext)
 		} else {
 			if c.perp {
 				c.name = fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
 			} else {
-				c.name = fmt.Sprintf("%s-%s", c.underlying.Coin, strings.ToUpper(c.expiry.Format("2Jan06")))
+				c.name = fmt.Sprintf("%s-%s", c.underlying.Coin, c.ExpiryStr())
 			}
 		}
 	}
@@ -294,6 +347,10 @@ func (c *Contract) Name() string {
 
 func (c Contract) Expiry() (dt time.Time) {
 	return c.expiry
+}
+
+func (c Contract) ExpiryStr() string {
+	return strings.ToUpper(c.Expiry().Format(ContractDateFormat))
 }
 
 func (c Contract) Perp() bool {
@@ -331,20 +388,21 @@ func (c1 *Contract) Equal(c2 *Contract) bool {
 	} else {
 		return !c2.isOption &&
 			c1.underlying == c2.underlying &&
-			(c1.perp == c2.perp || c1.expiry == c2.expiry)
+			c1.perp == c2.perp &&
+			c1.expiry == c2.expiry
 	}
 }
 
 // if a call, return the identical put and vice versa
-func (c Contract) CallPutMirror() (p Contract) {
-	p = c
+func (c *Contract) CallPutMirror() *Contract {
+	p := *c
 	if c.callPut == Call {
 		p.callPut = Put
 	} else {
 		p.callPut = Call
 	}
 	p.name = ""
-	return
+	return &p
 }
 
 // Calculate the implied vol of a contract given its price in LHS coin value spot
@@ -352,10 +410,9 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 	if !c.IsOption() {
 		return math.NaN()
 	}
-	expiry := c.Expiry()
 	strike := c.Strike()
 	cp := c.CallPut()
-	expiryDays := dayDiff(asof, expiry)
+	expiryDays := c.ExpiryDays(asof)
 	deliveryDays := expiryDays // temp
 
 	return optionImpliedVol(expiryDays, deliveryDays, strike, spotPrice, futPrice, optionPrice*spotPrice, cp)
@@ -363,8 +420,7 @@ func (c Contract) ImpVol(asof time.Time, spotPrice, futPrice, optionPrice float6
 
 func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 	if c.IsOption() {
-		expiry := c.Expiry()
-		expiryDays := dayDiff(asof, expiry)
+		expiryDays := c.ExpiryDays(asof)
 		strike := c.Strike()
 		cp := c.CallPut()
 		//		return (forwardOptionPrice(expiryDays, strike, futPrice, vol, cp)*spotPrice/futPrice - p.Price*spotPrice) * p.Qty
@@ -377,7 +433,7 @@ func (c Contract) OptPrice(asof time.Time, spotPrice, futPrice, vol float64) flo
 
 // Return the 'simple' delta computed analytically
 func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	expiryDays := dayDiff(asof, c.expiry)
+	expiryDays := c.ExpiryDays(asof)
 	if c.callPut == Call {
 		return cumNormDist((math.Log(futPrice / c.strike)) / (vol * math.Sqrt(float64(expiryDays)/365.0)))
 		//		return cumNormDist((math.Log(futPrice/c.strike) + (vol*vol/2.0)*(float64(expiryDays)/365.0)) / (vol * math.Sqrt(float64(expiryDays)/365.0)))
@@ -387,63 +443,17 @@ func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 	}
 }
 
-// Calculate the price of a contract given market parameters. Price is in RHS coin value spot
-// Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USD rates float and are generally negative.
-func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	if p.Con.IsOption() {
-		/*		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty*/
-		return p.Con.OptPrice(asof, spotPrice, futPrice, vol)*p.Qty - p.Price*spotPrice*p.Qty
-	} else {
-		return (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty * 10.0
-	}
-}
-
-// in rhs coin spot value
-func (p Position) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof, spotPrice, futPrice, vol+0.005) - p.PV(asof, spotPrice, futPrice, vol-0.005)
-}
-
-//in lhs coin spot value
-func (p Position) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	deltaFiat := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-	return deltaFiat / spotPrice
-}
-
-func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) map[string]float64 {
-	totdelta := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
-
-	underFuture := p.Con.UnderFuture()
-	delta := make(map[string]float64)
-	delta["CASH"] = spotDelta / spotPrice
-	delta[underFuture.Name()] = (totdelta - spotDelta) / spotPrice
-
-	return delta
-}
-
-//in lhs coin spot value
-func (p Position) Gamma(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	gammaFiat := p.Delta(asof, spotPrice*1.005, futPrice*1.005, vol) - p.Delta(asof, spotPrice*0.995, futPrice*0.995, vol)
-
-	return gammaFiat
-}
-
-//in rhs coin spot value
-func (p Position) Theta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof.Add(24*time.Hour), spotPrice, futPrice, vol) - p.PV(asof, spotPrice, futPrice, vol)
-}
-
 // maths stuff now
 
-// day difference rounded.
-func dayDiff(t1, t2 time.Time) int {
+// DayDiff returns numbers of days from t1 to t2 after rounding
+func DayDiff(t1, t2 time.Time) int {
 	t1 = time.Date(t1.Year(), t1.Month(), t1.Day(), 0, 0, 0, 0, time.UTC) // remove time information and force to utc
 	t2 = time.Date(t2.Year(), t2.Month(), t2.Day(), 0, 0, 0, 0, time.UTC)
 	return int(math.Round(t2.Sub(t1).Truncate(time.Hour).Hours() / 24.0))
 }
 
 func (c Contract) ExpiryDays(now time.Time) int {
-	return dayDiff(now, c.Expiry())
+	return DayDiff(now, c.Expiry())
 }
 
 // premium expected in domestic - rhs coin value spot

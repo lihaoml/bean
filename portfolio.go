@@ -24,8 +24,8 @@ type Portfolio interface {
 	SetLockedBalance(Coin, float64)
 	Coins() Coins
 	AddPosition(Position)
-	SetPositions(Positions)
-	Positions() Positions
+	SetPositions([]Position)
+	Positions() []Position
 	ShowBrief()
 }
 
@@ -33,28 +33,28 @@ type Portfolio interface {
 type portfolio struct {
 	balances       map[Coin]float64 // total balance of each coin
 	lockedBalances map[Coin]float64 // locked blance by exchange, used to calculate the free blance for placing order
-	positions      *Positions
+	positions      []Position
 }
 
 func NewPortfolio(bal ...interface{}) Portfolio {
-	pos := make(Positions, 0)
+	pos := make([]Position, 0)
 	if len(bal) == 0 {
-		return portfolio{
+		return &portfolio{
 			balances:       make(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
-			positions:      &pos,
+			positions:      pos,
 		}
 	} else if len(bal) == 1 {
-		return portfolio{
+		return &portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: make(map[Coin]float64),
-			positions:      &pos, //make([]Position, 0),
+			positions:      pos, //make([]Position, 0),
 		}
 	} else if len(bal) == 2 {
-		return portfolio{
+		return &portfolio{
 			balances:       bal[0].(map[Coin]float64),
 			lockedBalances: bal[1].(map[Coin]float64),
-			positions:      &pos, //make([]Position, 0),
+			positions:      pos, //make([]Position, 0),
 		}
 	} else {
 		panic("invalid number of input for NewPortfolio")
@@ -189,16 +189,24 @@ func (p portfolio) Filter(coins Coins) Portfolio {
 	return r
 }
 
-func (p portfolio) AddPosition(pos Position) {
-	*p.positions = append(*p.positions, pos) //contracts[c] += qty
-	//	p.contracts = append(p.contracts, c)
+func (p *portfolio) AddPosition(pos Position) {
+	for i, p1 := range p.positions {
+		if p1.Contract.Equal(pos.Contract) {
+			p.positions[i] = NewPosition(p1.Contract,
+				p1.Qty()+pos.Qty(),
+				(p1.Qty()*p1.Price()+pos.Qty()*pos.Price())/(p1.Qty()+pos.Qty()))
+
+			return
+		}
+	}
+	p.positions = append(p.positions, pos)
 }
 
-func (p portfolio) Positions() Positions {
-	return *p.positions
+func (p *portfolio) Positions() []Position {
+	return p.positions
 }
 
-func (p portfolio) SetPositions(ps Positions) {
+func (p *portfolio) SetPositions(ps []Position) {
 	for _, pos := range ps {
 		p.AddPosition(pos)
 	}

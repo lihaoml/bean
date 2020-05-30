@@ -2,6 +2,7 @@ package mds
 
 import (
 	"bean/db/influx"
+
 	"github.com/influxdata/influxdb/client/v2"
 )
 
@@ -12,6 +13,7 @@ const MT_ORDERBOOK_STATS string = "ORDERBOOK_STATS"
 const MT_TRANSACTION string = "TRANSACTION"
 const MT_CONTRACT_ORDERBOOK string = "CONTRACT_ORDERBOOK"
 const MT_CONTRACT_TRANSACTION string = "CONTRACT_TRANSACTION"
+const MT_CONTRACT_RISK string = "CONTRACT_RISK"
 const MT_TICK string = "TICK"
 const MT_FUNDING_RATE string = "FUNDING_RATE"
 const MT_AV_OHLC_1m string = "AV_OHLC_1m" // data from alpha vantage

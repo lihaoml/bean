@@ -46,6 +46,14 @@ const (
 	BEANEX = "BEANEX"
 )
 
+type OrderLife int
+
+const (
+	GoodTillCancelled  OrderLife = 1
+	InstantOrCancelled OrderLife = 2
+	FillOrKill         OrderLife = 3
+)
+
 func IsContractExchange(exName string) bool {
 	conEx := []string{NameDeribit, NameBitMex}
 	return util.Contains(conEx, strings.ToUpper(exName))
@@ -103,6 +111,7 @@ type OrderStatus struct {
 	OrderID         string
 	PlacedTime      time.Time
 	Side            Side
+	Instrument      string
 	FilledAmount    float64
 	LeftAmount      float64
 	PlacedPrice     float64 // initial price

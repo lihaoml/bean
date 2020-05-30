@@ -5,10 +5,11 @@ import (
 	util "bean/utils"
 	"errors"
 	"fmt"
-	"github.com/influxdata/influxdb/client/v2"
-	"github.com/joho/godotenv"
 	"os"
 	"strings"
+
+	"github.com/influxdata/influxdb/client/v2"
+	"github.com/joho/godotenv"
 )
 
 func ConnectService(dbkey, port, envUserKey, envPwdKey string) ([]client.Client, error) {
@@ -43,9 +44,10 @@ func ConnectTo(dbhost, port string, envUserKey, envPwdKey string) (cs []client.C
 			host = "http://" + host
 		}
 		c, err := client.NewHTTPClient(client.HTTPConfig{
-			Addr:     host + ":" + port,
-			Username: usrs[i],
-			Password: pwds[i],
+			Addr:               host + ":" + port,
+			Username:           usrs[i],
+			Password:           pwds[i],
+			InsecureSkipVerify: true,
 		})
 		if err != nil {
 			errMsg = append(errMsg, host+": "+err.Error())

@@ -5,8 +5,6 @@ import (
 	"bean/logger"
 	"bean/utils"
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/joho/godotenv"
 	"log"
 	"math"
 	"net/http"
@@ -14,6 +12,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/joho/godotenv"
 )
 
 // webhook address and port
@@ -296,8 +297,8 @@ func TGWebhook(servant string) tgbotapi.UpdatesChannel {
 const maxMsgPerMin = 20
 
 // SendChannel opens a buffered string channel and listens for messages on that channel which it relays
-// to the telegram bot. Stop the bot with a true on the unbuffered stop channel
-func NotifyChannel(sender string, receiver string) (teleChan chan string, stop chan bool, err error) {
+// to the telegram bot. Close the channel to stop
+func NotifyChannel(sender string, receiver string) (teleChan chan string, err error) {
 	var bot *tgbotapi.BotAPI
 	bot, err = tgbotapi.NewBotAPI(os.Getenv(sender))
 	if err != nil {
@@ -312,40 +313,26 @@ func NotifyChannel(sender string, receiver string) (teleChan chan string, stop c
 	}
 
 	teleChan = make(chan string, 100)
-	stop = make(chan bool)
 
 	go func() {
 		var msgCount int64
 		var msgMin int
-		for {
-			select {
-			case msgText := <-teleChan:
-				log.Print(msgText)
-				if msgMin == time.Now().Minute() {
-					msgCount++
-				} else {
-					msgCount = 0
-					msgMin = time.Now().Minute()
-				}
-				// Limit the maximum number of messages in a minute
-				if msgCount < maxMsgPerMin {
-					bot.Send(tgbotapi.NewMessage(notifyID, msgText))
-				} else if msgCount == maxMsgPerMin {
-					bot.Send(tgbotapi.NewMessage(notifyID, "..."))
-				}
-			case <-stop:
-				// empty message channel first
-				log.Print("Teleprinter instructed to stop")
-				for len(teleChan) > 0 {
-					msgText := <-teleChan
-					log.Print(msgText)
-					bot.Send(tgbotapi.NewMessage(notifyID, msgText))
-				}
-				log.Print("Teleprinter stopping")
-				return
+		for msgText := range teleChan {
+			log.Print(msgText)
+			if msgMin == time.Now().Minute() {
+				msgCount++
+			} else {
+				msgCount = 0
+				msgMin = time.Now().Minute()
+			}
+			// Limit the maximum number of messages in a minute
+			if msgCount < maxMsgPerMin {
+				bot.Send(tgbotapi.NewMessage(notifyID, msgText))
+			} else if msgCount == maxMsgPerMin {
+				bot.Send(tgbotapi.NewMessage(notifyID, "..."))
 			}
 		}
+		log.Print("Teleprinter stopped")
 	}()
-
 	return
 }

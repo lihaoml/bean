@@ -56,12 +56,9 @@ func writeOBBatchPoints(bp client.BatchPoints, exName, instr string, symbol stri
 		}
 		bp.AddPoint(pt)
 	}
-	con, err := ContractFromName(instr)
-	if err != nil {
-		return err
-	}
+
 	limit := OB_LIMIT
-	if con.IsOption() {
+	if len(instr) > len("BTC-PERPETUAL") { // hacky shortcut for converting to contract and checking con.IsOption() {
 		limit = OB_OPT_LIMIT
 	}
 
