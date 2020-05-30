@@ -49,14 +49,6 @@ func (c *Contract) Hash() (hash int) {
 var conCacheLock sync.Mutex
 var contractCache = make(map[string]*Contract)
 
-type Position struct {
-	*Contract
-	Qty   float64
-	Price float64
-}
-
-type Positions []Position
-
 func ContractFromName(name string) (*Contract, error) {
 	var expiry time.Time
 	var callPut CallOrPut
@@ -299,29 +291,6 @@ func PerpContract(p Pair) *Contract {
 		underlying: p}
 }
 
-func PositionsFromNames(names []string, quantities []float64, prices []float64) (posns Positions, err error) {
-	var c *Contract
-	posns = make(Positions, 0)
-	for i := range names {
-		c, err = ContractFromName(names[i])
-		if err != nil {
-			return
-		}
-		var p Position
-		if prices == nil || quantities == nil {
-			p = NewPosition(c, 0.0, 0.0)
-		} else {
-			p = NewPosition(c, quantities[i], prices[i])
-		}
-		posns = append(posns, p)
-	}
-	return
-}
-
-func NewPosition(c *Contract, qty, price float64) Position {
-	return Position{Contract: c, Qty: qty, Price: price}
-}
-
 func OptContract(p Pair, d time.Time, strike float64, cp CallOrPut) *Contract {
 	return &Contract{
 		isOption:   true,
@@ -472,52 +441,6 @@ func (c Contract) SimpleDelta(asof time.Time, spotPrice, futPrice, vol float64) 
 		return cumNormDist((math.Log(futPrice/c.strike))/(vol*math.Sqrt(float64(expiryDays)/365.0))) - 1.0
 		//		return cumNormDist((math.Log(futPrice/c.strike)+(vol*vol/2.0)*(float64(expiryDays)/365.0))/(vol*math.Sqrt(float64(expiryDays)/365.0))) - 1.0
 	}
-}
-
-// Calculate the price of a contract given market parameters. Price is in RHS coin value spot
-// Discounting assumes zero interest rate on LHS coin (normally BTC) which is deribit standard. Note USD rates float and are generally negative.
-func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	if p.IsOption() {
-		/*		return p.Con.OptPrice(asof, spotPrice, futPrice, vol) * p.Qty*/
-		return p.OptPrice(asof, spotPrice, futPrice, vol)*p.Qty - p.Price*spotPrice*p.Qty
-	} else {
-		return (1.0/p.Price - 1.0/futPrice) * spotPrice * p.Qty * 10.0
-	}
-}
-
-// in rhs coin spot value
-func (p Position) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof, spotPrice, futPrice, vol+0.005) - p.PV(asof, spotPrice, futPrice, vol-0.005)
-}
-
-//in lhs coin spot value
-func (p Position) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	deltaFiat := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-
-	return deltaFiat / spotPrice
-}
-
-func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) map[string]float64 {
-	totdelta := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
-
-	delta := make(map[string]float64)
-	delta["CASH"] = spotDelta / spotPrice
-	delta[p.ExpiryStr()] = (totdelta - spotDelta) / spotPrice
-
-	return delta
-}
-
-//in lhs coin spot value
-func (p Position) Gamma(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	gammaFiat := p.Delta(asof, spotPrice*1.005, futPrice*1.005, vol) - p.Delta(asof, spotPrice*0.995, futPrice*0.995, vol)
-
-	return gammaFiat
-}
-
-//in rhs coin spot value
-func (p Position) Theta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof.Add(24*time.Hour), spotPrice, futPrice, vol) - p.PV(asof, spotPrice, futPrice, vol)
 }
 
 // maths stuff now
