@@ -91,7 +91,11 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 		"Price":      pt.Price,
 		"Amount":     pt.Amount,
 		"IndexPrice": pt.IndexPrice,
-		"Vol":        pt.Vol}
+		"Vol":        pt.Vol,
+	}
+	if pt.MarkVol > 0.0 {
+		fields["MarkVol"] = pt.MarkVol
+	}
 
 	// FIXME: could miss transactions if two different transactions on the same instrument have identical time stamp, side, and exchange
 	tags := map[string]string{
