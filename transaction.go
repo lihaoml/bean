@@ -268,6 +268,11 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 	csvWriter.Flush()
 }
 
+func (t ContractTXNs) Sort() ContractTXNs {
+	sort.Slice(t, func(i, j int) bool { return t[i].TimeStamp.Before(t[j].TimeStamp) })
+	return t
+}
+
 func (txn ContractTXNs) ToCSV(filename string) {
 	csvFile, err := os.Create(filename)
 	if err != nil {

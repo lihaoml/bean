@@ -30,6 +30,7 @@ const (
 	USDC Coin = "USDC"
 	TUSD Coin = "TUSD"
 	PAX  Coin = "PAX"
+	BUSD Coin = "BUSD"
 
 	IOTX Coin = "IOTX"
 	ZRX  Coin = "ZRX"
@@ -60,12 +61,19 @@ const (
 	MCO     Coin = "MCO"
 	OMG     Coin = "OMG"
 	ENJ     Coin = "ENJ"
-
-	PROB Coin = "PROB"
-
-	GNTO Coin = "GNTO" // GoldNugget
-	DGX  Coin = "DGX"
-	VND  Coin = "VND"
+	PROB    Coin = "PROB"
+	GNTO    Coin = "GNTO" // GoldNugget
+	DGX     Coin = "DGX"
+	VND     Coin = "VND"
+	IOST    Coin = "IOST"
+	THETA   Coin = "THETA"
+	MATIC   Coin = "MATIC"
+	ATOM    Coin = "ATOM"
+	BAT     Coin = "BAT"
+	VET     Coin = "VET"
+	QTUM    Coin = "QTUM"
+	LINK    Coin = "LINK"
+	XMR     Coin = "XMR"
 )
 
 func (s Coins) Len() int {
@@ -160,12 +168,10 @@ func (c Coin) RoundCoinAmount(amount float64) float64 {
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case HT:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
-	case PAX:
+	case PAX, BUSD, USDC, USDT:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case DGX:
 		return math.Floor(amtAbs*1e3) / 1e3 * sgn
-	case USDT:
-		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case XRP:
 		return math.Floor(amtAbs*1e2) / 1e2 * sgn
 	case DOGE:

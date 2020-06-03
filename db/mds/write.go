@@ -52,7 +52,7 @@ func (mds MDS) WriteTXNPoints(trans Transactions, exName string) error {
 	// Create a new point batch
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MDS_DBNAME,
-		Precision: "us",
+		Precision: "ns",
 	})
 
 	for _, t := range trans {
@@ -93,8 +93,8 @@ func writeSpotTxnBatchPoints(bp client.BatchPoints, exName string, txn Transacti
 	}
 	// inject last digi of transaction index to time stamp to differenciate transacitons happening at same milisecond
 	ts := txn.TimeStamp
-	if len(txn.TxnID) > 0 {
-		ts = txn.TimeStamp.Add(time.Duration(util.SafeFloat64(txn.TxnID[len(txn.TxnID)-1:])))
+	if len(txn.TxnID) > 1 {
+		ts = txn.TimeStamp.Add(time.Duration(util.SafeFloat64(txn.TxnID[len(txn.TxnID)-2:])))
 	}
 	newpt, err := client.NewPoint(MT_TRANSACTION, tags, fields, ts)
 	if err != nil {
