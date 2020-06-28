@@ -119,6 +119,7 @@ type OrderStatus struct {
 	State           OrderState
 	Commission      float64
 	CommissionAsset Coin
+	Life            OrderLife
 }
 
 // sugar function, mainly for reporting and formatting purposes
