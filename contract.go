@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -390,6 +391,39 @@ func (c1 *Contract) Equal(c2 *Contract) bool {
 			c1.underlying == c2.underlying &&
 			c1.perp == c2.perp &&
 			c1.expiry == c2.expiry
+	}
+}
+
+func ContractSort(cons []*Contract) {
+	sort.Slice(cons, func(i, j int) bool { return cons[i].Before(cons[j]) })
+}
+
+func (c1 *Contract) Before(c2 *Contract) bool {
+	// Sort by date
+	if c1.Delivery().Before(c2.Delivery()) {
+		return true
+	}
+	if c1.Delivery().After(c2.Delivery()) {
+		return false
+	}
+	// Futures first
+	if c1.IsOption() && !c2.IsOption() {
+		return true
+	}
+	if c2.IsOption() && !c1.IsOption() {
+		return false
+	}
+	// Then by strike
+	if c1.Strike() < c2.Strike() {
+		return true
+	}
+	if c1.Strike() > c2.Strike() {
+		return false
+	}
+	if c1.CallPut() == Call {
+		return true
+	} else {
+		return false
 	}
 }
 
