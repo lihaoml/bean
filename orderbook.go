@@ -132,6 +132,20 @@ func (ob *OrderBook) Denoise(pair Pair) *OrderBook {
 	return &ob2
 }
 
+// sometimes we want to scale the orderbook by 1e8 to santoshi for better display
+func (ob OrderBook) Scale(scaler float64) OrderBook {
+	// scale price to santoshi
+	bids := ob.Bids()
+	asks := ob.Asks()
+	for i, _ := range bids{
+		bids[i].Price *= scaler
+	}
+	for i, _ := range asks{
+		asks[i].Price *= scaler
+	}
+	return NewOrderBook(bids, asks)
+}
+
 // OrderBook display
 func (ob OrderBook) ShowBrief() string {
 	msg := ""
