@@ -452,15 +452,18 @@ func DayDiff(t1, t2 time.Time) int {
 	return int(math.Round(t2.Sub(t1).Truncate(time.Hour).Hours() / 24.0))
 }
 
-func (c Contract) ExpiryDays(now time.Time) int {
-	return DayDiff(now, c.Expiry())
+func (c Contract) ExpiryDays(now time.Time) float64 {
+	return c.Expiry().Sub(now).Hours() / 24.0 //DayDiff(now, c.Expiry())
 }
 
 // premium expected in domestic - rhs coin value spot
-func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm float64, callPut CallOrPut) (bs float64) {
+func optionImpliedVol(expiryDays, deliveryDays, strike, spot, forward, prm float64, callPut CallOrPut) (bs float64) {
 
-	if expiryDays == 0 {
+	if expiryDays <= 0 {
 		return math.NaN()
+	}
+	if expiryDays <= 0.1 {
+		expiryDays = 0.1
 	}
 
 	// if premium is less than intrinsic then return zero
@@ -486,17 +489,17 @@ func optionImpliedVol(expiryDays, deliveryDays int, strike, spot, forward, prm f
 	return math.NaN()
 }
 
-func dF(days int, rate float64) float64 {
-	return math.Exp(-float64(days) / 365 * rate)
+func dF(days float64, rate float64) float64 {
+	return math.Exp(-days / 365 * rate)
 }
 
 // in domestic - rhs coin forward value
-func forwardOptionPrice(expiryDays int, strike, forward, vol float64, callPut CallOrPut) (prm float64) {
-	if expiryDays == 0 {
+func forwardOptionPrice(expiryDays, strike, forward, vol float64, callPut CallOrPut) (prm float64) {
+	if expiryDays <= 0 {
 		vol = 0
 	}
 
-	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
+	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(expiryDays/365)) / (vol * math.Sqrt(expiryDays/365))
 	d2 := d1 - vol*math.Sqrt(float64(expiryDays)/365.0)
 
 	if callPut == Call {
@@ -512,7 +515,7 @@ func cumNormDist(x float64) float64 {
 	return 0.5 * math.Erfc(-x/math.Sqrt2)
 }
 
-func optionVega(expiryDays, deliveryDays int, strike, spot, forward, vol float64) float64 {
+func optionVega(expiryDays, deliveryDays, strike, spot, forward, vol float64) float64 {
 	//	d1 := (math.Log(forward/strike) + (vol*vol/2.0)*(float64(expiryDays)/365)) / (vol * math.Sqrt(float64(expiryDays)/365))
 	//	return forward * cumNormDist(d1) * math.Sqrt(float64(expiryDays)/365.0) * dF(deliveryDays, domRate)
 	return spot / forward * (forwardOptionPrice(expiryDays, strike, forward, vol+0.005, Call) - forwardOptionPrice(expiryDays, strike, forward, vol-0.005, Call))

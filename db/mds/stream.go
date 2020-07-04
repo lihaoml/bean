@@ -34,6 +34,7 @@ type ConTxnPoint struct {
 	Amount     float64
 	IndexPrice float64
 	Vol        float64
+	MarkVol    float64
 	TxnID      string
 	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
 }
