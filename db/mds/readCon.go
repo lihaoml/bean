@@ -115,7 +115,7 @@ func (mds MDS) GetContractTXNs(exName string, instr string, start, end time.Time
 
 	cmd := "select Amount,Price,side from " + MT_CONTRACT_TRANSACTION +
 		" where time >='" + timeFrom + "' and time <='" + timeTo +
-		// "' and exchange = '" + exName +  // TODO: fix previous time series where exchange name is not recorded
+		"' and exchange = '" + exName +
 		"' and instr = '" + instr + "'"
 	if len(mds.cs) == 0 {
 		return nil, errors.New("no MDS connection established")
