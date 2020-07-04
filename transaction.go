@@ -43,6 +43,8 @@ type OHLCVBS struct {
 	Volume     float64
 	BuyVolume  float64
 	SellVolume float64
+	VWAP       float64
+	Stdev      float64
 	Start      time.Time
 	End        time.Time
 }
@@ -87,6 +89,51 @@ func (t Transactions) TradeRatio() (float64, float64, int, int) {
 		}
 	}
 	return sumbuy / sumsell, wsumbuy / wsumsell, buy, sell
+}
+
+func (t ContractTXNs) OHLCVBS() (OHLCVBS, error) {
+	var res OHLCVBS
+	var err error
+	if len(t) > 0 {
+		res.Start = t[0].TimeStamp
+		res.End = t[len(t)-1].TimeStamp
+		res.Open = t[0].Price
+		res.Close = t[len(t)-1].Price
+		res.High = res.Open
+		res.Low = res.Open
+		res.Volume = 0
+		res.BuyVolume = 0
+		res.SellVolume = 0
+		totalAmt := 0.0
+		for _, txn := range t {
+			if txn.Price > res.High {
+				res.High = txn.Price
+			}
+			if txn.Price < res.Low {
+				res.Low = txn.Price
+			}
+			res.Volume += math.Abs(txn.Amount) * txn.Price
+			if txn.Maker == Buyer {
+				res.SellVolume += math.Abs(txn.Amount) * txn.Price
+			} else {
+				res.BuyVolume += math.Abs(txn.Amount) * txn.Price
+			}
+			totalAmt += math.Abs(txn.Amount)
+		}
+		res.VWAP = res.Volume / totalAmt
+
+		// calculate stdandard deviation
+		d2 := 0.0
+		w := 0.0
+		for _, txn := range t {
+			d2 += (txn.Price - res.VWAP) * (txn.Price - res.VWAP) * txn.Amount
+			w += txn.Amount
+		}
+		res.Stdev = math.Sqrt(d2 / w)
+	} else {
+		err = errors.New("OHLCVBS: empty transactions")
+	}
+	return res, err
 }
 
 // assuming transactions is sorted
@@ -255,7 +302,7 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 
 	for _, v := range txn {
 		s := []string{
-			v.TimeStamp.Format(time.RFC3339),
+			v.TimeStamp.Format(time.RFC3339Nano),
 			v.Pair.String(),
 			fmt.Sprint(v.Price),
 			fmt.Sprint(v.Amount),
@@ -266,6 +313,11 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 	csvWriter := csv.NewWriter(csvFile)
 	csvWriter.WriteAll(data)
 	csvWriter.Flush()
+}
+
+func (k OHLCVBSTS)  Sort() OHLCVBSTS {
+	sort.Slice(k, func(i, j int) bool { return k[i].Start.Before(k[j].Start) })
+	return k
 }
 
 func (t ContractTXNs) Sort() ContractTXNs {
@@ -292,7 +344,7 @@ func (txn ContractTXNs) ToCSV(filename string) {
 
 	for _, v := range txn {
 		s := []string{
-			v.TimeStamp.Format(time.RFC3339),
+			v.TimeStamp.Format(time.RFC3339Nano),
 			v.Instrument,
 			fmt.Sprint(v.Price),
 			fmt.Sprint(v.Amount),
