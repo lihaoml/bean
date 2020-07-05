@@ -65,7 +65,8 @@ func (mdss *MDSSink) SmilePoint(p SmilePoint) (err error) {
 		"RR25":  p.RR25 * 100.0,
 		"RR10":  p.RR10 * 100.0,
 		"Fly25": p.Fly25 * 100.0,
-		"Fly10": p.Fly10 * 100.0}
+		"Fly10": p.Fly10 * 100.0,
+		"Swaps": p.Swaps}
 	pt, err := client.NewPoint("SMILE", tags, fields, p.TimeStamp)
 	if err != nil {
 		return

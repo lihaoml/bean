@@ -14,6 +14,7 @@ const MT_TRANSACTION string = "TRANSACTION"
 const MT_CONTRACT_ORDERBOOK string = "CONTRACT_ORDERBOOK"
 const MT_CONTRACT_TRANSACTION string = "CONTRACT_TRANSACTION"
 const MT_CONTRACT_RISK string = "CONTRACT_RISK"
+const MT_SMILE string = "SMILE"
 const MT_TICK string = "TICK"
 const MT_FUNDING_RATE string = "FUNDING_RATE"
 const MT_AV_OHLC_1m string = "AV_OHLC_1m" // data from alpha vantage
@@ -24,17 +25,17 @@ type MDS struct {
 
 func Connect(dbhost, port string) (MDS, error) {
 	cs, err := influx.ConnectTo(dbhost, port, "MDS_USER", "MDS_PASSWORD")
-	for _, c := range cs {
-		defer c.Close()
-	}
+	//	for _, c := range cs {
+	//		defer c.Close()
+	//	}
 	return MDS{cs}, err
 }
 
 func ConnectService() (MDS, error) {
 	cs, err := connect()
-	for _, c := range cs {
-		defer c.Close()
-	}
+	//	for _, c := range cs {
+	//		defer c.Close()
+	//	}
 	return MDS{cs}, err
 }
 
@@ -45,4 +46,10 @@ func (m MDS) WriteBatchPoints(bp client.BatchPoints) (err error) {
 // remember to defer c.Close() for every call of connect(), otherwise influx will open up too many files and stops working
 func connect() ([]client.Client, error) {
 	return influx.ConnectService("MDS_DB_ADDRESS", MDS_PORT, "MDS_USER", "MDS_PASSWORD")
+}
+
+func (m MDS) Close() {
+	for _, c := range m.cs {
+		c.Close()
+	}
 }

@@ -73,6 +73,7 @@ type SmilePoint struct {
 	Pair                          Pair
 	Expiry                        time.Time
 	Atm, RR25, RR10, Fly25, Fly10 float64
+	Swaps                         float64
 }
 
 // Writer creates a DataPtCh channel into which various structures can be sent.
