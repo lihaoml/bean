@@ -33,7 +33,7 @@ func SafeFloat64(d interface{}) float64 {
 	default:
 		// logger.Warn().Msg("SafeFloat64 conversion: do not know how to convert interface to float64, " + fmt.Sprint(reflect.TypeOf(d), d))
 		t1 = ParseFloatSafe64(fmt.Sprint(d))
-//		t1 = math.NaN() //
+		//		t1 = math.NaN() //
 	}
 	return t1
 }
