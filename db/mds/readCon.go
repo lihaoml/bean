@@ -137,7 +137,7 @@ func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smi
 			fly25, _ := d[4].(json.Number).Float64()
 			rr10, _ := d[5].(json.Number).Float64()
 			fly10, _ := d[6].(json.Number).Float64()
-			swaps := 0.0 //swaps, _ := d[7].(json.Number).Float64()
+			swaps, _ := d[7].(json.Number).Float64()
 
 			exp, err := time.Parse(bean.ContractDateFormat, expiry)
 			if err != nil {
