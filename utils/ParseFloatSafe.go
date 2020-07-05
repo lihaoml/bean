@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"math"
-	"reflect"
 	"strconv"
 )
 
@@ -15,7 +14,7 @@ func ParseFloatSafe64(s string) float64 {
 	if err != nil {
 		logger.Error().Err(err).Msg("parsing string to float64")
 		//		panic("parsing string to float64")
-		return 0
+		return math.NaN()
 	}
 	return v
 }
@@ -32,8 +31,9 @@ func SafeFloat64(d interface{}) float64 {
 	case decimal.Decimal:
 		t1, _ = d.(decimal.Decimal).Float64()
 	default:
-		logger.Warn().Msg("SafeFloat64 conversion: do not know how to convert interfact to float64, " + fmt.Sprint(reflect.TypeOf(d)))
-		t1 = math.NaN() //
+		// logger.Warn().Msg("SafeFloat64 conversion: do not know how to convert interface to float64, " + fmt.Sprint(reflect.TypeOf(d), d))
+		t1 = ParseFloatSafe64(fmt.Sprint(d))
+//		t1 = math.NaN() //
 	}
 	return t1
 }

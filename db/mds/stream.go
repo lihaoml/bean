@@ -12,7 +12,7 @@ import (
 
 // stream contains functions that allow the streaming of data to be written to mds through channels
 
-const bufferSize = 10000
+const bufferSize = 20000
 
 // ConOBPoint allows sending of the orderbook for writing to the MDS ORDERBOOK table
 type ConOBPoint struct {
