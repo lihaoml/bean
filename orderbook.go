@@ -137,10 +137,10 @@ func (ob OrderBook) Scale(scaler float64) OrderBook {
 	// scale price to santoshi
 	bids := ob.Bids()
 	asks := ob.Asks()
-	for i, _ := range bids{
+	for i, _ := range bids {
 		bids[i].Price *= scaler
 	}
-	for i, _ := range asks{
+	for i, _ := range asks {
 		asks[i].Price *= scaler
 	}
 	return NewOrderBook(bids, asks)

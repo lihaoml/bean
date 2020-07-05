@@ -315,7 +315,7 @@ func (txn Transactions) ToCSV(pair Pair, filename string) {
 	csvWriter.Flush()
 }
 
-func (k OHLCVBSTS)  Sort() OHLCVBSTS {
+func (k OHLCVBSTS) Sort() OHLCVBSTS {
 	sort.Slice(k, func(i, j int) bool { return k[i].Start.Before(k[j].Start) })
 	return k
 }

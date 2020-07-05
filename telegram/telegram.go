@@ -174,8 +174,7 @@ func SendMsgRaw(envKey string, uids []int64, text string) {
 // moved from notifictaion/telegram/tele.go
 
 func SendMsg(sender string, receiver string, msg string) {
-	godotenv.Load(BeanexAccountPath() + "tgbot.env")
-	godotenv.Overload()
+	godotenv.Overload(BeanexAccountPath() + "tgbot.env")
 	if os.Getenv(sender) == "" {
 		panic("Error loading sender token")
 	}
