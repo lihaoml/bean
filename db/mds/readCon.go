@@ -1,9 +1,10 @@
 package mds
 
 import (
+	"bean"
 	. "bean"
 	"bean/db/influx"
-	"bean/utils"
+	util "bean/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -106,6 +107,53 @@ func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map
 		}
 	}
 	return mkt, nil
+}
+
+func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smiles []SmilePoint, err error) {
+	cmd := "SELECT expiry,last(Atm),RR25,Fly25,RR10,Fly10,Swaps from " + MT_SMILE +
+		" WHERE time <='" + snap.Format(time.RFC3339) + "'" +
+		" and time >='" + snap.Add(-45*time.Minute).Format(time.RFC3339) + "'" +
+		" and pair = '" + underlying.String() + "'" +
+		" GROUP BY expiry"
+	if len(mds.cs) == 0 {
+		return nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp) <= 0 || len(resp[0].Series) <= 0 {
+		return nil, err
+	}
+
+	// group result by time
+	for _, row := range resp[0].Series {
+		for _, d := range row.Values {
+			// fmt.Println(d)
+			t, _ := time.Parse(time.RFC3339, d[0].(string))
+			expiry := d[1].(string)
+			atm, _ := d[2].(json.Number).Float64()
+			rr25, _ := d[3].(json.Number).Float64()
+			fly25, _ := d[4].(json.Number).Float64()
+			rr10, _ := d[5].(json.Number).Float64()
+			fly10, _ := d[6].(json.Number).Float64()
+			swaps, _ := d[7].(json.Number).Float64()
+
+			exp, err := time.Parse(bean.ContractDateFormat, expiry)
+			if err != nil {
+				return nil, err
+			}
+			smiles = append(smiles,
+				SmilePoint{
+					TimeStamp: t,
+					Pair:      underlying,
+					Expiry:    exp,
+					Atm:       atm / 100.0, RR25: rr25 / 100.0, RR10: rr10 / 100.0,
+					Fly25: fly25 / 100.0, Fly10: fly10 / 100.0, Swaps: swaps,
+				})
+		}
+	}
+	return
 }
 
 func (mds MDS) GetContractTXNs(exName string, instr string, start, end time.Time) (ContractTXNs, error) {
