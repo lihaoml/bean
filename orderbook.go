@@ -139,9 +139,11 @@ func (ob OrderBook) Scale(scaler float64) OrderBook {
 	asks := ob.Asks()
 	for i, _ := range bids {
 		bids[i].Price *= scaler
+		bids[i].Price = math.Round(bids[i].Price*1e8) / 1e8
 	}
 	for i, _ := range asks {
 		asks[i].Price *= scaler
+		asks[i].Price = math.Round(asks[i].Price*1e8) / 1e8
 	}
 	return NewOrderBook(bids, asks)
 }
