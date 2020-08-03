@@ -66,7 +66,7 @@ func (mds MDS) GetContractOrderBookTS(con *Contract, start, end time.Time, depth
 }
 
 // GetMarket retrieves an entire market of contracts as per a specific time
-func (mds MDS) GetMarketRaw(exName string, underlying Pair, snap time.Time) (map[string]OrderBookT, error) {
+func (mds MDS) GetAllContractOrderBooks(exName string, underlying Pair, snap time.Time) (map[string]OrderBookT, error) {
 	cmd := "SELECT instrument,side,index,Amount,last(Price) as Price from " + MT_CONTRACT_ORDERBOOK +
 		" WHERE time <='" + snap.Format(time.RFC3339) + "'" +
 		" and time >='" + snap.Add(-12*time.Hour).Format(time.RFC3339) + "'" +
