@@ -75,6 +75,8 @@ func ContractFromName(name string) (*Contract, error) {
 		underlying = Pair{BTC, USD}
 	case "ETH":
 		underlying = Pair{ETH, USD}
+	case "BCH":
+		underlying = Pair{BCH, USD}
 	default:
 		err = errors.New("do not recognise coin")
 		return nil, err
@@ -255,6 +257,9 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			continue
 		case "ETH":
 			c.underlying = Pair{ETH, USD}
+			continue
+		case "BCH":
+			c.underlying = Pair{BCH, USD}
 			continue
 		case "C":
 			c.callPut = Call

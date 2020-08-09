@@ -110,7 +110,7 @@ func (mds MDS) GetAllContractOrderBooks(exName string, underlying Pair, snap tim
 }
 
 func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smiles []SmilePoint, err error) {
-	cmd := "SELECT expiry,last(Atm),RR25,Fly25,RR10,Fly10,Swaps from " + MT_SMILE +
+	cmd := "SELECT expiry,last(Atm),RR25,Fly25,RR10,Fly10,Spot,Swaps from " + MT_SMILE +
 		" WHERE time <='" + snap.Format(time.RFC3339) + "'" +
 		" and time >='" + snap.Add(-45*time.Minute).Format(time.RFC3339) + "'" +
 		" and pair = '" + underlying.String() + "'" +
@@ -137,7 +137,8 @@ func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smi
 			fly25, _ := d[4].(json.Number).Float64()
 			rr10, _ := d[5].(json.Number).Float64()
 			fly10, _ := d[6].(json.Number).Float64()
-			swaps, _ := d[7].(json.Number).Float64()
+			spot, _ := d[7].(json.Number).Float64()
+			swaps, _ := d[8].(json.Number).Float64()
 
 			exp, err := time.Parse(bean.ContractDateFormat, expiry)
 			if err != nil {
@@ -149,7 +150,8 @@ func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smi
 					Pair:      underlying,
 					Expiry:    exp,
 					Atm:       atm / 100.0, RR25: rr25 / 100.0, RR10: rr10 / 100.0,
-					Fly25: fly25 / 100.0, Fly10: fly10 / 100.0, Swaps: swaps,
+					Fly25: fly25 / 100.0, Fly10: fly10 / 100.0,
+					Spot: spot, Swaps: swaps,
 				})
 		}
 	}
