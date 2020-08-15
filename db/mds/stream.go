@@ -73,7 +73,7 @@ type SmilePoint struct {
 	Pair                          Pair
 	Expiry                        time.Time
 	Atm, RR25, RR10, Fly25, Fly10 float64
-	Swaps                         float64
+	Spot, Swaps                   float64
 }
 
 // Writer creates a DataPtCh channel into which various structures can be sent.
@@ -172,7 +172,9 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 						"RR25":  p.RR25 * 100.0,
 						"RR10":  p.RR10 * 100.0,
 						"Fly25": p.Fly25 * 100.0,
-						"Fly10": p.Fly10 * 100.0}
+						"Fly10": p.Fly10 * 100.0,
+						"Swaps": p.Swaps,
+						"Spot":  p.Spot}
 					pt, err := client.NewPoint("SMILE", tags, fields, p.TimeStamp)
 					if err != nil {
 						errCh <- err
