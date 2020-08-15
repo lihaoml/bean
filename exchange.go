@@ -39,6 +39,7 @@ const (
 	NameZBTCex   = "ZBTCEX"
 	NameABEX     = "ABEX"
 	NameHitBTC   = "HITBTC"
+	NameHBTC   = "HBTC"
 	NamePROBIT   = "PROBIT"
 	NameCoinone  = "COINONE"
 	NameInfiBTC  = "INFIBTC"

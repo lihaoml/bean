@@ -17,6 +17,7 @@ const MT_CONTRACT_RISK string = "CONTRACT_RISK"
 const MT_SMILE string = "SMILE"
 const MT_TICK string = "TICK"
 const MT_FUNDING_RATE string = "FUNDING_RATE"
+const MT_FUNDING_RATE_DISPLAY string = "FUNDING_RATE_DISPLAY"
 const MT_AV_OHLC_1m string = "AV_OHLC_1m" // data from alpha vantage
 
 type MDS struct {
