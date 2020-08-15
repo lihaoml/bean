@@ -12,22 +12,23 @@ import (
 )
 
 const (
-	pushoverGlancesURL = "https://api.pushover.net/1/glances.json"
+	pushoverGlancesURL  = "https://api.pushover.net/1/glances.json"
 	pushoverMessagesURL = "https://api.pushover.net/1/messages.json"
-	statusSuccess = 1
+	statusSuccess       = 1
 )
 
 type Message struct {
-	Title string
-	Text string
+	Title   string
+	Text    string
 	Subtext string
-	Count int
+	Count   int
+	Percent int
 }
 
 // Response contains the JSON response returned by the pushover.net API
 type response struct {
-	Status  int      `json:"status"`
-	Errors  []string `json:"errors"`
+	Status int      `json:"status"`
+	Errors []string `json:"errors"`
 }
 
 func UpdateGlance(apiToken, userKey string, msg Message) error {
@@ -55,6 +56,9 @@ func send(pourl, apiToken, userKey string, msg Message) (err error) {
 	m.Set("text", msg.Text)
 	m.Set("subtext", msg.Subtext)
 	m.Set("count", fmt.Sprint(msg.Count))
+	if msg.Percent > 100 || msg.Percent < 0 {
+		m.Set("percent", "")
+	}
 	// Send the message the the pushover.net API
 	resp, err := http.PostForm(pourl, m)
 	if err != nil {
@@ -72,5 +76,5 @@ func send(pourl, apiToken, userKey string, msg Message) (err error) {
 		}
 		return errors.New(r.Errors[0])
 	}
-	return  nil
+	return nil
 }

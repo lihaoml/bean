@@ -74,6 +74,9 @@ const (
 	QTUM    Coin = "QTUM"
 	LINK    Coin = "LINK"
 	XMR     Coin = "XMR"
+	COMP    Coin = "COMP"
+	XTZ    Coin = "XTZ"
+	WAVES    Coin = "WAVES"
 )
 
 func (s Coins) Len() int {
@@ -209,7 +212,11 @@ func (coin Coin) RenderCoinAmount(amount float64) string {
 			return string("`฿ `") + util.RenderFloat("###.####", amount)
 		}
 	case ETH:
-		return string("`Ξ `") + util.RenderFloat("###.###", amount)
+		if math.Abs(amount) < 1e-4 {
+			return ""
+		} else {
+			return string("`Ξ `") + util.RenderFloat("###.###", amount)
+		}
 	case DGX:
 		return string("`G `") + util.RenderFloat("###.###", amount)
 	case IOTX:
@@ -237,7 +244,7 @@ func (coin Coin) RenderCoinAmount(amount float64) string {
 			return string("`F `") + util.RenderFloat("#,###.", amount)
 		}
 	default:
-		if amount < 1e-2 {
+		if math.Abs(amount) < 1e-2 {
 			return ""
 		} else {
 			return "`" + string(coin) + " `" + util.RenderFloat("#,###.", amount)
