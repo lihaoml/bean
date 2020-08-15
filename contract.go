@@ -2,7 +2,6 @@ package bean
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"sort"
 	"strconv"
@@ -30,6 +29,7 @@ type Contract struct {
 	strike     float64
 	callPut    CallOrPut
 	perp       bool
+	index      bool
 }
 
 func (c *Contract) Hash() (hash int) {
@@ -59,7 +59,7 @@ func ContractFromName(name string) (*Contract, error) {
 
 	conCacheLock.Lock()
 	defer conCacheLock.Unlock()
-
+	// Faster without cache ?
 	con, exists := contractCache[name]
 	if exists {
 		return con, nil
@@ -98,6 +98,10 @@ func ContractFromName(name string) (*Contract, error) {
 				expiry:     expiry,
 				delivery:   expiry,
 				callPut:    NA}
+		}
+	case 3:
+		if st[1] == "DERIBIT" && st[2] == "INDEX" {
+			con = IndexContract(underlying)
 		}
 
 	case 4:
@@ -221,9 +225,14 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		case "PERP":
 			c.perp = true
 			n := time.Now()
-			tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
-			c.expiry = tod
+			c.expiry = n.Add(24 * time.Hour)
 			continue
+		case "INDEX":
+			c.index = true
+			n := time.Now()
+			c.expiry = n
+			continue
+
 		case "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC":
 			// Find the last friday of the relevant month
 			tod := time.Now()
@@ -289,12 +298,21 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 
 func PerpContract(p Pair) *Contract {
 	n := time.Now()
-	tod := time.Date(n.Year(), n.Month(), n.Day(), 8, 0, 0, 0, time.UTC)
 	return &Contract{
 		perp:       true,
-		expiry:     tod,
-		delivery:   tod,
+		expiry:     n.Add(24 * time.Hour),
+		delivery:   n.Add(24 * time.Hour),
 		underlying: p}
+}
+
+func IndexContract(p Pair) *Contract {
+	n := time.Now()
+	return &Contract{
+		index:      true,
+		expiry:     n,
+		delivery:   n,
+		underlying: p,
+	}
 }
 
 func OptContract(p Pair, d time.Time, strike float64, cp CallOrPut) *Contract {
@@ -339,12 +357,14 @@ func (c *Contract) Name() string {
 			} else {
 				cptext = "P"
 			}
-			c.name = fmt.Sprintf("%s-%s-%.0f-%s", c.underlying.Coin, c.ExpiryStr(), c.strike, cptext)
+			c.name = string(c.underlying.Coin) + "-" + c.ExpiryStr() + "-" + strconv.FormatFloat(c.strike, 'f', 0, 64) + "-" + cptext
 		} else {
 			if c.perp {
-				c.name = fmt.Sprintf("%s-PERPETUAL", c.underlying.Coin)
+				c.name = string(c.underlying.Coin) + "-PERPETUAL"
+			} else if c.index {
+				c.name = string(c.underlying.Coin) + "-DERIBIT-INDEX"
 			} else {
-				c.name = fmt.Sprintf("%s-%s", c.underlying.Coin, c.ExpiryStr())
+				c.name = string(c.underlying.Coin) + "-" + c.ExpiryStr()
 			}
 		}
 	}
@@ -361,6 +381,10 @@ func (c Contract) ExpiryStr() string {
 
 func (c Contract) Perp() bool {
 	return c.perp
+}
+
+func (c Contract) Index() bool {
+	return c.index
 }
 
 func (c Contract) Delivery() time.Time {
