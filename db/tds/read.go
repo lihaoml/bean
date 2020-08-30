@@ -236,6 +236,7 @@ func getTrades(c client.Client, dbName string, filter map[string]string, timeFro
 		trd := TradeLog{
 			oid,
 			Pair{lhs, rhs},
+			Pair{lhs, rhs}.String(),
 			price,
 			math.Abs(amt),
 			commission,

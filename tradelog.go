@@ -14,6 +14,7 @@ import (
 type TradeLog struct {
 	OrderID         string
 	Pair            Pair
+	Symbol          string
 	Price           float64
 	Quantity        float64
 	Commission      float64

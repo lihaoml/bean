@@ -130,6 +130,9 @@ func (p portfolio) ShowBrief() {
 			fmt.Println(string(c), util.RenderFloat("#,###.####", v), "[LOCKED]", util.RenderFloat("#,###.####", p.lockedBalances[c]))
 		}
 	}
+	if len(cs) == 0 {
+		fmt.Println("empty portfolio")
+	}
 }
 
 // Add - add two portfolios and return a new one
