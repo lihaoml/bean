@@ -1,7 +1,6 @@
 package bean
 
 import (
-	"bean/logger"
 	util "bean/utils"
 	"fmt"
 	"math"
@@ -337,26 +336,52 @@ func RightPair(coin1, coin2 Coin) (Pair, bool) {
 		return Pair{IOTX, APOT}, true
 	}
 
-	logger.Warn().Msg(("unknow pair convention " + string(coin1) + string(coin2)))
+	// logger.Warn().Msg(("unknow pair convention " + string(coin1) + string(coin2)))
 	return Pair{}, false
 }
 
 // all possible pairs for a given list of coins
 func PossiblePairs(coins []Coin) (pairs []Pair) {
 	for i := 0; i < len(coins); i++ {
-		for j := i + 1; j < len(coins); j++ {
-			p, valid := RightPair(coins[i], coins[j])
-			if valid {
-				pairs = append(pairs, p)
-				fmt.Println(p)
+		if coins[i] == IOTX {
+			pairs = append(pairs, Pair{IOTX, BTC})
+			pairs = append(pairs, Pair{IOTX, USDT})
+		} else {
+			for j := i + 1; j < len(coins); j++ {
+				if coins[j] != IOTX {
+					p, valid := RightPair(coins[i], coins[j])
+					if valid {
+						pairs = append(pairs, p)
+					}
+				}
 			}
 		}
 	}
 	return
 }
 
-// split p by "_", then construct the pair
+// split p by "_", then construct the pair, only work for string like BTC_USDT
 func ParsePair(p string) Pair {
 	s := strings.Split(p, "_")
 	return Pair{Coin(strings.ToUpper(s[0])), Coin(strings.ToUpper(s[1]))}
+}
+
+// parse the underlying pair by symbol name, symbol follow below formats:
+// BTCUSD-ContractSpec, e.g., BTCUSD-PERPETUAL, BTCUSDT-PERPETUAL, BTCUSD-25SEP20
+// BTCUSD_ContractSpec, e.g., BTCUSD_PERPETUAL, BTCUSDT_PERPETUAL, BTCUSD_25SEP20
+// BTCUSD, BTCUSDT, IOTXBTC
+// contract spec will be thrown away, the first string will be split into two coins based on the following ruls
+// look for USDT, USD, BTC at the right, trim it, then convert the left to a coin
+func SymbolToPair(symbol string) Pair {
+	s := strings.Split(strings.Split(symbol, "_")[0], "-")[0]
+	if strings.HasSuffix(s, "USDT") {
+		return Pair{Coin(strings.Trim(s, "USDT")), USDT}
+	} else if strings.HasSuffix(s, "USD") {
+		// TODO: if we want to support BUSD as the quote ccy, we need to differentiate it here
+		return Pair{Coin(strings.Trim(s, "USD")), USD}
+	} else if strings.HasSuffix(s, "BTC") {
+		return Pair{Coin(strings.Trim(s, "BTC")), USD}
+	} else {
+		panic("unknown format of the symbol: " + symbol)
+	}
 }

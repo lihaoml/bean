@@ -101,3 +101,9 @@ type Strat interface {
 	Name() string         // name of the strategy, for reporting purpose
 	FormatParams() string // a compact way to format key params of the strategy, to save to TDS for reference
 }
+
+// the strat info to push to the bus for dashboard to subscribe
+type StratDashBoardInfo struct {
+	ColNames []string   `json:"ColNames"`
+	Rows     [][]string `json:"Rows"`
+}
