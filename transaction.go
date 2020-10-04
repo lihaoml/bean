@@ -320,6 +320,28 @@ func (k OHLCVBSTS) Sort() OHLCVBSTS {
 	return k
 }
 
+func (k OHLCVBSTS) High() []float64 {
+	highs := []float64{}
+	for _, v := range k {
+		highs = append(highs, v.High)
+	}
+	return highs
+}
+func (k OHLCVBSTS) Low() []float64 {
+	lows := []float64{}
+	for _, v := range k {
+		lows = append(lows, v.Low)
+	}
+	return lows
+}
+func (k OHLCVBSTS) Close() []float64 {
+	close := []float64{}
+	for _, v := range k {
+		close = append(close, v.Close)
+	}
+	return close
+}
+
 func (t ContractTXNs) Sort() ContractTXNs {
 	sort.Slice(t, func(i, j int) bool { return t[i].TimeStamp.Before(t[j].TimeStamp) })
 	return t

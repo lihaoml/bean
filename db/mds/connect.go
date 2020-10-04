@@ -19,6 +19,8 @@ const MT_TICK string = "TICK"
 const MT_FUNDING_RATE string = "FUNDING_RATE"
 const MT_FUNDING_RATE_DISPLAY string = "FUNDING_RATE_DISPLAY"
 const MT_AV_OHLC_1m string = "AV_OHLC_1m" // data from alpha vantage
+const MT_HOURLY_DATA string = "HOURLY_DATA" // data from alpha vantage
+const MT_HOURLY_FACTOR string = "HOURLY_FACTOR" // data from alpha vantage
 
 type MDS struct {
 	cs []client.Client // connecting to multiple MDS server (if provided), write - write to multiple servers, read - read from one that is available
