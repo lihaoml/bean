@@ -418,8 +418,8 @@ func (c1 *Contract) Equal(c2 *Contract) bool {
 	} else {
 		return !c2.isOption &&
 			c1.underlying == c2.underlying &&
-			c1.perp == c2.perp &&
-			c1.expiry == c2.expiry
+			((c1.perp && c2.perp) ||
+				(!c1.perp && !c2.perp && c1.expiry == c2.expiry))
 	}
 }
 
