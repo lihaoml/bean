@@ -121,7 +121,6 @@ type OrderStatus struct {
 	State           OrderState
 	Commission      float64
 	CommissionAsset Coin
-	Life            OrderLife
 	Msg             string
 }
 
