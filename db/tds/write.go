@@ -263,6 +263,10 @@ func addTradePoints(acctName string, trades TradeLogS, exName string, dealerInfo
 			"LHS":      string(t.Pair.Coin),
 			"RHS":      string(t.Pair.Base),
 		}
+		// contract trades has symbol, spot should should not have symbol
+		if t.Symbol != "" {
+			tags["SYMBOL"] = t.Symbol
+		}
 		pt, err := client.NewPoint(MT_TRADE, tags, txn_fields, t.Time)
 		if err != nil {
 			logger.Warn().Msg(err.Error()) // TODO: deal with errors
@@ -383,5 +387,71 @@ func WritePointsToBalanceDB(pts []influx.Point, measurement string) error {
 		}
 		bp.AddPoint(pt)
 	}
+	return influx.WriteBatchPoints(cs, bp)
+}
+
+
+
+// record trades from the last hour
+func RecordCurrentAndTargetPositions(acctName string, exName string, target, actual, price map[Coin]float64) error {
+	cs, err := connect()
+	for _, c := range cs {
+		defer c.Close()
+	}
+	if err != nil {
+		logger.Warn().Msg(err.Error())
+		return err
+	}
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  TDS_DBNAME,
+		Precision: "s",
+	})
+	t := time.Now().Truncate(time.Minute)
+	actual_ := map[string](interface{}){}
+	actualUSD_ := map[string](interface{}){}
+	for c, v := range actual {
+		actual_[string(c)] = v
+		actualUSD_[string(c)] = v * price[c]
+	}
+
+	target_ := map[string](interface{}){}
+	targetUSD_ := map[string](interface{}){}
+	for c, v := range target {
+		target_[string(c)] = v
+		targetUSD_[string(c)] = v * price[c]
+	}
+
+	tagsCurrent := map[string]string{
+		"account":  acctName,
+		"exchange": exName,
+		"type": "ACTUAL",
+	}
+	ptCurrent, err := client.NewPoint(MT_FUT_POSITION, tagsCurrent, actual_ , t)
+	bp.AddPoint(ptCurrent)
+
+	tagsCurrentUSD := map[string]string{
+		"account":  acctName,
+		"exchange": exName,
+		"type": "ACTUAL_USD",
+	}
+	ptCurrentUSD, err := client.NewPoint(MT_FUT_POSITION, tagsCurrentUSD, actualUSD_ , t)
+	bp.AddPoint(ptCurrentUSD)
+
+	tagsTarget := map[string]string{
+		"account":  acctName,
+		"exchange": exName,
+		"type": "TARGET",
+	}
+	ptTarget, err := client.NewPoint(MT_FUT_POSITION, tagsTarget, target_ , t)
+	bp.AddPoint(ptTarget)
+
+	tagsTargetUSD := map[string]string{
+		"account":  acctName,
+		"exchange": exName,
+		"type": "TARGET_USD",
+	}
+	ptTargetUSD, err := client.NewPoint(MT_FUT_POSITION, tagsTargetUSD, targetUSD_ , t)
+	bp.AddPoint(ptTargetUSD)
+	//Write the batch
 	return influx.WriteBatchPoints(cs, bp)
 }

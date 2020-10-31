@@ -268,6 +268,8 @@ func orderPricePrec(pair Pair) (prec int) {
 		prec = 4
 	case Pair{ENJ, USDT}:
 		prec = 4
+	case Pair{PAXG, USDT}:
+		prec = 2
 	default:
 		panic("pair.OrderPricePrec not implemented for " + string(pair.Coin) + string(pair.Base))
 		return
@@ -380,7 +382,9 @@ func SymbolToPair(symbol string) Pair {
 		// TODO: if we want to support BUSD as the quote ccy, we need to differentiate it here
 		return Pair{Coin(strings.Trim(s, "USD")), USD}
 	} else if strings.HasSuffix(s, "BTC") {
-		return Pair{Coin(strings.Trim(s, "BTC")), USD}
+		return Pair{Coin(strings.Trim(s, "BTC")), BTC}
+	} else if strings.HasSuffix(s, "ETH") {
+		return Pair{Coin(strings.Trim(s, "ETH")), ETH}
 	} else {
 		panic("unknown format of the symbol: " + symbol)
 	}
