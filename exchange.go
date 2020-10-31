@@ -39,7 +39,7 @@ const (
 	NameZBTCex   = "ZBTCEX"
 	NameABEX     = "ABEX"
 	NameHitBTC   = "HITBTC"
-	NameHBTC   = "HBTC"
+	NameHBTC     = "HBTC"
 	NamePROBIT   = "PROBIT"
 	NameCoinone  = "COINONE"
 	NameInfiBTC  = "INFIBTC"
@@ -110,6 +110,7 @@ type Exchange interface {
 // Status of the placed order,
 type OrderStatus struct {
 	OrderID         string
+	ExchID          string
 	PlacedTime      time.Time
 	Side            Side
 	Instrument      string
@@ -120,7 +121,7 @@ type OrderStatus struct {
 	State           OrderState
 	Commission      float64
 	CommissionAsset Coin
-	Life            OrderLife
+	Msg             string
 }
 
 // sugar function, mainly for reporting and formatting purposes
