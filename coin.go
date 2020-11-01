@@ -77,6 +77,9 @@ const (
 	COMP    Coin = "COMP"
 	XTZ    Coin = "XTZ"
 	WAVES    Coin = "WAVES"
+	UNI Coin = "UNI"
+	PAXG Coin = "PAXG"
+	VITA Coin = "VITA"
 )
 
 func (s Coins) Len() int {

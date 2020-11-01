@@ -11,6 +11,7 @@ import (
 	"log"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/influxdata/influxdb/client/v2"
@@ -107,6 +108,82 @@ func (mds MDS) GetAllContractOrderBooks(exName string, underlying Pair, snap tim
 		}
 	}
 	return mkt, nil
+}
+
+func (mds MDS) GetLatestHourlyAlpha(exName string, instr string, base string, alphaName string) (time.Time, map[Coin]float64, error) {
+	return mds.getLatestAlpha(exName, instr, base, MT_HOURLY_ALPHA, alphaName)
+}
+func (mds MDS) GetLatestMinAlpha(exName string, instr string, base string, nMin int, alphaName string) (time.Time, map[Coin]float64, error) {
+	return mds.getLatestAlpha(exName, instr, base, "MIN_" + fmt.Sprint(nMin) + "_ALPHA", alphaName)
+}
+
+// GetMarket retrieves an entire market of contracts as per a specific time
+func (mds MDS) getLatestAlpha(exName string, instr string, base string, alphaTable, alphaName string) (time.Time, map[Coin]float64, error) {
+	cmd := "SELECT *::field from " + alphaTable +
+		" WHERE exchange = '" + exName + "' and \"name\" = '" + alphaName + "'" +
+		" and instr = '" + instr + "' and base = '" + base + "'" +
+		" order by time desc limit 1"
+	if len(mds.cs) == 0 {
+		return time.Now(), nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
+	if err != nil {
+		return time.Now(), nil, err
+	}
+	if len(resp) <= 0 || len(resp[0].Series) <= 0 {
+		return time.Now(), nil, err
+	}
+	vs := resp[0].Series[0]
+	alpha := map[Coin]float64{}
+	var t time.Time
+	for i, c := range vs.Columns {
+		if c == "time" {
+			t, _ = time.Parse(time.RFC3339, vs.Values[0][i].(string))
+		} else {
+			alpha[Coin(strings.ToUpper(c))], _ = vs.Values[0][i].(json.Number).Float64()
+		}
+	}
+	return t, alpha, nil
+}
+
+func (mds MDS) GetLatestHourlyData(exName string, instr string, base string, value string) (time.Time, map[Coin]float64, error) {
+	return mds.getLatestData(exName, instr, base, value, MT_HOURLY_DATA)
+}
+
+func (mds MDS) GetLatestMinData(exName string, instr string, base string, value string, nMin int) (time.Time, map[Coin]float64, error) {
+	return mds.getLatestData(exName, instr, base, value, "MIN_" + fmt.Sprint(nMin) + "_DATA")
+}
+
+// GetMarket retrieves an entire market of contracts as per a specific time
+// value: OPEN | CLOSE | VWAP etc
+func (mds MDS) getLatestData(exName string, instr string, base string, value string, dataTable string) (time.Time, map[Coin]float64, error) {
+	cmd := "SELECT *::field from " + dataTable +
+		" WHERE exchange = '" + exName + "' and value = '" + value + "'" +
+		" and instr = '" + instr + "' and base = '" + base + "'" +
+		" order by time desc limit 1"
+	fmt.Println(cmd)
+	if len(mds.cs) == 0 {
+		return time.Now(), nil, errors.New("no MDS connection established")
+	}
+	resp, err := influx.QueryDB(MDS_DBNAME, mds.cs[0], cmd)
+	if err != nil {
+		return time.Now(), nil, err
+	}
+	if len(resp) <= 0 || len(resp[0].Series) <= 0 {
+		return time.Now(), nil, err
+	}
+	vs := resp[0].Series[0]
+	fmt.Println(vs)
+	data := map[Coin]float64{}
+	var t time.Time
+	for i, c := range vs.Columns {
+		if c == "time" {
+			t, _ = time.Parse(time.RFC3339, vs.Values[0][i].(string))
+		} else {
+			data[Coin(strings.ToUpper(c))], _ = vs.Values[0][i].(json.Number).Float64()
+		}
+	}
+	return t, data, nil
 }
 
 func (mds MDS) GetSmilesRaw(exName string, underlying Pair, snap time.Time) (smiles []SmilePoint, err error) {

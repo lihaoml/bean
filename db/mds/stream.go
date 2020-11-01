@@ -39,6 +39,17 @@ type ConTxnPoint struct {
 	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
 }
 
+type ConBookTickerPoint struct {
+	ExName     string
+	Instrument string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
+	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
+	TimeStamp  time.Time
+	BestBidPrice      float64
+	BestBidAmount     float64
+	BestAskPrice      float64
+	BestAskAmount     float64
+}
+
 type SpotTxnPoint struct {
 	ExName string
 	Txn    Transaction
@@ -143,6 +154,8 @@ func (mds MDS) Writer() (dataPtCh chan interface{}, stopCh chan bool, errCh chan
 
 				case ConTxnPoint:
 					writeConTxnBatchPoints(bp, p)
+				case ConBookTickerPoint:
+					writeConBookTickerBatchPoints(bp, p)
 				case SpotTxnPoint:
 					writeSpotTxnBatchPoints(bp, p.ExName, p.Txn)
 				case SpotOBPoint:

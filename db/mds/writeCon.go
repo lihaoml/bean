@@ -121,3 +121,26 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 	bp.AddPoint(newpt)
 	return nil
 }
+
+
+func writeConBookTickerBatchPoints(bp client.BatchPoints, pt ConBookTickerPoint) error {
+	fields := map[string]interface{}{
+		"BestBidPrice":      pt.BestBidPrice,
+		"BestBidAmount":     pt.BestBidAmount,
+		"BestAskPrice":      pt.BestAskPrice,
+		"BestAskAmount":     pt.BestAskPrice,
+	}
+	tags := map[string]string{
+		"instr":    pt.Instrument,
+		"exchange": pt.ExName,
+		"symbol":   pt.Symbol,
+	}
+	ts := pt.TimeStamp
+
+	newpt, err := client.NewPoint(MT_CONTRACT_BOOK_TICKER, tags, fields, ts)
+	if err != nil {
+		return err
+	}
+	bp.AddPoint(newpt)
+	return nil
+}

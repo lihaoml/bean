@@ -66,14 +66,25 @@ func (mds MDS) WritePoints(pts []influx.Point, measurement string) error {
 		Database:  MDS_DBNAME,
 		Precision: "s",
 	})
-	for _, p := range pts {
+	for i, p := range pts {
 		pt, err := client.NewPoint(measurement, p.Tags, p.Fields, p.TimeStamp)
 		if err != nil {
 			return err
 		}
 		bp.AddPoint(pt)
+		if i % 10000 == 0 || i == len(pts) - 1{
+			err := mds.WriteBatchPoints(bp)
+			if err != nil {
+				return err
+			}else {
+				bp, _ = client.NewBatchPoints(client.BatchPointsConfig{
+					Database:  MDS_DBNAME,
+					Precision: "s",
+				})
+			}
+		}
 	}
-	return mds.WriteBatchPoints(bp)
+	return nil
 }
 
 func writeSpotTxnBatchPoints(bp client.BatchPoints, exName string, txn Transaction) error {
