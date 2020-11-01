@@ -407,6 +407,10 @@ func (c Contract) IsOption() bool {
 	return c.isOption
 }
 
+func (c Contract) IsFuture() bool {
+	return !c.isOption && !c.index
+}
+
 func (c1 *Contract) Equal(c2 *Contract) bool {
 	if c1.isOption {
 		return c2.isOption &&
