@@ -102,6 +102,8 @@ func ContractFromName(name string) (*Contract, error) {
 	case 3:
 		if st[1] == "DERIBIT" && st[2] == "INDEX" {
 			con = IndexContract(underlying)
+		} else {
+			return nil, errors.New("Don't recognise contract")
 		}
 
 	case 4:
