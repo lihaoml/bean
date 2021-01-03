@@ -91,6 +91,7 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 		"Price":      pt.Price,
 		"Amount":     pt.Amount,
 		"IndexPrice": pt.IndexPrice,
+		"OpenInt":    pt.OpenInterest,
 		"Vol":        pt.Vol,
 	}
 	if pt.MarkVol > 0.0 {
@@ -122,13 +123,12 @@ func writeConTxnBatchPoints(bp client.BatchPoints, pt ConTxnPoint) error {
 	return nil
 }
 
-
 func writeConBookTickerBatchPoints(bp client.BatchPoints, pt ConBookTickerPoint) error {
 	fields := map[string]interface{}{
-		"BestBidPrice":      pt.BestBidPrice,
-		"BestBidAmount":     pt.BestBidAmount,
-		"BestAskPrice":      pt.BestAskPrice,
-		"BestAskAmount":     pt.BestAskPrice,
+		"BestBidPrice":  pt.BestBidPrice,
+		"BestBidAmount": pt.BestBidAmount,
+		"BestAskPrice":  pt.BestAskPrice,
+		"BestAskAmount": pt.BestAskPrice,
 	}
 	tags := map[string]string{
 		"instr":    pt.Instrument,

@@ -3,11 +3,12 @@ package bean
 import (
 	util "bean/utils"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
 	"math"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 // OrderBook extends the OrderBookCore functions (insert, cancel, edit, retrieve)
@@ -56,6 +57,7 @@ const (
 	CANCELLED OrderState = "CANCELLED"
 	PARTIAL   OrderState = "PARTIAL"
 	REJECTED  OrderState = "REJECTED"
+	SUSPENDED OrderState = "SUSPENDED"
 )
 
 type Side string

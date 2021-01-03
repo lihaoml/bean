@@ -19,6 +19,8 @@ const (
 )
 
 const ContractDateFormat = "2Jan06"
+const optionPriceRounding = 0.0005
+const futurePriceRounding = 0.5
 
 type Contract struct {
 	name       string
@@ -472,6 +474,14 @@ func (c *Contract) CallPutMirror() *Contract {
 	}
 	p.name = ""
 	return &p
+}
+
+func (c *Contract) RoundPrice(price float64) float64 {
+	if c.IsOption() {
+		return math.Round(price/optionPriceRounding) * optionPriceRounding
+	} else {
+		return math.Round(price/futurePriceRounding) * futurePriceRounding
+	}
 }
 
 // Calculate the implied vol of a contract given its price in LHS coin value spot

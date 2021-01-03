@@ -26,28 +26,29 @@ type ConOBPoint struct {
 
 // ConTxnPoint allows sending of a reported trade for writing to the MDS TRANSACTIONS table
 type ConTxnPoint struct {
-	TimeStamp  time.Time
-	ExName     string
-	Instrument string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
-	Side       Side
-	Price      float64
-	Amount     float64
-	IndexPrice float64
-	Vol        float64
-	MarkVol    float64
-	TxnID      string
-	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
+	TimeStamp    time.Time
+	ExName       string
+	Instrument   string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
+	Side         Side
+	Price        float64
+	Amount       float64
+	OpenInterest float64
+	IndexPrice   float64
+	Vol          float64
+	MarkVol      float64
+	TxnID        string
+	Symbol       string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
 }
 
 type ConBookTickerPoint struct {
-	ExName     string
-	Instrument string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
-	Symbol     string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
-	TimeStamp  time.Time
-	BestBidPrice      float64
-	BestBidAmount     float64
-	BestAskPrice      float64
-	BestAskAmount     float64
+	ExName        string
+	Instrument    string // instrument name, e.g., BTC-PERPETUAL, BTC-27DEC19
+	Symbol        string // contract symbol in exchange, not necessarily for all exchanges, e.g., XBTUSD, XBTZ19
+	TimeStamp     time.Time
+	BestBidPrice  float64
+	BestBidAmount float64
+	BestAskPrice  float64
+	BestAskAmount float64
 }
 
 type SpotTxnPoint struct {
