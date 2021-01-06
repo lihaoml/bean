@@ -49,38 +49,3 @@ func (p Position) PV(asof time.Time, spotPrice, futPrice, vol float64) float64 {
 		return (1.0/p.price - 1.0/futPrice) * spotPrice * p.qty * 10.0
 	}
 }
-
-// in rhs coin spot value
-func (p Position) Vega(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof, spotPrice, futPrice, vol+0.005) - p.PV(asof, spotPrice, futPrice, vol-0.005)
-}
-
-//in lhs coin spot value
-func (p Position) Delta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	deltaFiat := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-
-	return deltaFiat / spotPrice
-}
-
-func (p Position) BucketDelta(asof time.Time, spotPrice, futPrice, vol float64) map[string]float64 {
-	totdelta := (p.PV(asof, spotPrice*1.005, futPrice*1.005, vol) - p.PV(asof, spotPrice*0.995, futPrice*0.995, vol)) * 100.0
-	spotDelta := (p.PV(asof, spotPrice*1.005, futPrice, vol) - p.PV(asof, spotPrice*0.995, futPrice, vol)) * 100.0
-
-	delta := make(map[string]float64)
-	delta["CASH"] = spotDelta / spotPrice
-	delta[p.ExpiryStr()] = (totdelta - spotDelta) / spotPrice
-
-	return delta
-}
-
-//in lhs coin spot value
-func (p Position) Gamma(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	gammaFiat := p.Delta(asof, spotPrice*1.005, futPrice*1.005, vol) - p.Delta(asof, spotPrice*0.995, futPrice*0.995, vol)
-
-	return gammaFiat
-}
-
-//in rhs coin spot value
-func (p Position) Theta(asof time.Time, spotPrice, futPrice, vol float64) float64 {
-	return p.PV(asof.Add(24*time.Hour), spotPrice, futPrice, vol) - p.PV(asof, spotPrice, futPrice, vol)
-}
