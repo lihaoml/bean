@@ -298,6 +298,13 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 			c.isOption = true
 			continue
 		}
+		if s[len(s)-1] == 'k' {
+			if n, err := strconv.Atoi(s[:len(s)-1]); err == nil {
+				c.strike = float64(n) * 1000
+				c.isOption = true
+				continue
+			}
+		}
 		return &c, errors.New("Don't recognise:" + s + example)
 	}
 	return &c, nil

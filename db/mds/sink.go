@@ -17,8 +17,8 @@ type MDSSink struct {
 	stop   chan struct{}
 }
 
-func NewMDSSink(mds *MDS) (mdss *MDSSink) {
-	mdss = &MDSSink{mds: mds, stop: make(chan struct{})}
+func NewMDSSink(mds *MDS, stop chan struct{}) (mdss *MDSSink) {
+	mdss = &MDSSink{mds: mds, stop: stop}
 	mdss.Empty()
 
 	timer := time.NewTicker(5 * time.Second)
