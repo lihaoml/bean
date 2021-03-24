@@ -277,6 +277,9 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		case "XRP":
 			c.underlying = Pair{XRP, USD}
 			continue
+		case "DOT":
+			c.underlying = Pair{DOT, USD}
+			continue
 		case "C":
 			c.callPut = Call
 			c.isOption = true

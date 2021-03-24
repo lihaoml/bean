@@ -18,6 +18,7 @@ const (
 	XBT Coin = "XBT"
 	USD Coin = "USD"
 	ETH Coin = "ETH"
+	DOT Coin = "DOT"
 
 	XRP Coin = "XRP"
 	EOS Coin = "EOS"
@@ -75,11 +76,11 @@ const (
 	LINK    Coin = "LINK"
 	XMR     Coin = "XMR"
 	COMP    Coin = "COMP"
-	XTZ    Coin = "XTZ"
-	WAVES    Coin = "WAVES"
-	UNI Coin = "UNI"
-	PAXG Coin = "PAXG"
-	VITA Coin = "VITA"
+	XTZ     Coin = "XTZ"
+	WAVES   Coin = "WAVES"
+	UNI     Coin = "UNI"
+	PAXG    Coin = "PAXG"
+	VITA    Coin = "VITA"
 )
 
 func (s Coins) Len() int {
