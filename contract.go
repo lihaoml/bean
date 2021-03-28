@@ -291,7 +291,7 @@ func ContractFromPartialName(partialName string) (*Contract, error) {
 		case "":
 			continue
 		}
-		if d, err := time.Parse(ContractDateFormat, strings.ToTitle(s)); err == nil {
+		if d, err := time.Parse(ContractDateFormat+" 15:04", strings.ToTitle(s)+" 08:00"); err == nil {
 			c.expiry = d
 			c.delivery = d
 			continue
